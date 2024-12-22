@@ -23,14 +23,17 @@ Roof_Key :: struct {
 	index:     int,
 }
 
+Roof_Orientation :: enum {
+	Longitudinal,
+	Diagonal,
+}
+
 Roof_Type :: enum {
 	Half_Hip,
 	Half_Gable,
 	Hip,
 	Gable,
 }
-
-Roof_Orientation :: enum {}
 
 Roof :: struct {
 	id:          Roof_Id,
@@ -351,10 +354,10 @@ add_roof :: proc(roof: Roof) -> Roof_Id {
 	start := glsl.min(roof.start, roof.end)
 	end := glsl.max(roof.start, roof.end)
 	for x := int(start.x + 0.5);
-	    x < int(end.x + 0.5) + c.CHUNK_WIDTH;
+	    x < int(end.x + 0.5) + c.CHUNK_WIDTH && x < c.WORLD_WIDTH;
 	    x += c.CHUNK_WIDTH {
 		for z := int(start.y + 0.5);
-		    z < int(end.y + 0.5) + c.CHUNK_DEPTH;
+		    z < int(end.y + 0.5) + c.CHUNK_DEPTH && z < c.WORLD_DEPTH;
 		    z += c.CHUNK_DEPTH {
 			cx := x / c.CHUNK_WIDTH
 			cz := z / c.CHUNK_DEPTH
@@ -383,10 +386,10 @@ remove_roof :: proc(roof: Roof) {
 	start := glsl.min(roof.start, roof.end)
 	end := glsl.max(roof.start, roof.end)
 	for x := int(start.x + 0.5);
-	    x < int(end.x + 0.5) + c.CHUNK_WIDTH;
+	    x < int(end.x + 0.5) + c.CHUNK_WIDTH && x < c.WORLD_WIDTH;
 	    x += c.CHUNK_WIDTH {
 		for z := int(start.y + 0.5);
-		    z < int(end.y + 0.5) + c.CHUNK_DEPTH;
+		    z < int(end.y + 0.5) + c.CHUNK_DEPTH && z < c.WORLD_DEPTH;
 		    z += c.CHUNK_DEPTH {
 			cx := x / c.CHUNK_WIDTH
 			cz := z / c.CHUNK_DEPTH
@@ -415,10 +418,10 @@ update_roof :: proc(roof: Roof) {
 		start := glsl.min(old_roof.start, old_roof.end)
 		end := glsl.max(old_roof.start, old_roof.end)
 		for x := int(start.x + 0.5);
-		    x < int(end.x + 0.5) + c.CHUNK_WIDTH;
+		    x < int(end.x + 0.5) + c.CHUNK_WIDTH && x < c.WORLD_WIDTH;
 		    x += c.CHUNK_WIDTH {
 			for z := int(start.y + 0.5);
-			    z < int(end.y + 0.5) + c.CHUNK_DEPTH;
+			    z < int(end.y + 0.5) + c.CHUNK_DEPTH && z < c.WORLD_DEPTH;
 			    z += c.CHUNK_DEPTH {
 				cx := x / c.CHUNK_WIDTH
 				cz := z / c.CHUNK_DEPTH
@@ -435,14 +438,13 @@ update_roof :: proc(roof: Roof) {
 		start = glsl.min(roof.start, roof.end)
 		end = glsl.max(roof.start, roof.end)
 		for x := int(start.x + 0.5);
-		    x < int(end.x + 0.5) + c.CHUNK_WIDTH;
+		    x < int(end.x + 0.5) + c.CHUNK_WIDTH && x < c.WORLD_WIDTH;
 		    x += c.CHUNK_WIDTH {
 			for z := int(start.y + 0.5);
-			    z < int(end.y + 0.5) + c.CHUNK_DEPTH;
+			    z < int(end.y + 0.5) + c.CHUNK_DEPTH && z < c.WORLD_DEPTH;
 			    z += c.CHUNK_DEPTH {
 				cx := x / c.CHUNK_WIDTH
 				cz := z / c.CHUNK_DEPTH
-				log.info(cx, cz)
 				append(&ctx.chunks[chunk_pos.y][cx][cz].roofs_inside, roof.id)
 			}
 		}
@@ -465,6 +467,242 @@ get_roof_chunk_pos :: proc(roof: Roof) -> glsl.ivec3 {
 	return {chunk_x, chunk_y, chunk_z}
 }
 
+get_longitudinal_roof_face_lights :: proc(
+	roof: ^Roof,
+	size: glsl.vec2,
+) -> [4]glsl.vec4 {
+	if roof.start.x <= roof.end.x && roof.start.y <= roof.end.y {
+		if size.y >= size.x {
+			return(
+				 {
+					{1, 1, 1, 1},
+					{0.8, 0.8, 0.8, 1},
+					{0.6, 0.6, 0.6, 1},
+					{0.4, 0.4, 0.4, 1},
+				} \
+			)
+		}
+		return(
+			 {
+				{0.4, 0.4, 0.4, 1},
+				{1, 1, 1, 1},
+				{0.8, 0.8, 0.8, 1},
+				{0.6, 0.6, 0.6, 1},
+			} \
+		)
+	} else if roof.start.x <= roof.end.x {
+		if size.y < size.x {
+			return(
+				 {
+					{1, 1, 1, 1},
+					{0.8, 0.8, 0.8, 1},
+					{0.6, 0.6, 0.6, 1},
+					{0.4, 0.4, 0.4, 1},
+				} \
+			)
+		}
+		return(
+			 {
+				{0.8, 0.8, 0.8, 1},
+				{0.6, 0.6, 0.6, 1},
+				{0.4, 0.4, 0.4, 1},
+				{1, 1, 1, 1},
+			} \
+		)
+	} else if roof.start.y <= roof.end.y {
+		if size.y >= size.x {
+			return(
+				 {
+					{0.6, 0.6, 0.6, 1},
+					{0.4, 0.4, 0.4, 1},
+					{1, 1, 1, 1},
+					{0.8, 0.8, 0.8, 1},
+				} \
+			)
+		}
+		return(
+			 {
+				{0.4, 0.4, 0.4, 1},
+				{1, 1, 1, 1},
+				{0.8, 0.8, 0.8, 1},
+				{0.6, 0.6, 0.6, 1},
+			} \
+		)
+	}
+	if size.y >= size.x {
+		return(
+			 {
+				{0.6, 0.6, 0.6, 1},
+				{0.4, 0.4, 0.4, 1},
+				{1, 1, 1, 1},
+				{0.8, 0.8, 0.8, 1},
+			} \
+		)
+	}
+	return(
+		 {
+			{0.8, 0.8, 0.8, 1},
+			{0.6, 0.6, 0.6, 1},
+			{0.4, 0.4, 0.4, 1},
+			{1, 1, 1, 1},
+		} \
+	)
+}
+
+get_longitudinal_roof_rotation :: proc(
+	roof: ^Roof,
+	size: glsl.vec2,
+) -> glsl.mat4 {
+	if roof.start.x <= roof.end.x && roof.start.y <= roof.end.y {
+		if size.y >= size.x {
+			return glsl.identity(glsl.mat4)
+		}
+		return glsl.mat4Rotate({0, 1, 0}, 0.5 * math.PI)
+	} else if roof.start.x <= roof.end.x {
+		if size.y >= size.x {
+			return glsl.identity(glsl.mat4)
+		}
+		return glsl.mat4Rotate({0, 1, 0}, 1.5 * math.PI)
+	} else if roof.start.y <= roof.end.y {
+		if size.y >= size.x {
+			return glsl.mat4Rotate({0, 1, 0}, 1.0 * math.PI)
+		}
+		return glsl.mat4Rotate({0, 1, 0}, 0.5 * math.PI)
+	}
+	if size.y >= size.x {
+		return glsl.mat4Rotate({0, 1, 0}, 1.0 * math.PI)
+	}
+	return glsl.mat4Rotate({0, 1, 0}, 1.5 * math.PI)
+}
+
+
+get_diagonal_roof_rotation :: proc(roof: ^Roof, size: glsl.vec2) -> glsl.mat4 {
+	if roof.end.x > roof.start.x {
+		if roof.end.y > roof.start.y {
+			if roof.end.y > roof.start.y + (roof.end.x - roof.start.x) {
+				// log.info("1")
+				return glsl.mat4Rotate({0, 1, 0}, 0.5 * math.PI)
+			}
+			// log.info("2")
+			return glsl.mat4Rotate({0, 1, 0}, 1.5 * math.PI)
+		}
+
+		if roof.end.y > roof.start.y - (roof.end.x - roof.start.x) {
+			// log.info("3")
+			return glsl.mat4Rotate({0, 1, 0}, 0 * math.PI)
+		}
+
+		// log.info("4")
+		return glsl.mat4Rotate({0, 1, 0}, 1 * math.PI)
+	}
+
+	if roof.end.y > roof.start.y {
+		if roof.end.y > roof.start.y + (roof.start.x - roof.end.x) {
+			// log.info("5")
+			return glsl.mat4Rotate({0, 1, 0}, 0 * math.PI)
+		}
+		// log.info("6")
+		return glsl.mat4Rotate({0, 1, 0}, 1 * math.PI)
+	}
+
+	if roof.end.y > roof.start.y - (roof.start.x - roof.end.x) {
+		// log.info("7")
+		return glsl.mat4Rotate({0, 1, 0}, 0.5 * math.PI)
+	}
+
+	// log.info("8")
+	return glsl.mat4Rotate({0, 1, 0}, 1.5 * math.PI)
+}
+
+get_diagonal_roof_face_lights :: proc(
+	roof: ^Roof,
+	size: glsl.vec2,
+) -> [4]glsl.vec4 {
+	if roof.end.x > roof.start.x {
+		if roof.end.y > roof.start.y {
+			if roof.end.y > roof.start.y + (roof.end.x - roof.start.x) {
+				return(
+					 {
+						{0.6, 0.6, 0.6, 1},
+						{0.4, 0.4, 0.4, 1},
+						{1, 1, 1, 1},
+						{0.8, 0.8, 0.8, 1},
+					} \
+				)
+			}
+			return(
+				 {
+					{1, 1, 1, 1},
+					{0.8, 0.8, 0.8, 1},
+					{0.6, 0.6, 0.6, 1},
+					{0.4, 0.4, 0.4, 1},
+				} \
+			)
+		}
+
+		if roof.end.y > roof.start.y - (roof.end.x - roof.start.x) {
+			return(
+				 {
+					{0.4, 0.4, 0.4, 1},
+					{1, 1, 1, 1},
+					{0.8, 0.8, 0.8, 1},
+					{0.6, 0.6, 0.6, 1},
+				} \
+			)
+		}
+
+		return(
+			 {
+				{0.8, 0.8, 0.8, 1},
+				{0.6, 0.6, 0.6, 1},
+				{0.4, 0.4, 0.4, 1},
+				{1, 1, 1, 1},
+			} \
+		)
+	}
+
+	if roof.end.y > roof.start.y {
+		if roof.end.y > roof.start.y + (roof.start.x - roof.end.x) {
+			return(
+				 {
+					{0.4, 0.4, 0.4, 1},
+					{1, 1, 1, 1},
+					{0.8, 0.8, 0.8, 1},
+					{0.6, 0.6, 0.6, 1},
+				} \
+			)
+		}
+		return(
+			 {
+				{0.8, 0.8, 0.8, 1},
+				{0.6, 0.6, 0.6, 1},
+				{0.4, 0.4, 0.4, 1},
+				{1, 1, 1, 1},
+			} \
+		)
+	}
+
+	if roof.end.y > roof.start.y - (roof.start.x - roof.end.x) {
+		return(
+			 {
+				{0.6, 0.6, 0.6, 1},
+				{0.4, 0.4, 0.4, 1},
+				{1, 1, 1, 1},
+				{0.8, 0.8, 0.8, 1},
+			} \
+		)
+	}
+
+	return(
+		 {
+			{1, 1, 1, 1},
+			{0.8, 0.8, 0.8, 1},
+			{0.6, 0.6, 0.6, 1},
+			{0.4, 0.4, 0.4, 1},
+		} \
+	)
+}
+
 @(private = "file")
 draw_roof :: proc(
 	id: Roof_Id,
@@ -475,77 +713,30 @@ draw_roof :: proc(
 	key := ctx.keys[id]
 	roof := &ctx.chunks[key.chunk_pos.y][key.chunk_pos.x][key.chunk_pos.z].roofs[key.index]
 	size := glsl.abs(roof.end - roof.start) + ROOF_SIZE_PADDING
-	rotation: glsl.mat4
-	face_lights := [4]glsl.vec4 {
-		{1, 1, 1, 1},
-		{0.8, 0.8, 0.8, 1},
-		{0.6, 0.6, 0.6, 1},
-		{0.4, 0.4, 0.4, 1},
+	if roof.orientation == .Diagonal {
+		size = glsl.abs(roof.end - roof.start)
+		max_side := math.max(size.x, size.y)
+		min_side := math.min(size.x, size.y)
+		size = {max_side / 2 + min_side / 2, max_side / 2 - min_side / 2}
+		size += ROOF_SIZE_PADDING
+		size *= math.sqrt(f32(2))
 	}
-	if roof.start.x <= roof.end.x && roof.start.y <= roof.end.y {
-		if size.y >= size.x {
-			rotation = glsl.identity(glsl.mat4)
-		} else {
-			rotation = glsl.mat4Rotate({0, 1, 0}, 0.5 * math.PI)
-			face_lights =  {
-				{0.4, 0.4, 0.4, 1},
-				{1, 1, 1, 1},
-				{0.8, 0.8, 0.8, 1},
-				{0.6, 0.6, 0.6, 1},
-			}
-		}
-	} else if roof.start.x <= roof.end.x {
-		if size.y >= size.x {
-			rotation = glsl.identity(glsl.mat4)
-		} else {
-			rotation = glsl.mat4Rotate({0, 1, 0}, 1.5 * math.PI)
-			face_lights =  {
-				{0.8, 0.8, 0.8, 1},
-				{0.6, 0.6, 0.6, 1},
-				{0.4, 0.4, 0.4, 1},
-				{1, 1, 1, 1},
-			}
-		}
-	} else if roof.start.y <= roof.end.y {
-		if size.y >= size.x {
-			rotation = glsl.mat4Rotate({0, 1, 0}, 1.0 * math.PI)
-			face_lights =  {
-				{0.6, 0.6, 0.6, 1},
-				{0.4, 0.4, 0.4, 1},
-				{1, 1, 1, 1},
-				{0.8, 0.8, 0.8, 1},
-			}
-		} else {
-			rotation = glsl.mat4Rotate({0, 1, 0}, 0.5 * math.PI)
-			face_lights =  {
-				{0.4, 0.4, 0.4, 1},
-				{1, 1, 1, 1},
-				{0.8, 0.8, 0.8, 1},
-				{0.6, 0.6, 0.6, 1},
-			}
-		}
+	rotation: glsl.mat4
+	face_lights: [4]glsl.vec4
+	if roof.orientation == .Diagonal {
+		rotation = get_diagonal_roof_rotation(roof, size)
+		face_lights = get_diagonal_roof_face_lights(roof, size)
 	} else {
-		if size.y >= size.x {
-			rotation = glsl.mat4Rotate({0, 1, 0}, 1.0 * math.PI)
-			face_lights =  {
-				{0.6, 0.6, 0.6, 1},
-				{0.4, 0.4, 0.4, 1},
-				{1, 1, 1, 1},
-				{0.8, 0.8, 0.8, 1},
-			}
-		} else {
-			rotation = glsl.mat4Rotate({0, 1, 0}, 1.5 * math.PI)
-			face_lights =  {
-				{0.8, 0.8, 0.8, 1},
-				{0.6, 0.6, 0.6, 1},
-				{0.4, 0.4, 0.4, 1},
-				{1, 1, 1, 1},
-			}
-		}
+		rotation = get_longitudinal_roof_rotation(roof, size)
+		face_lights = get_longitudinal_roof_face_lights(roof, size)
 	}
 
 	for &light in face_lights {
 		light *= roof.light
+	}
+
+	if roof.orientation == .Diagonal {
+		rotation = rotation * glsl.mat4Rotate({0, 1, 0}, 0.25 * math.PI)
 	}
 
 	switch roof.type {

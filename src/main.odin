@@ -23,7 +23,7 @@ import "ui"
 import "window"
 import "world"
 
-TITLE :: "My Window!"
+TITLE :: "Bidou"
 
 delta_time: f64
 

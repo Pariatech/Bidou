@@ -419,13 +419,11 @@ draw_wall_roof_slope_mesh :: proc(
 		vertex.pos = vertices[i].pos
 		vertex.texcoords.xy = vertices[i].texcoords.xy
 		vertex.pos.y *= roof_slope.height
-		log.info("before:", vertex.pos.y, vertex.texcoords.y)
         if vertex.texcoords.y == 0 {
 		    vertex.texcoords.y = (3 - (roof_slope.height + wall_height)) / 3
         } else {
 		    vertex.texcoords.y = (3 - wall_height) / 3
         }
-		log.info("after:", vertex.pos.y, vertex.texcoords.y)
 		vertex.light = light
 		vertex.texcoords.z = f32(texture)
 
