@@ -512,17 +512,14 @@ add_diagonal_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 		if roof.end.y > roof.start.y {
 			c0 := roof.end.y + roof.end.x
 			c1 := roof.start.y - roof.start.x
-			// ix := math.ceil((c0 - c1) / 2)
 			ix := math.ceil((c0 - c1) / 2)
-			log.info(c0, c1, roof.end.x)
+			offset := i32(ix - roof.start.x)
 
 			if roof.end.y > roof.start.y + (roof.end.x - roof.start.x) {
 				width := ix - (roof.end.x + 0.5)
-                trunc_half := math.trunc(width / 2)
-                ceil_half := math.ceil(width / 2)
-				log.info("1", ix, (roof.end.x + 0.5), width)
-				// x := roof.end.x
-				// for x, i in (roof.end.x + 0.5) ..< ix {
+				trunc_half := math.trunc(width / 2)
+				ceil_half := math.ceil(width / 2)
+
 				for x, i in (roof.end.x + 0.5) ..< ix - math.ceil(width / 2) {
 					add_wall(
 						{i32(x), floor, i32(roof.end.y) - i32(i)},
@@ -542,11 +539,56 @@ add_diagonal_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 							},
 						},
 					)
+					add_wall(
+						 {
+							i32(x) - offset,
+							floor,
+							i32(roof.end.y) - i32(i) - offset,
+						},
+						.NW_SE,
+						 {
+							type = .Side,
+							textures = {.Inside = .Brick, .Outside = .Brick},
+							mask = .Full_Mask,
+							state = .Up,
+							height = (f32(i) +
+								ROOF_SIZE_PADDING.y / 2 -
+								0.01) *
+							roof.slope,
+							roof_slope = Wall_Roof_Slope {
+								height = roof.slope,
+								type = .Right_Side,
+							},
+						},
+					)
 				}
 
 				if math.ceil(width / 2) != math.trunc(width / 2) {
+					pos := glsl.ivec3 {
+						i32(roof.end.x + 0.5 + trunc_half),
+						floor,
+						i32(roof.end.y - trunc_half),
+					}
 					add_wall(
-						{i32(roof.end.x + 0.5 + trunc_half), floor, i32(roof.end.y - trunc_half)},
+						pos,
+						.NW_SE,
+						 {
+							type = .Side,
+							textures = {.Inside = .Brick, .Outside = .Brick},
+							mask = .Full_Mask,
+							state = .Up,
+							height = (trunc_half +
+								ROOF_SIZE_PADDING.y / 2 -
+								0.01) *
+							roof.slope,
+							roof_slope = Wall_Roof_Slope {
+								height = roof.slope / 2,
+								type = .Peak,
+							},
+						},
+					)
+					add_wall(
+						pos - {offset, 0, offset},
 						.NW_SE,
 						 {
 							type = .Side,
@@ -565,22 +607,41 @@ add_diagonal_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 					)
 				}
 
-				for x, i in (roof.end.x + 0.5) + math.ceil(width / 2) ..< ix {
+				for x, i in (roof.end.x + 0.5) + ceil_half ..< ix {
+					pos := glsl.ivec3 {
+						i32(x),
+						floor,
+						i32(roof.end.y) - i32(i) - i32(ceil_half),
+					}
 					add_wall(
-						 {
-							i32(x),
-							floor,
-							i32(roof.end.y) -
-							i32(i) -
-							i32(math.ceil(width / 2)),
-						},
+						pos,
 						.NW_SE,
 						 {
 							type = .Side,
 							textures = {.Inside = .Brick, .Outside = .Brick},
 							mask = .Full_Mask,
 							state = .Up,
-							height = (math.trunc(width / 2) -
+							height = (trunc_half -
+								f32(i) -
+								1 +
+								ROOF_SIZE_PADDING.y / 2 -
+								0.01) *
+							roof.slope,
+							roof_slope = Wall_Roof_Slope {
+								height = roof.slope,
+								type = .Left_Side,
+							},
+						},
+					)
+					add_wall(
+						pos - {offset, 0, offset},
+						.NW_SE,
+						 {
+							type = .Side,
+							textures = {.Inside = .Brick, .Outside = .Brick},
+							mask = .Full_Mask,
+							state = .Up,
+							height = (trunc_half -
 								f32(i) -
 								1 +
 								ROOF_SIZE_PADDING.y / 2 -
@@ -606,11 +667,17 @@ add_diagonal_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 							mask = .Full_Mask,
 							state = .Up,
 							height = 3,
-							roof_slope = Wall_Roof_Slope {// height = (f32(i) +
-								height = roof.slope,// 	ROOF_SIZE_PADDING.y / 2 -
-								type = .Left_Side,// 	0.01) *
+							roof_slope = Wall_Roof_Slope {
+								height = roof.slope,
+								type = .Left_Side,
 							},
-						},// roof.slope,
+						}, // height = (f32(i) +
+
+						// 	ROOF_SIZE_PADDING.y / 2 -
+
+						// 	0.01) *
+
+						// roof.slope,
 					)
 				}
 			}
@@ -653,11 +720,17 @@ add_diagonal_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 							mask = .Full_Mask,
 							state = .Up,
 							height = 3,
-							roof_slope = Wall_Roof_Slope {// height = (f32(i) +
-								height = roof.slope,// 	ROOF_SIZE_PADDING.y / 2 -
-								type = .Left_Side,// 	0.01) *
+							roof_slope = Wall_Roof_Slope {
+								height = roof.slope,
+								type = .Left_Side,
 							},
-						},// roof.slope,
+						}, // height = (f32(i) +
+
+						// 	ROOF_SIZE_PADDING.y / 2 -
+
+						// 	0.01) *
+
+						// roof.slope,
 					)
 				}
 			} else {
@@ -672,11 +745,17 @@ add_diagonal_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 							mask = .Full_Mask,
 							state = .Up,
 							height = 3,
-							roof_slope = Wall_Roof_Slope {// height = (f32(i) +
-								height = roof.slope,// 	ROOF_SIZE_PADDING.y / 2 -
-								type = .Left_Side,// 	0.01) *
+							roof_slope = Wall_Roof_Slope {
+								height = roof.slope,
+								type = .Left_Side,
 							},
-						},// roof.slope,
+						}, // height = (f32(i) +
+
+						// 	ROOF_SIZE_PADDING.y / 2 -
+
+						// 	0.01) *
+
+						// roof.slope,
 					)
 				}
 			}
