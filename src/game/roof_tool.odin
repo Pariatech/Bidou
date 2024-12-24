@@ -46,7 +46,7 @@ init_roof_tool :: proc() {
 
 	ctx.roof.slope = 1
 	ctx.roof.color = "big_square_tiles"
-    ctx.roof.orientation = .Diagonal
+	ctx.roof.orientation = .Diagonal
 	// ctx.angle_str = fmt.aprint("45", "°", sep = "")
 
 	get_roofs_context().floor_offset = 1
@@ -127,21 +127,21 @@ set_roof_tool_state :: proc(state: Roof_Tool_State) {
 toggle_roof_tool_state :: proc(state: Roof_Tool_State) {
 	ctx := get_roof_tool_context()
 
-    if ctx.state == state {
-        transition_to_idle_roof_state()
-	    ctx.state = .Idle
-        return
-    }
+	if ctx.state == state {
+		transition_to_idle_roof_state()
+		ctx.state = .Idle
+		return
+	}
 
 	set_roof_tool_state(state)
 }
 
 is_roof_tool_state_removing :: proc() -> bool {
-    return get_roof_tool_context().state == .Removing
+	return get_roof_tool_context().state == .Removing
 }
 
 is_roof_tool_state_painting :: proc() -> bool {
-    return get_roof_tool_context().state == .Painting
+	return get_roof_tool_context().state == .Painting
 }
 
 get_roof_tool_roof_angle :: proc() -> f32 {
@@ -488,6 +488,11 @@ add_gable_roof_walls :: proc(roof: Roof) {
 	tile_height := terrain.get_tile_height(int(t_start.x), int(t_start.y))
 	floor := i32((roof.offset - tile_height) / 3)
 
+	if roof.orientation == .Diagonal {
+		add_diagonal_gable_roof_walls(roof, floor)
+		return
+	}
+
 	start := glsl.min(t_start, t_end)
 	end := glsl.max(t_start, t_end)
 	size := end - start
@@ -496,6 +501,186 @@ add_gable_roof_walls :: proc(roof: Roof) {
 		add_north_south_gable_roof_walls(roof, start, end, size, floor)
 	} else {
 		add_east_west_gable_roof_walls(roof, start, end, size, floor)
+	}
+}
+
+@(private = "file")
+add_diagonal_gable_roof_walls :: proc(roof: Roof, floor: i32) {
+	roof := roof
+	snap_roof(&roof)
+	if roof.end.x > roof.start.x {
+		if roof.end.y > roof.start.y {
+			c0 := roof.end.y + roof.end.x
+			c1 := roof.start.y - roof.start.x
+			// ix := math.ceil((c0 - c1) / 2)
+			ix := math.ceil((c0 - c1) / 2)
+			log.info(c0, c1, roof.end.x)
+
+			if roof.end.y > roof.start.y + (roof.end.x - roof.start.x) {
+				width := ix - (roof.end.x + 0.5)
+                trunc_half := math.trunc(width / 2)
+                ceil_half := math.ceil(width / 2)
+				log.info("1", ix, (roof.end.x + 0.5), width)
+				// x := roof.end.x
+				// for x, i in (roof.end.x + 0.5) ..< ix {
+				for x, i in (roof.end.x + 0.5) ..< ix - math.ceil(width / 2) {
+					add_wall(
+						{i32(x), floor, i32(roof.end.y) - i32(i)},
+						.NW_SE,
+						 {
+							type = .Side,
+							textures = {.Inside = .Brick, .Outside = .Brick},
+							mask = .Full_Mask,
+							state = .Up,
+							height = (f32(i) +
+								ROOF_SIZE_PADDING.y / 2 -
+								0.01) *
+							roof.slope,
+							roof_slope = Wall_Roof_Slope {
+								height = roof.slope,
+								type = .Right_Side,
+							},
+						},
+					)
+				}
+
+				if math.ceil(width / 2) != math.trunc(width / 2) {
+					add_wall(
+						{i32(roof.end.x + 0.5 + trunc_half), floor, i32(roof.end.y - trunc_half)},
+						.NW_SE,
+						 {
+							type = .Side,
+							textures = {.Inside = .Brick, .Outside = .Brick},
+							mask = .Full_Mask,
+							state = .Up,
+							height = (trunc_half +
+								ROOF_SIZE_PADDING.y / 2 -
+								0.01) *
+							roof.slope,
+							roof_slope = Wall_Roof_Slope {
+								height = roof.slope / 2,
+								type = .Peak,
+							},
+						},
+					)
+				}
+
+				for x, i in (roof.end.x + 0.5) + math.ceil(width / 2) ..< ix {
+					add_wall(
+						 {
+							i32(x),
+							floor,
+							i32(roof.end.y) -
+							i32(i) -
+							i32(math.ceil(width / 2)),
+						},
+						.NW_SE,
+						 {
+							type = .Side,
+							textures = {.Inside = .Brick, .Outside = .Brick},
+							mask = .Full_Mask,
+							state = .Up,
+							height = (math.trunc(width / 2) -
+								f32(i) -
+								1 +
+								ROOF_SIZE_PADDING.y / 2 -
+								0.01) *
+							roof.slope,
+							roof_slope = Wall_Roof_Slope {
+								height = roof.slope,
+								type = .Left_Side,
+							},
+						},
+					)
+				}
+			} else {
+				log.info("2", ix)
+				for x, i in ix ..< roof.end.x {
+					log.info(i)
+					add_wall(
+						{i32(x), floor, i32(roof.end.y) - i32(i)},
+						.NW_SE,
+						 {
+							type = .Side,
+							textures = {.Inside = .Brick, .Outside = .Brick},
+							mask = .Full_Mask,
+							state = .Up,
+							height = 3,
+							roof_slope = Wall_Roof_Slope {// height = (f32(i) +
+								height = roof.slope,// 	ROOF_SIZE_PADDING.y / 2 -
+								type = .Left_Side,// 	0.01) *
+							},
+						},// roof.slope,
+					)
+				}
+			}
+		} else {
+			c0 := roof.end.y - roof.end.x
+			c1 := roof.start.y + roof.start.x
+			x := (-c0 + c1) / 2
+
+			if roof.end.y > roof.start.y - (roof.end.x - roof.start.x) {
+
+			} else {
+
+			}
+		}
+	} else {
+		if roof.end.y > roof.start.y {
+			c0 := roof.end.y - roof.end.x
+			c1 := roof.start.y - roof.start.x
+			x := (-c0 + c1) / 2
+
+			if roof.end.y > roof.start.y + (roof.start.x - roof.end.x) {
+
+			} else {
+
+			}
+		} else {
+			c0 := roof.end.y + roof.end.x
+			c1 := roof.start.y - roof.start.x
+			ix := (c0 - c1) / 2
+
+			if roof.end.y > roof.start.y - (roof.start.x - roof.end.x) {
+				log.info("3", ix)
+				for x, i in roof.end.x ..< ix {
+					add_wall(
+						{i32(x), floor, i32(roof.end.y) - i32(i)},
+						.NW_SE,
+						 {
+							type = .Side,
+							textures = {.Inside = .Brick, .Outside = .Brick},
+							mask = .Full_Mask,
+							state = .Up,
+							height = 3,
+							roof_slope = Wall_Roof_Slope {// height = (f32(i) +
+								height = roof.slope,// 	ROOF_SIZE_PADDING.y / 2 -
+								type = .Left_Side,// 	0.01) *
+							},
+						},// roof.slope,
+					)
+				}
+			} else {
+				log.info("4", ix)
+				for x, i in ix ..< roof.end.x {
+					add_wall(
+						{i32(x), floor, i32(roof.end.y) - i32(i)},
+						.NW_SE,
+						 {
+							type = .Side,
+							textures = {.Inside = .Brick, .Outside = .Brick},
+							mask = .Full_Mask,
+							state = .Up,
+							height = 3,
+							roof_slope = Wall_Roof_Slope {// height = (f32(i) +
+								height = roof.slope,// 	ROOF_SIZE_PADDING.y / 2 -
+								type = .Left_Side,// 	0.01) *
+							},
+						},// roof.slope,
+					)
+				}
+			}
+		}
 	}
 }
 
@@ -928,7 +1113,8 @@ handle_roof_tool_removing :: proc() -> Roof_Tool_State {
 		update_roof(roof)
 	}
 
-	if keyboard.is_key_release(.Key_Left_Control) || keyboard.is_key_press(.Key_Escape)  {
+	if keyboard.is_key_release(.Key_Left_Control) ||
+	   keyboard.is_key_press(.Key_Escape) {
 		transition_to_idle_roof_state()
 		return .Idle
 	}
@@ -968,7 +1154,8 @@ handle_roof_tool_painting :: proc() -> Roof_Tool_State {
 		update_roof(roof)
 	}
 
-	if keyboard.is_key_release(.Key_Left_Shift) || keyboard.is_key_press(.Key_Escape) {
+	if keyboard.is_key_release(.Key_Left_Shift) ||
+	   keyboard.is_key_press(.Key_Escape) {
 		transition_to_idle_roof_state()
 		return .Idle
 	}

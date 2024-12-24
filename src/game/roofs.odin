@@ -16,6 +16,24 @@ import "../floor"
 import "../renderer"
 import "../terrain"
 
+// @(private = "file")
+ROOF_SIZE_PADDING :: glsl.vec2{0.4, 0.4}
+
+ROOF_TEXTURES :: [?]cstring {
+	"resources/textures/roofs/Eave.png",
+	"resources/roofs/colors/long_tiles/128x128.png",
+	// "resources/textures/roofs/RoofingTiles002.png",
+	"resources/roofs/colors/long_tiles/capping_128x128.png",
+}
+
+ROOF_SHADER :: Shader {
+	vertex   = "resources/shaders/roof.vert",
+	fragment = "resources/shaders/roof.frag",
+}
+
+@(private = "file")
+EAVE_TEXTURE :: "resources/textures/roofs/Eave.png"
+
 Roof_Id :: int
 
 Roof_Key :: struct {
@@ -93,21 +111,6 @@ Texture_Array :: struct {
 }
 
 Roof_Color_Map :: map[string]Roof_Color
-
-ROOF_TEXTURES :: [?]cstring {
-	"resources/textures/roofs/Eave.png",
-	"resources/roofs/colors/long_tiles/128x128.png",
-	// "resources/textures/roofs/RoofingTiles002.png",
-	"resources/roofs/colors/long_tiles/capping_128x128.png",
-}
-
-ROOF_SHADER :: Shader {
-	vertex   = "resources/shaders/roof.vert",
-	fragment = "resources/shaders/roof.frag",
-}
-
-@(private = "file")
-EAVE_TEXTURE :: "resources/textures/roofs/Eave.png"
 
 init_roofs :: proc() -> bool {
 	roofs := get_roofs_context()
@@ -407,16 +410,22 @@ remove_roof :: proc(roof: Roof) {
 }
 
 update_roof :: proc(roof: Roof) {
+	roof := roof
 	ctx := get_roofs_context()
 	key := &ctx.keys[roof.id]
 	chunk_pos := key.chunk_pos
 	chunk := &ctx.chunks[chunk_pos.y][chunk_pos.x][chunk_pos.z]
 	chunk.dirty = true
 
+	snap_roof(&roof)
+
 	old_roof := chunk.roofs[key.index]
 	if old_roof.start != roof.start || old_roof.end != roof.end {
 		start := glsl.min(old_roof.start, old_roof.end)
 		end := glsl.max(old_roof.start, old_roof.end)
+
+		// log.info(roof.start, roof.end, is_roof_snapable(roof))
+
 		for x := int(start.x + 0.5);
 		    x < int(end.x + 0.5) + c.CHUNK_WIDTH && x < c.WORLD_WIDTH;
 		    x += c.CHUNK_WIDTH {
@@ -453,7 +462,24 @@ update_roof :: proc(roof: Roof) {
 }
 
 // @(private = "file")
-ROOF_SIZE_PADDING :: glsl.vec2{0.4, 0.4}
+snap_roof :: proc(roof: ^Roof) {
+	if roof.orientation != .Diagonal {
+		return 
+	}
+
+	size := glsl.abs(roof.end - roof.start)
+	max_side := math.max(size.x, size.y)
+	min_side := math.min(size.x, size.y)
+	size = {max_side / 2 + min_side / 2, max_side / 2 - min_side / 2}
+
+	// log.info(size, glsl.trunc(size) == size)
+	if glsl.trunc(size) == size {
+	// if glsl.trunc(size) + {0.5, 0.5} == size {
+		return
+	}
+	roof.end.x -= 1
+	// return glsl.trunc(size) == size
+}
 
 @(private = "file")
 get_roof_chunk_pos :: proc(roof: Roof) -> glsl.ivec3 {
@@ -467,6 +493,7 @@ get_roof_chunk_pos :: proc(roof: Roof) -> glsl.ivec3 {
 	return {chunk_x, chunk_y, chunk_z}
 }
 
+@(private = "file")
 get_longitudinal_roof_face_lights :: proc(
 	roof: ^Roof,
 	size: glsl.vec2,
@@ -549,6 +576,7 @@ get_longitudinal_roof_face_lights :: proc(
 	)
 }
 
+@(private = "file")
 get_longitudinal_roof_rotation :: proc(
 	roof: ^Roof,
 	size: glsl.vec2,
@@ -576,6 +604,7 @@ get_longitudinal_roof_rotation :: proc(
 }
 
 
+@(private = "file")
 get_diagonal_roof_rotation :: proc(roof: ^Roof, size: glsl.vec2) -> glsl.mat4 {
 	if roof.end.x > roof.start.x {
 		if roof.end.y > roof.start.y {
@@ -614,6 +643,7 @@ get_diagonal_roof_rotation :: proc(roof: ^Roof, size: glsl.vec2) -> glsl.mat4 {
 	return glsl.mat4Rotate({0, 1, 0}, 1.5 * math.PI)
 }
 
+@(private = "file")
 get_diagonal_roof_face_lights :: proc(
 	roof: ^Roof,
 	size: glsl.vec2,
