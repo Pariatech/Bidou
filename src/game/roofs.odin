@@ -749,7 +749,7 @@ draw_roof :: proc(
 		min_side := math.min(size.x, size.y)
 		size = {max_side / 2 + min_side / 2, max_side / 2 - min_side / 2}
 		size += ROOF_SIZE_PADDING
-		size *= math.sqrt(f32(2))
+		size *= SQRT_2
 	}
 	rotation: glsl.mat4
 	face_lights: [4]glsl.vec4

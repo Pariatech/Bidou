@@ -19,6 +19,7 @@ Diagonal_Wall_Mask :: enum {
 
 DIAGONAL_WALL_TOP_CROSS_OFFSET :: -0.0002
 DIAGONAL_WALL_TOP_OFFSET :: 0.0003
+SQRT_2 :: 1.4142
 
 DIAGONAL_WALL_MASK_MODEL_NAME_MAP :: [Wall_Type][Wall_Side]string {
 	.Start =  {
@@ -117,7 +118,7 @@ draw_diagonal_wall :: proc(
 
 	light := glsl.vec3{0.95, 0.95, 0.95}
 
-    models := get_models_context()
+	models := get_models_context()
 	for texture, side in wall.textures {
 		model_name_map := DIAGONAL_WALL_MASK_MODEL_NAME_MAP
 		model_name := model_name_map[wall.type][side]
@@ -131,26 +132,55 @@ draw_diagonal_wall :: proc(
 			texture,
 			wall.mask,
 			light,
-            wall.height,
+			wall.height * SQRT_2,
 			vertex_buffer,
 			index_buffer,
 		)
 	}
 
-	model_name_map := DIAGONAL_WALL_TYPE_TOP_MODEL_NAME_MAP
-	model_name := model_name_map[wall.type]
-	model := models.models[model_name]
-	vertices := model.vertices[:]
-	indices := model.indices[:]
-	draw_wall_mesh(
-		vertices,
-		indices,
-		transform,
-		.Wall_Top,
-		.Full_Mask,
-		light,
-        wall.height,
-		vertex_buffer,
-		index_buffer,
-	)
+
+	if roof_slope, ok := wall.roof_slope.?; ok {
+        roof_slope := roof_slope
+        roof_slope.height *= SQRT_2
+		for texture, side in wall.textures {
+			draw_wall_roof_slope_mesh(
+				transform,
+				texture,
+				light,
+				side,
+				roof_slope,
+				wall.height * SQRT_2,
+				.Diagonal,
+				vertex_buffer,
+				index_buffer,
+			)
+		}
+
+		draw_wall_roof_slope_top_mesh(
+			transform,
+			light,
+			roof_slope,
+			wall.height * SQRT_2,
+			.Diagonal,
+			vertex_buffer,
+			index_buffer,
+		)
+	} else {
+		model_name_map := DIAGONAL_WALL_TYPE_TOP_MODEL_NAME_MAP
+		model_name := model_name_map[wall.type]
+		model := models.models[model_name]
+		vertices := model.vertices[:]
+		indices := model.indices[:]
+		draw_wall_mesh(
+			vertices,
+			indices,
+			transform,
+			.Wall_Top,
+			.Full_Mask,
+			light,
+			wall.height,
+			vertex_buffer,
+			index_buffer,
+		)
+	}
 }

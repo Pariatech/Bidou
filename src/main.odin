@@ -159,7 +159,6 @@ start :: proc() -> (ok: bool = false) {
 		camera.update(delta_time)
 
 		world.update()
-
 		game.update_cutaways()
 
 

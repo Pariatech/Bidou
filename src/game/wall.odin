@@ -171,26 +171,50 @@ WALL_MASK_PATHS :: [Wall_Mask_Texture]cstring {
 
 @(private = "file")
 WALL_ROOF_SLOPE_TYPE_MODEL_NAME_MAP ::
-	[Wall_Roof_Slope_Type][Wall_Side]string {
-		.Left_Side =  {
-			.Outside = "Wall_Roof_Slope_Left_Outside",
-			.Inside = "Wall_Roof_Slope_Left_Inside",
+	[Roof_Orientation][Wall_Roof_Slope_Type][Wall_Side]string {
+		.Longitudinal =  {
+			.Left_Side =  {
+				.Outside = "Wall_Roof_Slope_Left_Outside",
+				.Inside = "Wall_Roof_Slope_Left_Inside",
+			},
+			.Right_Side =  {
+				.Outside = "Wall_Roof_Slope_Right_Outside",
+				.Inside = "Wall_Roof_Slope_Right_Inside",
+			},
+			.Peak =  {
+				.Outside = "Wall_Roof_Slope_Peak_Outside",
+				.Inside = "Wall_Roof_Slope_Peak_Inside",
+			},
 		},
-		.Right_Side =  {
-			.Outside = "Wall_Roof_Slope_Right_Outside",
-			.Inside = "Wall_Roof_Slope_Right_Inside",
-		},
-		.Peak =  {
-			.Outside = "Wall_Roof_Slope_Peak_Outside",
-			.Inside = "Wall_Roof_Slope_Peak_Inside",
+		.Diagonal =  {
+			.Left_Side =  {
+				.Outside = "Wall_Roof_Slope_Diagonal_Left_Outside",
+				.Inside = "Wall_Roof_Slope_Diagonal_Left_Inside",
+			},
+			.Right_Side =  {
+				.Outside = "Wall_Roof_Slope_Diagonal_Right_Outside",
+				.Inside = "Wall_Roof_Slope_Diagonal_Right_Inside",
+			},
+			.Peak =  {
+				.Outside = "Wall_Roof_Slope_Diagonal_Peak_Outside",
+				.Inside = "Wall_Roof_Slope_Diagonal_Peak_Inside",
+			},
 		},
 	}
 
 @(private = "file")
-WALL_ROOF_SLOPE_TYPE_MODEL_TOP_NAME_MAP :: [Wall_Roof_Slope_Type]string {
-		.Left_Side  = "Wall_Roof_Slope_Left_Top",
-		.Right_Side = "Wall_Roof_Slope_Right_Top",
-		.Peak       = "Wall_Roof_Slope_Peak_Top",
+WALL_ROOF_SLOPE_TYPE_MODEL_TOP_NAME_MAP ::
+	[Roof_Orientation][Wall_Roof_Slope_Type]string {
+		.Longitudinal =  {
+			.Left_Side = "Wall_Roof_Slope_Left_Top",
+			.Right_Side = "Wall_Roof_Slope_Right_Top",
+			.Peak = "Wall_Roof_Slope_Peak_Top",
+		},
+		.Diagonal =  {
+			.Left_Side = "Wall_Roof_Slope_Diagonal_Left_Top",
+			.Right_Side = "Wall_Roof_Slope_Diagonal_Right_Top",
+			.Peak = "Wall_Roof_Slope_Diagonal_Peak_Top",
+		},
 	}
 
 @(private = "file")
@@ -393,7 +417,6 @@ draw_wall_mesh :: proc(
 	}
 }
 
-@(private = "file")
 draw_wall_roof_slope_mesh :: proc(
 	transform: glsl.mat4,
 	texture: Wall_Texture,
@@ -401,13 +424,14 @@ draw_wall_roof_slope_mesh :: proc(
 	side: Wall_Side,
 	roof_slope: Wall_Roof_Slope,
 	wall_height: f32,
+	orientation: Roof_Orientation,
 	vertex_buffer: ^[dynamic]Wall_Vertex,
 	index_buffer: ^[dynamic]Wall_Index,
 ) {
 	models := get_models_context()
 
 	model_name_map := WALL_ROOF_SLOPE_TYPE_MODEL_NAME_MAP
-	model_name := model_name_map[roof_slope.type][side]
+	model_name := model_name_map[orientation][roof_slope.type][side]
 	model := models.models[model_name]
 	vertices := model.vertices[:]
 	indices := model.indices[:]
@@ -419,11 +443,11 @@ draw_wall_roof_slope_mesh :: proc(
 		vertex.pos = vertices[i].pos
 		vertex.texcoords.xy = vertices[i].texcoords.xy
 		vertex.pos.y *= roof_slope.height
-        if vertex.texcoords.y == 0 {
-		    vertex.texcoords.y = (3 - (roof_slope.height + wall_height)) / 3
-        } else {
-		    vertex.texcoords.y = (3 - wall_height) / 3
-        }
+		if vertex.texcoords.y == 0 {
+			vertex.texcoords.y = (3 - (roof_slope.height + wall_height)) / 3
+		} else {
+			vertex.texcoords.y = (3 - wall_height) / 3
+		}
 		vertex.light = light
 		vertex.texcoords.z = f32(texture)
 
@@ -438,19 +462,19 @@ draw_wall_roof_slope_mesh :: proc(
 	}
 }
 
-@(private = "file")
 draw_wall_roof_slope_top_mesh :: proc(
 	transform: glsl.mat4,
 	light: glsl.vec3,
 	roof_slope: Wall_Roof_Slope,
 	wall_height: f32,
+	orientation: Roof_Orientation,
 	vertex_buffer: ^[dynamic]Wall_Vertex,
 	index_buffer: ^[dynamic]Wall_Index,
 ) {
 	models := get_models_context()
 
 	model_name_map := WALL_ROOF_SLOPE_TYPE_MODEL_TOP_NAME_MAP
-	model_name := model_name_map[roof_slope.type]
+	model_name := model_name_map[orientation][roof_slope.type]
 	model := models.models[model_name]
 	vertices := model.vertices[:]
 	indices := model.indices[:]
@@ -530,19 +554,21 @@ draw_wall :: proc(
 				side,
 				roof_slope,
 				wall.height,
-				vertex_buffer,
-				index_buffer,
-			)
-
-			draw_wall_roof_slope_top_mesh(
-				transform,
-				light,
-				roof_slope,
-				wall.height,
+				.Longitudinal,
 				vertex_buffer,
 				index_buffer,
 			)
 		}
+
+		draw_wall_roof_slope_top_mesh(
+			transform,
+			light,
+			roof_slope,
+			wall.height,
+			.Longitudinal,
+			vertex_buffer,
+			index_buffer,
+		)
 	} else {
 		model_name_map := WALL_TYPE_TOP_MODEL_NAME_MAP
 		model_name := model_name_map[wall.type]
