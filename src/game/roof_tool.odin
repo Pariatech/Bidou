@@ -563,7 +563,7 @@ add_diagonal_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 					)
 				}
 
-				if math.ceil(width / 2) != math.trunc(width / 2) {
+				if ceil_half != trunc_half {
 					pos := glsl.ivec3 {
 						i32(roof.end.x + 0.5 + trunc_half),
 						floor,
@@ -656,30 +656,145 @@ add_diagonal_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 				}
 			} else {
 				log.info("2", ix)
-				for x, i in ix ..< roof.end.x {
-					log.info(i)
+				width := (roof.end.x + 0.5) - ix
+				trunc_half := math.trunc(width / 2)
+				ceil_half := math.ceil(width / 2)
+
+				for x, i in ix ..< (roof.end.x + 0.5) - ceil_half {
 					add_wall(
-						{i32(x), floor, i32(roof.end.y) - i32(i)},
+						{i32(x), floor, i32(roof.end.y + width) - i32(i)},
 						.NW_SE,
 						 {
 							type = .Side,
 							textures = {.Inside = .Brick, .Outside = .Brick},
 							mask = .Full_Mask,
 							state = .Up,
-							height = 3,
+							height = (f32(i) +
+								ROOF_SIZE_PADDING.y / 2 -
+								0.01) *
+							roof.slope,
+							roof_slope = Wall_Roof_Slope {
+								height = roof.slope,
+								type = .Right_Side,
+							},
+						},
+					)
+					add_wall(
+						 {
+							i32(x) - offset,
+							floor,
+							i32(roof.end.y + width) - i32(i) - offset,
+						},
+						.NW_SE,
+						 {
+							type = .Side,
+							textures = {.Inside = .Brick, .Outside = .Brick},
+							mask = .Full_Mask,
+							state = .Up,
+							height = (f32(i) +
+								ROOF_SIZE_PADDING.y / 2 -
+								0.01) *
+							roof.slope,
+							roof_slope = Wall_Roof_Slope {
+								height = roof.slope,
+								type = .Right_Side,
+							},
+						},
+					)
+				}
+
+				if ceil_half != trunc_half {
+					pos := glsl.ivec3 {
+						i32(roof.end.x + 0.5 - ceil_half),
+						floor,
+						i32(roof.end.y + ceil_half),
+					}
+					add_wall(
+						pos,
+						.NW_SE,
+						 {
+							type = .Side,
+							textures = {.Inside = .Brick, .Outside = .Brick},
+							mask = .Full_Mask,
+							state = .Up,
+							height = (trunc_half +
+								ROOF_SIZE_PADDING.y / 2 -
+								0.01) *
+							roof.slope,
+							roof_slope = Wall_Roof_Slope {
+								height = roof.slope / 2,
+								type = .Peak,
+							},
+						},
+					)
+					add_wall(
+						pos - {offset, 0, offset},
+						.NW_SE,
+						 {
+							type = .Side,
+							textures = {.Inside = .Brick, .Outside = .Brick},
+							mask = .Full_Mask,
+							state = .Up,
+							height = (trunc_half +
+								ROOF_SIZE_PADDING.y / 2 -
+								0.01) *
+							roof.slope,
+							roof_slope = Wall_Roof_Slope {
+								height = roof.slope / 2,
+								type = .Peak,
+							},
+						},
+					)
+				}
+
+				for x, i in ix + ceil_half ..< (roof.end.x + 0.5) {
+					pos := glsl.ivec3 {
+						i32(x),
+						floor,
+						i32(roof.end.y) - i32(i) + i32(trunc_half),
+					}
+					add_wall(
+						pos,
+						.NW_SE,
+						 {
+							type = .Side,
+							textures = {.Inside = .Brick, .Outside = .Brick},
+							mask = .Full_Mask,
+							state = .Up,
+							height = (trunc_half -
+								f32(i) -
+								1 +
+								ROOF_SIZE_PADDING.y / 2 -
+								0.01) *
+							roof.slope,
 							roof_slope = Wall_Roof_Slope {
 								height = roof.slope,
 								type = .Left_Side,
 							},
-						}, // height = (f32(i) +
-
-						// 	ROOF_SIZE_PADDING.y / 2 -
-
-						// 	0.01) *
-
-						// roof.slope,
+						},
+					)
+					add_wall(
+						pos - {offset, 0, offset},
+						.NW_SE,
+						 {
+							type = .Side,
+							textures = {.Inside = .Brick, .Outside = .Brick},
+							mask = .Full_Mask,
+							state = .Up,
+							height = (trunc_half -
+								f32(i) -
+								1 +
+								ROOF_SIZE_PADDING.y / 2 -
+								0.01) *
+							roof.slope,
+							roof_slope = Wall_Roof_Slope {
+								height = roof.slope,
+								type = .Left_Side,
+							},
+						},
 					)
 				}
+
 			}
 		} else {
 			c0 := roof.end.y - roof.end.x
