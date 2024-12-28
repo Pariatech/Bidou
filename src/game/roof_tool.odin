@@ -544,6 +544,45 @@ add_diagonal_roof_nw_se_walls :: proc(
 }
 
 @(private = "file")
+add_diagonal_roof_sw_ne_walls :: proc(
+	pos: glsl.ivec3,
+	offset: i32,
+	height, slope_height: f32,
+	slope_type: Wall_Roof_Slope_Type,
+) {
+	add_wall(
+		pos,
+		.SW_NE,
+		 {
+			type = .Side,
+			textures = {.Inside = .Brick, .Outside = .Brick},
+			mask = .Full_Mask,
+			state = .Up,
+			height = height,
+			roof_slope = Wall_Roof_Slope {
+				height = slope_height,
+				type = slope_type,
+			},
+		},
+	)
+	add_wall(
+		pos - {offset, 0, -offset},
+		.SW_NE,
+		 {
+			type = .Side,
+			textures = {.Inside = .Brick, .Outside = .Brick},
+			mask = .Full_Mask,
+			state = .Up,
+			height = height,
+			roof_slope = Wall_Roof_Slope {
+				height = slope_height,
+				type = slope_type,
+			},
+		},
+	)
+}
+
+@(private = "file")
 add_diagonal_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 	roof := roof
 	snap_roof(&roof)
@@ -652,9 +691,98 @@ add_diagonal_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 		offset := i32(ix - roof.start.x - 0.5)
 
 		if roof.end.y > roof.start.y - (roof.end.x - roof.start.x) {
-            log.info("1")
+            log.info("1", roof.start.x + 0.5, ix, roof.end.x + 0.5)
+			width := (roof.end.x + 0.5) - ix
+			trunc_half := math.trunc(width / 2)
+			ceil_half := math.ceil(width / 2)
+            log.info(width, trunc_half, ceil_half)
+
+			for x, i in ix ..< (roof.end.x + 0.5) - ceil_half {
+				add_diagonal_roof_sw_ne_walls(
+					{i32(x), floor, i32(roof.end.y + 0.5 - width) + i32(i)},
+					offset,
+					(f32(i) + ROOF_SIZE_PADDING.y / 2 - 0.01) * roof.slope,
+					roof.slope,
+					.Right_Side,
+				)
+			}
+
+			if ceil_half != trunc_half {
+				add_diagonal_roof_sw_ne_walls(
+					 {
+						i32(ix + trunc_half),
+						floor,
+						i32(roof.end.y - trunc_half),
+					},
+					offset,
+					(trunc_half + ROOF_SIZE_PADDING.y / 2 - 0.01) * roof.slope,
+					roof.slope / 2,
+					.Peak,
+				)
+			}
+
+			for x, i in ix + ceil_half ..< (roof.end.x + 0.5) {
+				add_diagonal_roof_sw_ne_walls(
+					 {
+						i32(x),
+						floor,
+						i32(roof.end.y + 0.5 - trunc_half) + i32(i),
+					},
+					offset,
+					(trunc_half -
+						f32(i) -
+						1 +
+						ROOF_SIZE_PADDING.y / 2 -
+						0.01) *
+					roof.slope,
+					roof.slope,
+					.Left_Side,
+				)
+			}
 		} else {
             log.info("2")
+			width := ix - (roof.end.x + 0.5)
+			trunc_half := math.trunc(width / 2)
+			ceil_half := math.ceil(width / 2)
+
+			for x, i in (roof.end.x + 0.5) ..< ix - math.ceil(width / 2) {
+				add_diagonal_roof_sw_ne_walls(
+					{i32(x), floor, i32(roof.end.y + 0.5) + i32(i)},
+					offset,
+					(f32(i) + ROOF_SIZE_PADDING.y / 2 - 0.01) * roof.slope,
+					roof.slope,
+					.Right_Side,
+				)
+			}
+
+			if ceil_half != trunc_half {
+				add_diagonal_roof_sw_ne_walls(
+					 {
+						i32(roof.end.x + 0.5 + trunc_half),
+						floor,
+						i32(roof.end.y + 0.5 + trunc_half),
+					},
+					offset,
+					(trunc_half + ROOF_SIZE_PADDING.y / 2 - 0.01) * roof.slope,
+					roof.slope / 2,
+					.Peak,
+				)
+			}
+
+			for x, i in (roof.end.x + 0.5) + ceil_half ..< ix {
+				add_diagonal_roof_sw_ne_walls(
+					{i32(x), floor, i32(roof.end.y + 0.5) + i32(i) + i32(ceil_half)},
+					offset,
+					(trunc_half -
+						f32(i) -
+						1 +
+						ROOF_SIZE_PADDING.y / 2 -
+						0.01) *
+					roof.slope,
+					roof.slope,
+					.Left_Side,
+				)
+			}
 		}
 	}
 }
