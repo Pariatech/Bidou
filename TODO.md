@@ -19,6 +19,8 @@
         - Click & drag to place the roof.
         - Allow Pent roof to cross eachother to form gable.
     3. Toggle the roof with a button.
+9. Refactor the tile intersect and wall paint and any system that rely on camera being 2:1 isometric to not longer be.
+    1. Change de camera to a 45d, 35.2764d
 
 ## Player character
 1. Create player character mesh (think chibi).
