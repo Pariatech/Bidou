@@ -1010,7 +1010,7 @@ draw_half_hip_side_roof :: proc(
 	)
 
 	draw_roof_eave(
-		{center.x, roof.offset + min_size, center.y},
+		{center.x, roof.offset + min_size * roof.slope, center.y},
 		{max_size - min_size * 2, 1, min_size},
 		rotation * glsl.mat4Rotate({0, 1, 0}, math.PI / 2),
 		face_lights[3],
@@ -1209,10 +1209,16 @@ draw_half_hip_roof :: proc(
 	rotation: glsl.mat4,
 	face_lights: [4]glsl.vec4,
 ) {
+    size := size
 	ratio := max(size.x, size.y) / min(size.x, size.y)
+    size.y -= ROOF_SIZE_PADDING.y / 2
+    translate := glsl.vec4{-ROOF_SIZE_PADDING.y / 2, 0, 0, 0} * rotation
+    proof := roof^
+    proof.start += translate.xz
+    proof.end += translate.xz
 	if ratio > 2 {
 		draw_half_hip_side_roof(
-			roof,
+			&proof,
 			vertices,
 			indices,
 			size,
@@ -1221,7 +1227,7 @@ draw_half_hip_roof :: proc(
 		)
 	} else if ratio == 2 {
 		draw_half_pyramid_roof(
-			roof,
+			&proof,
 			vertices,
 			indices,
 			size,
@@ -1230,7 +1236,7 @@ draw_half_hip_roof :: proc(
 		)
 	} else {
 		draw_half_hip_end_roof(
-			roof,
+			&proof,
 			vertices,
 			indices,
 			size,

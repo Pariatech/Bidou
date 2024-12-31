@@ -19,7 +19,6 @@ Diagonal_Wall_Mask :: enum {
 
 DIAGONAL_WALL_TOP_CROSS_OFFSET :: -0.0002
 DIAGONAL_WALL_TOP_OFFSET :: 0.0003
-SQRT_2 :: 1.4142
 
 DIAGONAL_WALL_MASK_MODEL_NAME_MAP :: [Wall_Type][Wall_Side]string {
 	.Start =  {
@@ -132,7 +131,7 @@ draw_diagonal_wall :: proc(
 			texture,
 			wall.mask,
 			light,
-			wall.height * SQRT_2,
+			wall.height,
 			vertex_buffer,
 			index_buffer,
 		)
@@ -141,7 +140,6 @@ draw_diagonal_wall :: proc(
 
 	if roof_slope, ok := wall.roof_slope.?; ok {
         roof_slope := roof_slope
-        roof_slope.height *= SQRT_2
 		for texture, side in wall.textures {
 			draw_wall_roof_slope_mesh(
 				transform,
@@ -149,7 +147,7 @@ draw_diagonal_wall :: proc(
 				light,
 				side,
 				roof_slope,
-				wall.height * SQRT_2,
+				wall.height,
 				.Diagonal,
 				vertex_buffer,
 				index_buffer,
@@ -160,7 +158,7 @@ draw_diagonal_wall :: proc(
 			transform,
 			light,
 			roof_slope,
-			wall.height * SQRT_2,
+			wall.height,
 			.Diagonal,
 			vertex_buffer,
 			index_buffer,

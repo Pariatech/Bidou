@@ -13,6 +13,8 @@ import "../mouse"
 
 import "../terrain"
 
+SQRT_2 :: 1.4142
+
 Roof_Tool_Context :: struct {
 	cursor:            Object_Draw,
 	cursor_top:        Object_Draw,
@@ -519,9 +521,9 @@ add_diagonal_roof_nw_se_walls :: proc(
 			textures = {.Inside = .Brick, .Outside = .Brick},
 			mask = .Full_Mask,
 			state = .Up,
-			height = height,
+			height = height * SQRT_2,
 			roof_slope = Wall_Roof_Slope {
-				height = slope_height,
+				height = slope_height * SQRT_2,
 				type = slope_type,
 			},
 		},
@@ -534,9 +536,9 @@ add_diagonal_roof_nw_se_walls :: proc(
 			textures = {.Inside = .Brick, .Outside = .Brick},
 			mask = .Full_Mask,
 			state = .Up,
-			height = height,
+			height = height * SQRT_2,
 			roof_slope = Wall_Roof_Slope {
-				height = slope_height,
+				height = slope_height * SQRT_2,
 				type = slope_type,
 			},
 		},
@@ -558,9 +560,9 @@ add_diagonal_roof_sw_ne_walls :: proc(
 			textures = {.Inside = .Brick, .Outside = .Brick},
 			mask = .Full_Mask,
 			state = .Up,
-			height = height,
+			height = height * SQRT_2,
 			roof_slope = Wall_Roof_Slope {
-				height = slope_height,
+				height = slope_height * SQRT_2,
 				type = slope_type,
 			},
 		},
@@ -573,9 +575,9 @@ add_diagonal_roof_sw_ne_walls :: proc(
 			textures = {.Inside = .Brick, .Outside = .Brick},
 			mask = .Full_Mask,
 			state = .Up,
-			height = height,
+			height = height * SQRT_2,
 			roof_slope = Wall_Roof_Slope {
-				height = slope_height,
+				height = slope_height * SQRT_2,
 				type = slope_type,
 			},
 		},
@@ -962,253 +964,179 @@ add_diagonal_half_hip_roof_walls :: proc(roof: Roof, floor: i32) {
 		ix := math.ceil((c0 - c1) / 2)
 		offset := i32(ix - roof.start.x - 0.5)
 
-		if roof.end.y > roof.start.y + (roof.end.x - roof.start.x) {
-			log.info("1")
-			// width := ix - (roof.end.x + 0.5)
-			// trunc_half := math.trunc(width / 2)
-			// ceil_half := math.ceil(width / 2)
-
-			min_x := min(xy3.x, xy0.x)
-			max_x := max(xy3.x, xy0.x)
-			y := min(xy3.y, xy0.y)
-			width := max_x - min_x
-			side_width := min(i32(width / 2), min(xy1.x, xy2.x) - min_x)
-			for x, i in min_x ..< min_x + side_width {
-				add_wall(
-					{x, floor, y + i32(i)},
-					.SW_NE,
-					 {
-						type = .Side,
-						textures = {.Inside = .Brick, .Outside = .Brick},
-						mask = .Full_Mask,
-						state = .Up,
-						height = (f32(i) + ROOF_SIZE_PADDING.y / 2 - 0.01) *
-						roof.slope,
-						roof_slope = Wall_Roof_Slope {
-							height = roof.slope,
-							type = .Right_Side,
-						},
+		min_x := min(xy3.x, xy0.x)
+		max_x := max(xy3.x, xy0.x)
+		y := min(xy3.y, xy0.y)
+		width := max_x - min_x
+		depth := abs(min(xy1.x, xy2.x) - min_x)
+		side_width := min(i32(width / 2), depth)
+		for x, i in min_x ..< min_x + side_width {
+			add_wall(
+				{x, floor, y + i32(i)},
+				.SW_NE,
+				 {
+					type = .Side,
+					textures = {.Inside = .Brick, .Outside = .Brick},
+					mask = .Full_Mask,
+					state = .Up,
+					height = (f32(i) + ROOF_SIZE_PADDING.y / 2 - 0.01) *
+					roof.slope * SQRT_2,
+					roof_slope = Wall_Roof_Slope {
+						height = roof.slope * SQRT_2,
+						type = .Right_Side,
 					},
-				)
-			}
-			if side_width == i32(width / 2) {
-				if width - side_width * 2 == 1 {
-					add_wall(
-						{min_x + side_width, floor, y + side_width},
-						.SW_NE,
-						 {
-							type = .Side,
-							textures = {.Inside = .Brick, .Outside = .Brick},
-							mask = .Full_Mask,
-							state = .Up,
-							height = ((f32(side_width) +
-									ROOF_SIZE_PADDING.y / 2 -
-									0.01) *
-								roof.slope),
-							roof_slope = Wall_Roof_Slope {
-								height = roof.slope / 2,
-								type = .Peak,
-							},
-						},
-					)
-				}
-			} else {
-				for x, i in min_x + side_width ..< max_x - side_width {
-					add_wall(
-						{x, floor, y + side_width + i32(i)},
-						.SW_NE,
-						 {
-							type = .Side,
-							textures = {.Inside = .Brick, .Outside = .Brick},
-							mask = .Full_Mask,
-							state = .Up,
-							height = ((f32(side_width) +
-									ROOF_SIZE_PADDING.y / 2 -
-									0.01) *
-								roof.slope),
-						},
-					)
-				}
-			}
-			for x, i in max_x - side_width ..< max_x {
+				},
+			)
+		}
+		if depth > side_width {
+			if width - side_width * 2 == 1 {
 				add_wall(
-					{x, floor, y + max_x - min_x - side_width + i32(i)},
+					{min_x + side_width, floor, y + side_width},
 					.SW_NE,
 					 {
 						type = .Side,
 						textures = {.Inside = .Brick, .Outside = .Brick},
 						mask = .Full_Mask,
 						state = .Up,
-						height = (f32(side_width - i32(i) - 1) +
-							ROOF_SIZE_PADDING.y / 2 -
-							0.01) *
-						roof.slope,
+						height = ((f32(side_width) +
+								ROOF_SIZE_PADDING.y / 2 -
+								0.01) *
+							roof.slope * SQRT_2),
 						roof_slope = Wall_Roof_Slope {
-							height = roof.slope,
-							type = .Left_Side,
+							height = roof.slope / 2 * SQRT_2,
+							type = .Peak,
 						},
 					},
 				)
 			}
 		} else {
-			log.info("2")
-			width := (roof.end.x + 0.5) - ix
-			trunc_half := math.trunc(width / 2)
-			ceil_half := math.ceil(width / 2)
-
-			for x, i in ix ..< (roof.end.x + 0.5) - ceil_half {
+			for x, i in min_x + side_width ..< max_x - side_width {
 				add_wall(
-					{i32(x), floor, i32(roof.end.y - width) + i32(i)},
+					{x, floor, y + side_width + i32(i)},
 					.SW_NE,
 					 {
 						type = .Side,
 						textures = {.Inside = .Brick, .Outside = .Brick},
 						mask = .Full_Mask,
 						state = .Up,
-						height = 3,
-						roof_slope = Wall_Roof_Slope {
-							height = roof.slope,
-							type = .Left_Side,
-						},
+						height = ((f32(side_width) +
+								ROOF_SIZE_PADDING.y / 2 -
+								0.01) *
+							roof.slope * SQRT_2),
 					},
 				)
 			}
-
-			// if ceil_half != trunc_half {
-			// 	add_diagonal_roof_nw_se_walls(
-			// 		 {
-			// 			i32(roof.end.x + 0.5 - ceil_half),
-			// 			floor,
-			// 			i32(roof.end.y + ceil_half),
-			// 		},
-			// 		offset,
-			// 		(trunc_half + ROOF_SIZE_PADDING.y / 2 - 0.01) * roof.slope,
-			// 		roof.slope / 2,
-			// 		.Peak,
-			// 	)
-			// }
-			//
-			// for x, i in ix + ceil_half ..< (roof.end.x + 0.5) {
-			// 	add_diagonal_roof_nw_se_walls(
-			// 		 {
-			// 			i32(x),
-			// 			floor,
-			// 			i32(roof.end.y) - i32(i) + i32(trunc_half),
-			// 		},
-			// 		offset,
-			// 		(trunc_half -
-			// 			f32(i) -
-			// 			1 +
-			// 			ROOF_SIZE_PADDING.y / 2 -
-			// 			0.01) *
-			// 		roof.slope,
-			// 		roof.slope,
-			// 		.Left_Side,
-			// 	)
-			// }
+		}
+		for x, i in max_x - side_width ..< max_x {
+			add_wall(
+				{x, floor, y + max_x - min_x - side_width + i32(i)},
+				.SW_NE,
+				 {
+					type = .Side,
+					textures = {.Inside = .Brick, .Outside = .Brick},
+					mask = .Full_Mask,
+					state = .Up,
+					height = (f32(side_width - i32(i) - 1) +
+						ROOF_SIZE_PADDING.y / 2 -
+						0.01) *
+					roof.slope * SQRT_2,
+					roof_slope = Wall_Roof_Slope {
+						height = roof.slope * SQRT_2,
+						type = .Left_Side,
+					},
+				},
+			)
 		}
 	} else {
-		c0 := roof.end.y - roof.end.x
-		c1 := roof.start.y + roof.start.x
-		ix := math.ceil((-c0 + c1) / 2)
+		c0 := roof.end.y + roof.end.x
+		c1 := roof.start.y - roof.start.x
+		ix := math.ceil((c0 - c1) / 2)
 		offset := i32(ix - roof.start.x - 0.5)
 
-		if roof.end.y > roof.start.y - (roof.end.x - roof.start.x) {
-			log.info("3")
-			width := (roof.end.x + 0.5) - ix
-			trunc_half := math.trunc(width / 2)
-			ceil_half := math.ceil(width / 2)
-
-			for x, i in ix ..< (roof.end.x + 0.5) - ceil_half {
-				add_diagonal_roof_sw_ne_walls(
-					{i32(x), floor, i32(roof.end.y + 0.5 - width) + i32(i)},
-					offset,
-					(f32(i) + ROOF_SIZE_PADDING.y / 2 - 0.01) * roof.slope,
-					roof.slope,
-					.Right_Side,
-				)
-			}
-
-			if ceil_half != trunc_half {
-				add_diagonal_roof_sw_ne_walls(
-					 {
-						i32(ix + trunc_half),
-						floor,
-						i32(roof.end.y - trunc_half),
+		min_x := min(xy0.x, xy1.x)
+		max_x := max(xy0.x, xy1.x)
+		y := max(xy0.y, xy1.y) - 1
+		width := max_x - min_x
+        log.info(width)
+		depth := abs(min(xy2.x, xy3.x) - min_x)
+		side_width := min(i32(width / 2), depth)
+        log.info(min_x, min_x + side_width)
+		for x, i in min_x ..< min_x + side_width {
+			add_wall(
+				{x, floor, y - i32(i)},
+				.NW_SE,
+				 {
+					type = .Side,
+					textures = {.Inside = .Brick, .Outside = .Brick},
+					mask = .Full_Mask,
+					state = .Up,
+					height = (f32(i) + ROOF_SIZE_PADDING.y / 2 - 0.01) *
+					roof.slope * SQRT_2,
+					roof_slope = Wall_Roof_Slope {
+						height = roof.slope * SQRT_2,
+						type = .Right_Side,
 					},
-					offset,
-					(trunc_half + ROOF_SIZE_PADDING.y / 2 - 0.01) * roof.slope,
-					roof.slope / 2,
-					.Peak,
-				)
-			}
-
-			for x, i in ix + ceil_half ..< (roof.end.x + 0.5) {
-				add_diagonal_roof_sw_ne_walls(
+				},
+			)
+		}
+		if depth > side_width {
+			if width - side_width * 2 == 1 {
+				add_wall(
+					{min_x + side_width, floor, y - side_width},
+					.NW_SE,
 					 {
-						i32(x),
-						floor,
-						i32(roof.end.y + 0.5 - trunc_half) + i32(i),
+						type = .Side,
+						textures = {.Inside = .Brick, .Outside = .Brick},
+						mask = .Full_Mask,
+						state = .Up,
+						height = ((f32(side_width) +
+								ROOF_SIZE_PADDING.y / 2 -
+								0.01) *
+							roof.slope * SQRT_2),
+						roof_slope = Wall_Roof_Slope {
+							height = roof.slope / 2 * SQRT_2,
+							type = .Peak,
+						},
 					},
-					offset,
-					(trunc_half -
-						f32(i) -
-						1 +
-						ROOF_SIZE_PADDING.y / 2 -
-						0.01) *
-					roof.slope,
-					roof.slope,
-					.Left_Side,
 				)
 			}
 		} else {
-			log.info("4")
-			width := ix - (roof.end.x + 0.5)
-			trunc_half := math.trunc(width / 2)
-			ceil_half := math.ceil(width / 2)
-
-			for x, i in (roof.end.x + 0.5) ..< ix - math.ceil(width / 2) {
-				add_diagonal_roof_sw_ne_walls(
-					{i32(x), floor, i32(roof.end.y + 0.5) + i32(i)},
-					offset,
-					(f32(i) + ROOF_SIZE_PADDING.y / 2 - 0.01) * roof.slope,
-					roof.slope,
-					.Right_Side,
+			for x, i in min_x + side_width ..< max_x - side_width {
+				add_wall(
+					{x, floor, y - side_width - i32(i)},
+					.NW_SE,
+					 {
+						type = .Side,
+						textures = {.Inside = .Brick, .Outside = .Brick},
+						mask = .Full_Mask,
+						state = .Up,
+						height = ((f32(side_width) +
+								ROOF_SIZE_PADDING.y / 2 -
+								0.02) *
+							roof.slope * SQRT_2),
+					},
 				)
 			}
-
-			if ceil_half != trunc_half {
-				add_diagonal_roof_sw_ne_walls(
-					 {
-						i32(roof.end.x + 0.5 + trunc_half),
-						floor,
-						i32(roof.end.y + 0.5 + trunc_half),
-					},
-					offset,
-					(trunc_half + ROOF_SIZE_PADDING.y / 2 - 0.01) * roof.slope,
-					roof.slope / 2,
-					.Peak,
-				)
-			}
-
-			for x, i in (roof.end.x + 0.5) + ceil_half ..< ix {
-				add_diagonal_roof_sw_ne_walls(
-					 {
-						i32(x),
-						floor,
-						i32(roof.end.y + 0.5) + i32(i) + i32(ceil_half),
-					},
-					offset,
-					(trunc_half -
-						f32(i) -
-						1 +
+		}
+		for x, i in max_x - side_width ..< max_x {
+			add_wall(
+				{x, floor, y - width + side_width - i32(i)},
+				.NW_SE,
+				 {
+					type = .Side,
+					textures = {.Inside = .Brick, .Outside = .Brick},
+					mask = .Full_Mask,
+					state = .Up,
+					height = (f32(side_width - i32(i) - 1) +
 						ROOF_SIZE_PADDING.y / 2 -
 						0.01) *
-					roof.slope,
-					roof.slope,
-					.Left_Side,
-				)
-			}
+					roof.slope * SQRT_2,
+					roof_slope = Wall_Roof_Slope {
+						height = roof.slope * SQRT_2,
+						type = .Left_Side,
+					},
+				},
+			)
 		}
 	}
 }

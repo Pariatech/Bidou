@@ -582,6 +582,7 @@ update_south_west_north_east_wall :: proc(pos: glsl.ivec3) {
 
 	type_map := game.WALL_SIDE_TYPE_MAP
 	w.type = type_map[left_type_part][right_type_part]
+    // log.info(w)
 	// log.info(pos, w.type)
 	game.set_south_west_north_east_wall(pos, w)
 }
