@@ -464,7 +464,7 @@ update_roof :: proc(roof: Roof) {
 // @(private = "file")
 snap_roof :: proc(roof: ^Roof) {
 	if roof.orientation != .Diagonal {
-		return 
+		return
 	}
 
 	size := glsl.abs(roof.end - roof.start)
@@ -474,7 +474,7 @@ snap_roof :: proc(roof: ^Roof) {
 
 	// log.info(size, glsl.trunc(size) == size)
 	if glsl.trunc(size) == size {
-	// if glsl.trunc(size) + {0.5, 0.5} == size {
+		// if glsl.trunc(size) + {0.5, 0.5} == size {
 		return
 	}
 	roof.end.x -= 1
@@ -1209,13 +1209,17 @@ draw_half_hip_roof :: proc(
 	rotation: glsl.mat4,
 	face_lights: [4]glsl.vec4,
 ) {
-    size := size
+	size := size
 	ratio := max(size.x, size.y) / min(size.x, size.y)
-    size.y -= ROOF_SIZE_PADDING.y / 2
-    translate := glsl.vec4{-ROOF_SIZE_PADDING.y / 2, 0, 0, 0} * rotation
-    proof := roof^
-    proof.start += translate.xz
-    proof.end += translate.xz
+    mul := f32(1)
+    if roof.orientation == .Diagonal {
+        mul = SQRT_2
+    }
+	size.y -= ROOF_SIZE_PADDING.y / 2 * mul
+	translate := glsl.vec4{-ROOF_SIZE_PADDING.y / 4 * mul, 0, 0, 0} * rotation
+	proof := roof^
+	proof.start += translate.xz
+	proof.end += translate.xz
 	if ratio > 2 {
 		draw_half_hip_side_roof(
 			&proof,
@@ -1413,10 +1417,17 @@ draw_half_gable_roof :: proc(
 	rotation: glsl.mat4,
 	face_lights: [4]glsl.vec4,
 ) {
+	size := size
+    mul := f32(1)
+    if roof.orientation == .Diagonal {
+        mul = SQRT_2
+    }
+	translate := glsl.vec4{-(ROOF_SIZE_PADDING.y / 4) * mul, 0, 0, 0} * rotation
+    size.y -= ROOF_SIZE_PADDING.y / 2 * mul
 	min_size := min(size.y, size.x)
 	max_size := max(size.y, size.x)
 	height := min(size.x, size.y) / 2
-	center := roof.start + (roof.end - roof.start) / 2
+	center := roof.start + (roof.end - roof.start) / 2 + translate.xz
 
 	side_rotation := rotation * glsl.mat4Rotate({0, 1, 0}, -math.PI / 2)
 	pos_offset := glsl.vec4{0, 0, min_size / 2, 1}
