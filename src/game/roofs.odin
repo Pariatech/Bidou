@@ -19,6 +19,8 @@ import "../terrain"
 // @(private = "file")
 ROOF_SIZE_PADDING :: glsl.vec2{0.4, 0.4}
 
+ROOF_EAVE_HEIGHT :: 0.2
+
 ROOF_TEXTURES :: [?]cstring {
 	"resources/textures/roofs/Eave.png",
 	"resources/roofs/colors/long_tiles/128x128.png",
@@ -1776,11 +1778,10 @@ draw_roof_rectangle :: proc(
 	}
 }
 
-
 @(private = "file")
 EAVE_VERTICES :: [?]Roof_Vertex {
-	{pos = {-0.5, -0.2, -0.5}, texcoords = {0, 1, 0}, color = {1, 1, 1, 1}},
-	{pos = {0.5, -0.2, -0.5}, texcoords = {1, 1, 0}, color = {1, 1, 1, 1}},
+	{pos = {-0.5, -ROOF_EAVE_HEIGHT, -0.5}, texcoords = {0, 1, 0}, color = {1, 1, 1, 1}},
+	{pos = {0.5, -ROOF_EAVE_HEIGHT, -0.5}, texcoords = {1, 1, 0}, color = {1, 1, 1, 1}},
 	{pos = {0.5, 0, -0.5}, texcoords = {0, 0, 0}, color = {1, 1, 1, 1}},
 	{pos = {-0.5, 0, -0.5}, texcoords = {1, 0, 0}, color = {1, 1, 1, 1}},
 }
