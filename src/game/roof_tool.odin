@@ -696,7 +696,6 @@ add_diagonal_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 			width := (roof.end.x + 0.5) - ix
 			trunc_half := math.trunc(width / 2)
 			ceil_half := math.ceil(width / 2)
-			log.info(width, trunc_half, ceil_half)
 
 			for x, i in ix ..< (roof.end.x + 0.5) - ceil_half {
 				add_diagonal_roof_sw_ne_walls(
@@ -955,8 +954,6 @@ add_diagonal_half_hip_roof_walls :: proc(roof: Roof, floor: i32) {
 	xy2 := glsl.ivec2{i32(roof.start.x + 0.5), i32(roof.start.y + 0.5)}
 	xy3 := glsl.ivec2{i32(x3), i32(x3 + c1)}
 
-	log.info(xy0, xy1, xy2, xy3)
-
 	if (roof.end.x > roof.start.x && roof.end.y > roof.start.y) ||
 	   (roof.end.x <= roof.start.x && roof.end.y <= roof.start.y) {
 		c0 := roof.end.y + roof.end.x
@@ -980,8 +977,9 @@ add_diagonal_half_hip_roof_walls :: proc(roof: Roof, floor: i32) {
 					mask = .Full_Mask,
 					state = .Up,
 					height = (f32(i) + ROOF_SIZE_PADDING.y / 2) *
-					roof.slope *
-					SQRT_2 - ROOF_EAVE_HEIGHT,
+						roof.slope *
+						SQRT_2 -
+					ROOF_EAVE_HEIGHT,
 					roof_slope = Wall_Roof_Slope {
 						height = roof.slope * SQRT_2,
 						type = .Right_Side,
@@ -999,10 +997,10 @@ add_diagonal_half_hip_roof_walls :: proc(roof: Roof, floor: i32) {
 						textures = {.Inside = .Brick, .Outside = .Brick},
 						mask = .Full_Mask,
 						state = .Up,
-						height = ((f32(side_width) +
-								ROOF_SIZE_PADDING.y / 2) *
-							roof.slope *
-							SQRT_2 - ROOF_EAVE_HEIGHT),
+						height = ((f32(side_width) + ROOF_SIZE_PADDING.y / 2) *
+								roof.slope *
+								SQRT_2 -
+							ROOF_EAVE_HEIGHT),
 						roof_slope = Wall_Roof_Slope {
 							height = roof.slope / 2 * SQRT_2,
 							type = .Peak,
@@ -1020,10 +1018,10 @@ add_diagonal_half_hip_roof_walls :: proc(roof: Roof, floor: i32) {
 						textures = {.Inside = .Brick, .Outside = .Brick},
 						mask = .Full_Mask,
 						state = .Up,
-						height = ((f32(side_width) +
-								ROOF_SIZE_PADDING.y / 2) *
-							roof.slope *
-							SQRT_2 - ROOF_EAVE_HEIGHT),
+						height = ((f32(side_width) + ROOF_SIZE_PADDING.y / 2) *
+								roof.slope *
+								SQRT_2 -
+							ROOF_EAVE_HEIGHT),
 					},
 				)
 			}
@@ -1038,9 +1036,10 @@ add_diagonal_half_hip_roof_walls :: proc(roof: Roof, floor: i32) {
 					mask = .Full_Mask,
 					state = .Up,
 					height = ((f32(side_width - i32(i) - 1) +
-						ROOF_SIZE_PADDING.y / 2) *
-					roof.slope *
-					SQRT_2 - ROOF_EAVE_HEIGHT),
+								ROOF_SIZE_PADDING.y / 2) *
+							roof.slope *
+							SQRT_2 -
+						ROOF_EAVE_HEIGHT),
 					roof_slope = Wall_Roof_Slope {
 						height = roof.slope * SQRT_2,
 						type = .Left_Side,
@@ -1058,10 +1057,8 @@ add_diagonal_half_hip_roof_walls :: proc(roof: Roof, floor: i32) {
 		max_x := max(xy0.x, xy1.x)
 		y := max(xy0.y, xy1.y) - 1
 		width := max_x - min_x
-		log.info(width)
 		depth := abs(min(xy2.x, xy3.x) - min_x)
 		side_width := min(i32(width / 2), depth)
-		log.info(min_x, min_x + side_width)
 		for x, i in min_x ..< min_x + side_width {
 			add_wall(
 				{x, floor, y - i32(i)},
@@ -1072,8 +1069,9 @@ add_diagonal_half_hip_roof_walls :: proc(roof: Roof, floor: i32) {
 					mask = .Full_Mask,
 					state = .Up,
 					height = ((f32(i) + ROOF_SIZE_PADDING.y / 2) *
-					roof.slope *
-					SQRT_2 - ROOF_EAVE_HEIGHT),
+							roof.slope *
+							SQRT_2 -
+						ROOF_EAVE_HEIGHT),
 					roof_slope = Wall_Roof_Slope {
 						height = roof.slope * SQRT_2,
 						type = .Right_Side,
@@ -1091,10 +1089,10 @@ add_diagonal_half_hip_roof_walls :: proc(roof: Roof, floor: i32) {
 						textures = {.Inside = .Brick, .Outside = .Brick},
 						mask = .Full_Mask,
 						state = .Up,
-						height = ((f32(side_width) +
-								ROOF_SIZE_PADDING.y / 2) *
-							roof.slope *
-							SQRT_2 - ROOF_EAVE_HEIGHT),
+						height = ((f32(side_width) + ROOF_SIZE_PADDING.y / 2) *
+								roof.slope *
+								SQRT_2 -
+							ROOF_EAVE_HEIGHT),
 						roof_slope = Wall_Roof_Slope {
 							height = roof.slope / 2 * SQRT_2,
 							type = .Peak,
@@ -1112,10 +1110,10 @@ add_diagonal_half_hip_roof_walls :: proc(roof: Roof, floor: i32) {
 						textures = {.Inside = .Brick, .Outside = .Brick},
 						mask = .Full_Mask,
 						state = .Up,
-						height = ((f32(side_width) +
-								ROOF_SIZE_PADDING.y / 2) *
-							roof.slope *
-							SQRT_2 - ROOF_EAVE_HEIGHT),
+						height = ((f32(side_width) + ROOF_SIZE_PADDING.y / 2) *
+								roof.slope *
+								SQRT_2 -
+							ROOF_EAVE_HEIGHT),
 					},
 				)
 			}
@@ -1130,9 +1128,10 @@ add_diagonal_half_hip_roof_walls :: proc(roof: Roof, floor: i32) {
 					mask = .Full_Mask,
 					state = .Up,
 					height = ((f32(side_width - i32(i) - 1) +
-						ROOF_SIZE_PADDING.y / 2) *
-					roof.slope *
-					SQRT_2 - ROOF_EAVE_HEIGHT),
+								ROOF_SIZE_PADDING.y / 2) *
+							roof.slope *
+							SQRT_2 -
+						ROOF_EAVE_HEIGHT),
 					roof_slope = Wall_Roof_Slope {
 						height = roof.slope * SQRT_2,
 						type = .Left_Side,
@@ -1332,6 +1331,88 @@ add_north_south_half_gable_roof_walls :: proc(
 }
 
 @(private = "file")
+add_diagonal_half_gable_roof_side_nw_se_walls :: proc(
+	roof: Roof,
+	i: int,
+	flip: bool,
+	depth, x, y, max_x, floor: i32,
+) {
+	type := Wall_Type.Side
+	height := (f32(i) + ROOF_SIZE_PADDING.y / 2 - 0.01) * roof.slope * SQRT_2
+	roof_slope_type := Wall_Roof_Slope_Type.Right_Side
+	if flip {
+		height =
+			(f32(depth - 1) - f32(i) + ROOF_SIZE_PADDING.y / 2 - 0.01) *
+			roof.slope *
+			SQRT_2
+		roof_slope_type = Wall_Roof_Slope_Type.Left_Side
+		if i == 0 {
+			type = .Extended_Left
+		}
+	} else {
+		if x == max_x - 1 {
+			type = .Extended_Right
+		}
+	}
+	add_wall(
+		{x, floor, y - i32(i) - 1},
+		.NW_SE,
+		 {
+			type = type,
+			textures = {.Inside = .Brick, .Outside = .Brick},
+			mask = .Full_Mask,
+			state = .Up,
+			height = height,
+			roof_slope = Wall_Roof_Slope {
+				height = roof.slope * SQRT_2,
+				type = roof_slope_type,
+			},
+		},
+	)
+}
+
+@(private = "file")
+add_diagonal_half_gable_roof_side_sw_ne_walls :: proc(
+	roof: Roof,
+	i: int,
+	flip: bool,
+	depth, x, y, max_x, floor: i32,
+) {
+	type := Wall_Type.Side
+	height := (f32(i) + ROOF_SIZE_PADDING.y / 2 - 0.01) * roof.slope * SQRT_2
+	roof_slope_type := Wall_Roof_Slope_Type.Right_Side
+	if flip {
+		height =
+			(f32(depth - 1) - f32(i) + ROOF_SIZE_PADDING.y / 2 - 0.01) *
+			roof.slope *
+			SQRT_2
+		roof_slope_type = Wall_Roof_Slope_Type.Left_Side
+		if i == 0 {
+			type = .Extended_Left
+		}
+	} else {
+		if x == max_x - 1 {
+			type = .Extended_Right
+		}
+	}
+	add_wall(
+		{x, floor, y + i32(i)},
+		.SW_NE,
+		 {
+			type = type,
+			textures = {.Inside = .Brick, .Outside = .Brick},
+			mask = .Full_Mask,
+			state = .Up,
+			height = height,
+			roof_slope = Wall_Roof_Slope {
+				height = roof.slope * SQRT_2,
+				type = roof_slope_type,
+			},
+		},
+	)
+}
+
+@(private = "file")
 add_diagonal_half_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 	roof := roof
 	snap_roof(&roof)
@@ -1349,8 +1430,6 @@ add_diagonal_half_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 	xy2 := glsl.ivec2{i32(roof.start.x + 0.5), i32(roof.start.y + 0.5)}
 	xy3 := glsl.ivec2{i32(x3), i32(x3 + c1)}
 
-	log.info(xy0, xy1, xy2, xy3)
-
 	if (roof.end.x > roof.start.x && roof.end.y > roof.start.y) ||
 	   (roof.end.x <= roof.start.x && roof.end.y <= roof.start.y) {
 		c0 := roof.end.y + roof.end.x
@@ -1364,7 +1443,6 @@ add_diagonal_half_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 		width := max_x - min_x
 		depth := abs(min(xy1.x, xy2.x) - min_x)
 		side_width := min(i32(width / 2), depth)
-        log.info(side_width, width, depth)
 		for x, i in min_x ..< max_x {
 			add_wall(
 				{x, floor, y + i32(i)},
@@ -1375,9 +1453,42 @@ add_diagonal_half_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 					mask = .Full_Mask,
 					state = .Up,
 					height = (f32(depth) + ROOF_SIZE_PADDING.y / 2) *
-					roof.slope *
-					SQRT_2 - ROOF_EAVE_HEIGHT,
+						roof.slope *
+						SQRT_2 -
+					ROOF_EAVE_HEIGHT,
 				},
+			)
+		}
+
+		min_x = min(xy3.x, xy2.x)
+		max_x = max(xy3.x, xy2.x)
+		y = max(xy3.y, xy2.y)
+		for x, i in min_x ..< max_x {
+			add_diagonal_half_gable_roof_side_nw_se_walls(
+				roof,
+				i,
+				xy3.x < xy2.x,
+				depth,
+				x,
+				y,
+				max_x,
+				floor,
+			)
+		}
+
+		min_x = min(xy1.x, xy0.x)
+		max_x = max(xy1.x, xy0.x)
+		y = max(xy1.y, xy0.y)
+		for x, i in min_x ..< max_x {
+			add_diagonal_half_gable_roof_side_nw_se_walls(
+				roof,
+				i,
+				xy3.x < xy2.x,
+				depth,
+				x,
+				y,
+				max_x,
+				floor,
 			)
 		}
 	} else {
@@ -1390,10 +1501,8 @@ add_diagonal_half_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 		max_x := max(xy0.x, xy1.x)
 		y := max(xy0.y, xy1.y) - 1
 		width := max_x - min_x
-		log.info(width)
 		depth := abs(min(xy2.x, xy3.x) - min_x)
 		side_width := min(i32(width / 2), depth)
-		log.info(min_x, min_x + side_width)
 		for x, i in min_x ..< max_x {
 			add_wall(
 				{x, floor, y - i32(i)},
@@ -1404,9 +1513,42 @@ add_diagonal_half_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 					mask = .Full_Mask,
 					state = .Up,
 					height = (f32(depth) + ROOF_SIZE_PADDING.y / 2) *
-					roof.slope *
-					SQRT_2 - ROOF_EAVE_HEIGHT,
+						roof.slope *
+						SQRT_2 -
+					ROOF_EAVE_HEIGHT,
 				},
+			)
+		}
+
+		min_x = min(xy1.x, xy2.x)
+		max_x = max(xy1.x, xy2.x)
+		y = min(xy1.y, xy2.y)
+		for x, i in min_x ..< max_x {
+			add_diagonal_half_gable_roof_side_sw_ne_walls(
+				roof,
+				i,
+				xy1.x < xy2.x,
+				depth,
+				x,
+				y,
+				max_x,
+				floor,
+			)
+		}
+
+		min_x = min(xy0.x, xy3.x)
+		max_x = max(xy0.x, xy3.x)
+		y = min(xy0.y, xy3.y)
+		for x, i in min_x ..< max_x {
+			add_diagonal_half_gable_roof_side_sw_ne_walls(
+				roof,
+				i,
+				xy1.x < xy2.x,
+				depth,
+				x,
+				y,
+				max_x,
+				floor,
 			)
 		}
 	}
