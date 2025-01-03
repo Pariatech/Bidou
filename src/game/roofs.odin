@@ -327,8 +327,6 @@ get_roof_at :: proc(pos: glsl.vec3) -> (ptr: Roof, ok: bool) {
 		if roof.orientation == .Diagonal {
 			start := roof.start
 			end := roof.end
-			// start := glsl.min(roof.start, roof.end)
-			// end := glsl.max(roof.start, roof.end)
 			c0 := min(start.y + start.x, end.y + end.x)
 			c1 := min(start.y - start.x, end.y - end.x)
 			c2 := max(start.y + start.x, end.y + end.x)
@@ -578,19 +576,19 @@ get_longitudinal_roof_face_lights :: proc(
 		if size.y < size.x {
 			return(
 				 {
-					{1, 1, 1, 1},
 					{0.8, 0.8, 0.8, 1},
 					{0.6, 0.6, 0.6, 1},
 					{0.4, 0.4, 0.4, 1},
+					{1, 1, 1, 1},
 				} \
 			)
 		}
 		return(
 			 {
+				{1, 1, 1, 1},
 				{0.8, 0.8, 0.8, 1},
 				{0.6, 0.6, 0.6, 1},
 				{0.4, 0.4, 0.4, 1},
-				{1, 1, 1, 1},
 			} \
 		)
 	} else if roof.start.y <= roof.end.y {

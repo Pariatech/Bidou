@@ -24,6 +24,8 @@ ROOF_PANEL_ICONS :: [game.Roof_Type]cstring {
 ROOF_PANEL_CONTROL_ICONS :: [?]cstring {
 	"resources/roofs/Wrecking_Crane_Icon.png",
 	"resources/roofs/Paint_Brush_Icon.png",
+	"resources/roofs/Longitudinal_Icon.png",
+	"resources/roofs/Diagonal_Icon.png",
 }
 
 @(private = "file")
@@ -40,7 +42,7 @@ ROOF_PANEL_ROOF_HEIGHT_PANEL_WIDTH ::
 	ROOF_PANEL_ROOF_HEIGHT_ICON_WIDTH + 4 + 32 + 4 * 2
 
 @(private = "file")
-ROOF_PANEL_ROOF_CONTROLS_PANEL_WIDTH :: FURNITURE_PANEL_TILE_SIZE + 4 + 2
+ROOF_PANEL_ROOF_CONTROLS_PANEL_WIDTH :: FURNITURE_PANEL_TILE_SIZE * 2 + 4 + 4
 
 @(private = "file")
 ROOF_PANEL_ROOF_PANEL_WIDTH ::
@@ -122,7 +124,7 @@ roof_panel_controls :: proc(
 	color = DAY_SKY_BLUE
 	if game.is_roof_tool_state_painting() {
 		color = DARK_BLUE
-	} 
+	}
 	if icon_button(
 		   ctx,
 		   {pos.x + 2, pos.y + 4 + FURNITURE_PANEL_TILE_SIZE + 2},
@@ -140,6 +142,52 @@ roof_panel_controls :: proc(
 		   color = color,
 	   ) {
 		game.toggle_roof_tool_state(.Painting)
+	}
+
+	border_width := f32(BORDER_WIDTH)
+	if game.get_roof_tool_context().roof.orientation == .Longitudinal {
+		border_width *= 2
+	}
+	if icon_button(
+		   ctx,
+		   {pos.x + 2 + FURNITURE_PANEL_TILE_SIZE + 2, pos.y + 4},
+		   {FURNITURE_PANEL_TILE_SIZE, FURNITURE_PANEL_TILE_SIZE},
+		   roof_panel_roof_control_icon_texture_array,
+		   2,
+		   top_padding = 0,
+		   bottom_padding = 0,
+		   left_padding = 0,
+		   right_padding = 0,
+		   left_border_width = border_width,
+		   right_border_width = border_width,
+		   top_border_width = border_width,
+		   bottom_border_width = border_width,
+		   color = DAY_SKY_BLUE,
+	   ) {
+        game.get_roof_tool_context().roof.orientation = .Longitudinal
+	}
+
+	border_width = f32(BORDER_WIDTH)
+	if game.get_roof_tool_context().roof.orientation == .Diagonal {
+		border_width *= 2
+	}
+	if icon_button(
+		   ctx,
+		   {pos.x + 2 + FURNITURE_PANEL_TILE_SIZE + 2, pos.y + 4 + FURNITURE_PANEL_TILE_SIZE + 2},
+		   {FURNITURE_PANEL_TILE_SIZE, FURNITURE_PANEL_TILE_SIZE},
+		   roof_panel_roof_control_icon_texture_array,
+		   3,
+		   top_padding = 0,
+		   bottom_padding = 0,
+		   left_padding = 0,
+		   right_padding = 0,
+		   left_border_width = border_width,
+		   right_border_width = border_width,
+		   top_border_width = border_width,
+		   bottom_border_width = border_width,
+		   color = DAY_SKY_BLUE,
+	   ) {
+        game.get_roof_tool_context().roof.orientation = .Diagonal
 	}
 }
 

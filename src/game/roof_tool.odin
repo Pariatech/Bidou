@@ -48,7 +48,7 @@ init_roof_tool :: proc() {
 
 	ctx.roof.slope = 1
 	ctx.roof.color = "big_square_tiles"
-	ctx.roof.orientation = .Diagonal
+	// ctx.roof.orientation = .Diagonal
 	// ctx.angle_str = fmt.aprint("45", "°", sep = "")
 
 	get_roofs_context().floor_offset = 1
