@@ -324,11 +324,30 @@ get_roof_at :: proc(pos: glsl.vec3) -> (ptr: Roof, ok: bool) {
 
 	for id in chunk.roofs_inside {
 		roof := get_roof_by_id(id) or_return
-		start := glsl.min(roof.start, roof.end)
-		end := glsl.max(roof.start, roof.end)
-		if (start.x <= pos.x && pos.x <= end.x) &&
-		   (start.y <= pos.z && pos.z <= end.y) {
-			return roof, true
+		if roof.orientation == .Diagonal {
+			start := roof.start
+			end := roof.end
+			// start := glsl.min(roof.start, roof.end)
+			// end := glsl.max(roof.start, roof.end)
+			c0 := min(start.y + start.x, end.y + end.x)
+			c1 := min(start.y - start.x, end.y - end.x)
+			c2 := max(start.y + start.x, end.y + end.x)
+			c3 := max(start.y - start.x, end.y - end.x)
+
+			log.info(pos, c0, c1, c2, c3)
+			if pos.z >= -pos.x + c0 &&
+			   pos.z >= pos.x + c1 &&
+			   pos.z <= -pos.x + c2 &&
+			   pos.z <= pos.x + c3 {
+				return roof, true
+			}
+		} else {
+			start := glsl.min(roof.start, roof.end)
+			end := glsl.max(roof.start, roof.end)
+			if (start.x <= pos.x && pos.x <= end.x) &&
+			   (start.y <= pos.z && pos.z <= end.y) {
+				return roof, true
+			}
 		}
 	}
 
@@ -356,8 +375,9 @@ add_roof :: proc(roof: Roof) -> Roof_Id {
 	}
 	append(&chunk.roofs, roof)
 
-	start := glsl.min(roof.start, roof.end)
-	end := glsl.max(roof.start, roof.end)
+	bounds := get_roof_bounds(roof)
+	start := bounds.start
+	end := bounds.end
 	for x := int(start.x + 0.5);
 	    x < int(end.x + 0.5) + c.CHUNK_WIDTH && x < c.WORLD_WIDTH;
 	    x += c.CHUNK_WIDTH {
@@ -369,9 +389,43 @@ add_roof :: proc(roof: Roof) -> Roof_Id {
 			append(&roofs.chunks[chunk_pos.y][cx][cz].roofs_inside, roof.id)
 		}
 	}
-	// append(&chunk.roofs_inside, roof.id)
 
 	return roof.id
+}
+
+Roof_Bounds :: struct {
+	start, end: glsl.vec2,
+}
+
+get_roof_bounds :: proc(roof: Roof) -> Roof_Bounds {
+	if roof.orientation == .Diagonal {
+		c0 := roof.end.y + roof.end.x
+		c1 := roof.end.y - roof.end.x
+		c2 := roof.start.y + roof.start.x
+		c3 := roof.start.y - roof.start.x
+
+		x1 := math.ceil((c0 - c3) / 2)
+		x3 := math.ceil((c2 - c1) / 2)
+
+		xy0 := glsl.vec2{roof.end.x, roof.end.y}
+		xy1 := glsl.vec2{x1, x1 + c3}
+		xy2 := glsl.vec2{roof.start.x, roof.start.y}
+		xy3 := glsl.vec2{x3, x3 + c1}
+
+		return(
+			 {
+				start = glsl.min(glsl.min(glsl.min(xy0, xy1), xy2), xy3),
+				end = glsl.max(glsl.max(glsl.max(xy0, xy1), xy2), xy3),
+			} \
+		)
+	}
+
+	return(
+		 {
+			start = glsl.min(roof.start, roof.end),
+			end = glsl.max(roof.start, roof.end),
+		} \
+	)
 }
 
 remove_roof :: proc(roof: Roof) {
@@ -388,8 +442,9 @@ remove_roof :: proc(roof: Roof) {
 		moved_key.index = key.index
 	}
 
-	start := glsl.min(roof.start, roof.end)
-	end := glsl.max(roof.start, roof.end)
+	bounds := get_roof_bounds(roof)
+	start := bounds.start
+	end := bounds.end
 	for x := int(start.x + 0.5);
 	    x < int(end.x + 0.5) + c.CHUNK_WIDTH && x < c.WORLD_WIDTH;
 	    x += c.CHUNK_WIDTH {
@@ -423,10 +478,9 @@ update_roof :: proc(roof: Roof) {
 
 	old_roof := chunk.roofs[key.index]
 	if old_roof.start != roof.start || old_roof.end != roof.end {
-		start := glsl.min(old_roof.start, old_roof.end)
-		end := glsl.max(old_roof.start, old_roof.end)
-
-		// log.info(roof.start, roof.end, is_roof_snapable(roof))
+		bounds := get_roof_bounds(old_roof)
+		start := bounds.start
+		end := bounds.end
 
 		for x := int(start.x + 0.5);
 		    x < int(end.x + 0.5) + c.CHUNK_WIDTH && x < c.WORLD_WIDTH;
@@ -446,8 +500,9 @@ update_roof :: proc(roof: Roof) {
 			}
 		}
 
-		start = glsl.min(roof.start, roof.end)
-		end = glsl.max(roof.start, roof.end)
+		bounds = get_roof_bounds(roof)
+		start = bounds.start
+		end = bounds.end
 		for x := int(start.x + 0.5);
 		    x < int(end.x + 0.5) + c.CHUNK_WIDTH && x < c.WORLD_WIDTH;
 		    x += c.CHUNK_WIDTH {
@@ -1213,10 +1268,10 @@ draw_half_hip_roof :: proc(
 ) {
 	size := size
 	ratio := max(size.x, size.y) / min(size.x, size.y)
-    mul := f32(1)
-    if roof.orientation == .Diagonal {
-        mul = SQRT_2
-    }
+	mul := f32(1)
+	if roof.orientation == .Diagonal {
+		mul = SQRT_2
+	}
 	size.y -= ROOF_SIZE_PADDING.y / 2 * mul
 	translate := glsl.vec4{-ROOF_SIZE_PADDING.y / 4 * mul, 0, 0, 0} * rotation
 	proof := roof^
@@ -1420,12 +1475,13 @@ draw_half_gable_roof :: proc(
 	face_lights: [4]glsl.vec4,
 ) {
 	size := size
-    mul := f32(1)
-    if roof.orientation == .Diagonal {
-        mul = SQRT_2
-    }
-	translate := glsl.vec4{-(ROOF_SIZE_PADDING.y / 4) * mul, 0, 0, 0} * rotation
-    size.y -= ROOF_SIZE_PADDING.y / 2 * mul
+	mul := f32(1)
+	if roof.orientation == .Diagonal {
+		mul = SQRT_2
+	}
+	translate :=
+		glsl.vec4{-(ROOF_SIZE_PADDING.y / 4) * mul, 0, 0, 0} * rotation
+	size.y -= ROOF_SIZE_PADDING.y / 2 * mul
 	min_size := min(size.y, size.x)
 	max_size := max(size.y, size.x)
 	height := min(size.x, size.y) / 2
@@ -1780,8 +1836,16 @@ draw_roof_rectangle :: proc(
 
 @(private = "file")
 EAVE_VERTICES :: [?]Roof_Vertex {
-	{pos = {-0.5, -ROOF_EAVE_HEIGHT, -0.5}, texcoords = {0, 1, 0}, color = {1, 1, 1, 1}},
-	{pos = {0.5, -ROOF_EAVE_HEIGHT, -0.5}, texcoords = {1, 1, 0}, color = {1, 1, 1, 1}},
+	 {
+		pos = {-0.5, -ROOF_EAVE_HEIGHT, -0.5},
+		texcoords = {0, 1, 0},
+		color = {1, 1, 1, 1},
+	},
+	 {
+		pos = {0.5, -ROOF_EAVE_HEIGHT, -0.5},
+		texcoords = {1, 1, 0},
+		color = {1, 1, 1, 1},
+	},
 	{pos = {0.5, 0, -0.5}, texcoords = {0, 0, 0}, color = {1, 1, 1, 1}},
 	{pos = {-0.5, 0, -0.5}, texcoords = {1, 0, 0}, color = {1, 1, 1, 1}},
 }

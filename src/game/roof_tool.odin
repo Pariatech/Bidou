@@ -546,6 +546,12 @@ add_diagonal_roof_nw_se_walls :: proc(
 }
 
 @(private = "file")
+remove_diagonal_roof_nw_se_walls :: proc(pos: glsl.ivec3, offset: i32) {
+	remove_wall(pos, .NW_SE)
+	remove_wall(pos - {offset, 0, offset}, .NW_SE)
+}
+
+@(private = "file")
 add_diagonal_roof_sw_ne_walls :: proc(
 	pos: glsl.ivec3,
 	offset: i32,
@@ -582,6 +588,12 @@ add_diagonal_roof_sw_ne_walls :: proc(
 			},
 		},
 	)
+}
+
+@(private = "file")
+remove_diagonal_roof_sw_ne_walls :: proc(pos: glsl.ivec3, offset: i32) {
+	remove_wall(pos, .SW_NE)
+	remove_wall(pos - {offset, 0, -offset}, .SW_NE)
 }
 
 @(private = "file")
@@ -784,6 +796,154 @@ add_diagonal_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 					roof.slope,
 					roof.slope,
 					.Left_Side,
+				)
+			}
+		}
+	}
+}
+
+@(private = "file")
+remove_diagonal_gable_roof_walls :: proc(roof: Roof, floor: i32) {
+	if (roof.end.x > roof.start.x && roof.end.y > roof.start.y) ||
+	   (roof.end.x <= roof.start.x && roof.end.y <= roof.start.y) {
+		c0 := roof.end.y + roof.end.x
+		c1 := roof.start.y - roof.start.x
+		ix := math.ceil((c0 - c1) / 2)
+		offset := i32(ix - roof.start.x - 0.5)
+
+		if roof.end.y > roof.start.y + (roof.end.x - roof.start.x) {
+			width := ix - (roof.end.x + 0.5)
+			trunc_half := math.trunc(width / 2)
+			ceil_half := math.ceil(width / 2)
+
+			for x, i in (roof.end.x + 0.5) ..< ix - math.ceil(width / 2) {
+				remove_diagonal_roof_nw_se_walls(
+					{i32(x), floor, i32(roof.end.y) - i32(i)},
+					offset,
+				)
+			}
+
+			if ceil_half != trunc_half {
+				remove_diagonal_roof_nw_se_walls(
+					 {
+						i32(roof.end.x + 0.5 + trunc_half),
+						floor,
+						i32(roof.end.y - trunc_half),
+					},
+					offset,
+				)
+			}
+
+			for x, i in (roof.end.x + 0.5) + ceil_half ..< ix {
+				remove_diagonal_roof_nw_se_walls(
+					{i32(x), floor, i32(roof.end.y) - i32(i) - i32(ceil_half)},
+					offset,
+				)
+			}
+		} else {
+			width := (roof.end.x + 0.5) - ix
+			trunc_half := math.trunc(width / 2)
+			ceil_half := math.ceil(width / 2)
+
+			for x, i in ix ..< (roof.end.x + 0.5) - ceil_half {
+				remove_diagonal_roof_nw_se_walls(
+					{i32(x), floor, i32(roof.end.y + width) - i32(i)},
+					offset,
+				)
+			}
+
+			if ceil_half != trunc_half {
+				remove_diagonal_roof_nw_se_walls(
+					 {
+						i32(roof.end.x + 0.5 - ceil_half),
+						floor,
+						i32(roof.end.y + ceil_half),
+					},
+					offset,
+				)
+			}
+
+			for x, i in ix + ceil_half ..< (roof.end.x + 0.5) {
+				remove_diagonal_roof_nw_se_walls(
+					 {
+						i32(x),
+						floor,
+						i32(roof.end.y) - i32(i) + i32(trunc_half),
+					},
+					offset,
+				)
+			}
+		}
+	} else {
+		c0 := roof.end.y - roof.end.x
+		c1 := roof.start.y + roof.start.x
+		ix := math.ceil((-c0 + c1) / 2)
+		offset := i32(ix - roof.start.x - 0.5)
+
+		if roof.end.y > roof.start.y - (roof.end.x - roof.start.x) {
+			width := (roof.end.x + 0.5) - ix
+			trunc_half := math.trunc(width / 2)
+			ceil_half := math.ceil(width / 2)
+
+			for x, i in ix ..< (roof.end.x + 0.5) - ceil_half {
+				remove_diagonal_roof_sw_ne_walls(
+					{i32(x), floor, i32(roof.end.y + 0.5 - width) + i32(i)},
+					offset,
+				)
+			}
+
+			if ceil_half != trunc_half {
+				remove_diagonal_roof_sw_ne_walls(
+					 {
+						i32(ix + trunc_half),
+						floor,
+						i32(roof.end.y - trunc_half),
+					},
+					offset,
+				)
+			}
+
+			for x, i in ix + ceil_half ..< (roof.end.x + 0.5) {
+				remove_diagonal_roof_sw_ne_walls(
+					 {
+						i32(x),
+						floor,
+						i32(roof.end.y + 0.5 - trunc_half) + i32(i),
+					},
+					offset,
+				)
+			}
+		} else {
+			width := ix - (roof.end.x + 0.5)
+			trunc_half := math.trunc(width / 2)
+			ceil_half := math.ceil(width / 2)
+
+			for x, i in (roof.end.x + 0.5) ..< ix - math.ceil(width / 2) {
+				remove_diagonal_roof_sw_ne_walls(
+					{i32(x), floor, i32(roof.end.y + 0.5) + i32(i)},
+					offset,
+				)
+			}
+
+			if ceil_half != trunc_half {
+				remove_diagonal_roof_sw_ne_walls(
+					 {
+						i32(roof.end.x + 0.5 + trunc_half),
+						floor,
+						i32(roof.end.y + 0.5 + trunc_half),
+					},
+					offset,
+				)
+			}
+
+			for x, i in (roof.end.x + 0.5) + ceil_half ..< ix {
+				remove_diagonal_roof_sw_ne_walls(
+					 {
+						i32(x),
+						floor,
+						i32(roof.end.y + 0.5) + i32(i) + i32(ceil_half),
+					},
+					offset,
 				)
 			}
 		}
@@ -1138,6 +1298,88 @@ add_diagonal_half_hip_roof_walls :: proc(roof: Roof, floor: i32) {
 					},
 				},
 			)
+		}
+	}
+}
+
+@(private = "file")
+remove_diagonal_half_hip_roof_walls :: proc(roof: Roof, floor: i32) {
+	c0 := roof.end.y + roof.end.x
+	c1 := roof.end.y - roof.end.x
+	c2 := roof.start.y + roof.start.x
+	c3 := roof.start.y - roof.start.x
+
+	x1 := math.ceil((c0 - c3) / 2)
+	x3 := math.ceil((c2 - c1) / 2)
+
+	xy0 := glsl.ivec2{i32(roof.end.x + 0.5), i32(roof.end.y + 0.5)}
+	xy1 := glsl.ivec2{i32(x1), i32(x1 + c3)}
+	xy2 := glsl.ivec2{i32(roof.start.x + 0.5), i32(roof.start.y + 0.5)}
+	xy3 := glsl.ivec2{i32(x3), i32(x3 + c1)}
+
+	if (roof.end.x > roof.start.x && roof.end.y > roof.start.y) ||
+	   (roof.end.x <= roof.start.x && roof.end.y <= roof.start.y) {
+		c0 := roof.end.y + roof.end.x
+		c1 := roof.start.y - roof.start.x
+		ix := math.ceil((c0 - c1) / 2)
+		offset := i32(ix - roof.start.x - 0.5)
+
+		min_x := min(xy3.x, xy0.x)
+		max_x := max(xy3.x, xy0.x)
+		y := min(xy3.y, xy0.y)
+		width := max_x - min_x
+		depth := abs(min(xy1.x, xy2.x) - min_x)
+		side_width := min(i32(width / 2), depth)
+		for x, i in min_x ..< min_x + side_width {
+			remove_wall({x, floor, y + i32(i)}, .SW_NE)
+		}
+		if depth > side_width {
+			if width - side_width * 2 == 1 {
+				remove_wall(
+					{min_x + side_width, floor, y + side_width},
+					.SW_NE,
+				)
+			}
+		} else {
+			for x, i in min_x + side_width ..< max_x - side_width {
+				remove_wall({x, floor, y + side_width + i32(i)}, .SW_NE)
+			}
+		}
+		for x, i in max_x - side_width ..< max_x {
+			remove_wall(
+				{x, floor, y + max_x - min_x - side_width + i32(i)},
+				.SW_NE,
+			)
+		}
+	} else {
+		c0 := roof.end.y + roof.end.x
+		c1 := roof.start.y - roof.start.x
+		ix := math.ceil((c0 - c1) / 2)
+		offset := i32(ix - roof.start.x - 0.5)
+
+		min_x := min(xy0.x, xy1.x)
+		max_x := max(xy0.x, xy1.x)
+		y := max(xy0.y, xy1.y) - 1
+		width := max_x - min_x
+		depth := abs(min(xy2.x, xy3.x) - min_x)
+		side_width := min(i32(width / 2), depth)
+		for x, i in min_x ..< min_x + side_width {
+			remove_wall({x, floor, y - i32(i)}, .NW_SE)
+		}
+		if depth > side_width {
+			if width - side_width * 2 == 1 {
+				remove_wall(
+					{min_x + side_width, floor, y - side_width},
+					.NW_SE,
+				)
+			}
+		} else {
+			for x, i in min_x + side_width ..< max_x - side_width {
+				remove_wall({x, floor, y - side_width - i32(i)}, .NW_SE)
+			}
+		}
+		for x, i in max_x - side_width ..< max_x {
+			remove_wall({x, floor, y - width + side_width - i32(i)}, .NW_SE)
 		}
 	}
 }
@@ -1555,6 +1797,77 @@ add_diagonal_half_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 }
 
 @(private = "file")
+remove_diagonal_half_gable_roof_walls :: proc(roof: Roof, floor: i32) {
+	c0 := roof.end.y + roof.end.x
+	c1 := roof.end.y - roof.end.x
+	c2 := roof.start.y + roof.start.x
+	c3 := roof.start.y - roof.start.x
+
+	x1 := math.ceil((c0 - c3) / 2)
+	x3 := math.ceil((c2 - c1) / 2)
+
+	xy0 := glsl.ivec2{i32(roof.end.x + 0.5), i32(roof.end.y + 0.5)}
+	xy1 := glsl.ivec2{i32(x1), i32(x1 + c3)}
+	xy2 := glsl.ivec2{i32(roof.start.x + 0.5), i32(roof.start.y + 0.5)}
+	xy3 := glsl.ivec2{i32(x3), i32(x3 + c1)}
+
+	if (roof.end.x > roof.start.x && roof.end.y > roof.start.y) ||
+	   (roof.end.x <= roof.start.x && roof.end.y <= roof.start.y) {
+		c0 := roof.end.y + roof.end.x
+		c1 := roof.start.y - roof.start.x
+		ix := math.ceil((c0 - c1) / 2)
+		offset := i32(ix - roof.start.x - 0.5)
+
+		min_x := min(xy3.x, xy0.x)
+		max_x := max(xy3.x, xy0.x)
+		y := min(xy3.y, xy0.y)
+		for x, i in min_x ..< max_x {
+			remove_wall({x, floor, y + i32(i)}, .SW_NE)
+		}
+
+		min_x = min(xy3.x, xy2.x)
+		max_x = max(xy3.x, xy2.x)
+		y = max(xy3.y, xy2.y)
+		for x, i in min_x ..< max_x {
+			remove_wall({x, floor, y - i32(i) - 1}, .NW_SE)
+		}
+
+		min_x = min(xy1.x, xy0.x)
+		max_x = max(xy1.x, xy0.x)
+		y = max(xy1.y, xy0.y)
+		for x, i in min_x ..< max_x {
+			remove_wall({x, floor, y - i32(i) - 1}, .NW_SE)
+		}
+	} else {
+		c0 := roof.end.y + roof.end.x
+		c1 := roof.start.y - roof.start.x
+		ix := math.ceil((c0 - c1) / 2)
+		offset := i32(ix - roof.start.x - 0.5)
+
+		min_x := min(xy0.x, xy1.x)
+		max_x := max(xy0.x, xy1.x)
+		y := max(xy0.y, xy1.y) - 1
+		for x, i in min_x ..< max_x {
+			remove_wall({x, floor, y - i32(i)}, .NW_SE)
+		}
+
+		min_x = min(xy1.x, xy2.x)
+		max_x = max(xy1.x, xy2.x)
+		y = min(xy1.y, xy2.y)
+		for x, i in min_x ..< max_x {
+			remove_wall({x, floor, y + i32(i)}, .SW_NE)
+		}
+
+		min_x = min(xy0.x, xy3.x)
+		max_x = max(xy0.x, xy3.x)
+		y = min(xy0.y, xy3.y)
+		for x, i in min_x ..< max_x {
+			remove_wall({x, floor, y + i32(i)}, .SW_NE)
+		}
+	}
+}
+
+@(private = "file")
 add_half_gable_roof_walls :: proc(roof: Roof) {
 	t_start := roof.start + {0.5, 0.5}
 	t_end := roof.end + {0.5, 0.5}
@@ -1798,14 +2111,18 @@ remove_gable_roof_walls :: proc(roof: Roof) {
 	tile_height := terrain.get_tile_height(int(t_start.x), int(t_start.y))
 	floor := i32((roof.offset - tile_height) / 3)
 
-	start := glsl.min(t_start, t_end)
-	end := glsl.max(t_start, t_end)
-	size := end - start
-
-	if size.x > size.y {
-		remove_north_south_gable_roof_walls(roof, start, end, size, floor)
+	if roof.orientation == .Diagonal {
+		remove_diagonal_gable_roof_walls(roof, floor)
 	} else {
-		remove_east_west_gable_roof_walls(roof, start, end, size, floor)
+		start := glsl.min(t_start, t_end)
+		end := glsl.max(t_start, t_end)
+		size := end - start
+
+		if size.x > size.y {
+			remove_north_south_gable_roof_walls(roof, start, end, size, floor)
+		} else {
+			remove_east_west_gable_roof_walls(roof, start, end, size, floor)
+		}
 	}
 }
 
@@ -1862,30 +2179,34 @@ remove_half_hip_roof_walls :: proc(roof: Roof) {
 	tile_height := terrain.get_tile_height(int(t_start.x), int(t_start.y))
 	floor := i32((roof.offset - tile_height) / 3)
 
-	start := glsl.min(t_start, t_end)
-	end := glsl.max(t_start, t_end)
-	size := end - start
-
-	if size.x > size.y {
-		remove_east_west_half_hip_roof_walls(
-			roof,
-			start,
-			end,
-			t_start,
-			t_end,
-			size,
-			floor,
-		)
+	if roof.orientation == .Diagonal {
+		remove_diagonal_half_hip_roof_walls(roof, floor)
 	} else {
-		remove_north_south_half_hip_roof_walls(
-			roof,
-			start,
-			end,
-			t_start,
-			t_end,
-			size,
-			floor,
-		)
+		start := glsl.min(t_start, t_end)
+		end := glsl.max(t_start, t_end)
+		size := end - start
+
+		if size.x > size.y {
+			remove_east_west_half_hip_roof_walls(
+				roof,
+				start,
+				end,
+				t_start,
+				t_end,
+				size,
+				floor,
+			)
+		} else {
+			remove_north_south_half_hip_roof_walls(
+				roof,
+				start,
+				end,
+				t_start,
+				t_end,
+				size,
+				floor,
+			)
+		}
 	}
 }
 
@@ -1928,30 +2249,34 @@ remove_half_gable_roof_walls :: proc(roof: Roof) {
 	tile_height := terrain.get_tile_height(int(t_start.x), int(t_start.y))
 	floor := i32((roof.offset - tile_height) / 3)
 
-	start := glsl.min(t_start, t_end)
-	end := glsl.max(t_start, t_end)
-	size := end - start
-
-	if size.x > size.y {
-		remove_east_west_half_gable_roof_walls(
-			roof,
-			start,
-			end,
-			t_start,
-			t_end,
-			size,
-			floor,
-		)
+	if roof.orientation == .Diagonal {
+		remove_diagonal_half_gable_roof_walls(roof, floor)
 	} else {
-		remove_north_south_half_gable_roof_walls(
-			roof,
-			start,
-			end,
-			t_start,
-			t_end,
-			size,
-			floor,
-		)
+		start := glsl.min(t_start, t_end)
+		end := glsl.max(t_start, t_end)
+		size := end - start
+
+		if size.x > size.y {
+			remove_east_west_half_gable_roof_walls(
+				roof,
+				start,
+				end,
+				t_start,
+				t_end,
+				size,
+				floor,
+			)
+		} else {
+			remove_north_south_half_gable_roof_walls(
+				roof,
+				start,
+				end,
+				t_start,
+				t_end,
+				size,
+				floor,
+			)
+		}
 	}
 }
 
