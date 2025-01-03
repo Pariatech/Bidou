@@ -2058,7 +2058,7 @@ read_roof_colors_dir :: proc(path: string) -> bool {
 		return false
 	}
 
-	if !os.is_dir(dir) {
+	if !os.is_dir(path) {
 		log.fatal(path, "is not a dir!")
 		return false
 	}
