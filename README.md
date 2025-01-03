@@ -1,6 +1,8 @@
-# Urban Tycoons
+# Bidou
 
 A business owner life simulator game. Build & manage a store while staying alive.
+
+[Itch.io](https://pariatech.itch.io/bidou)
 
 # Build
 
