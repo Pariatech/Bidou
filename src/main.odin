@@ -55,7 +55,7 @@ start :: proc() -> (ok: bool = false) {
 		defer log.destroy_console_logger(context.logger)
 	} else {
 		mode: int = 0
-        if ODIN_OS != .Windows {
+        when ODIN_OS != .Windows {
             mode = os.S_IRUSR + os.S_IWUSR
         }
 		h, _ := os.open(
