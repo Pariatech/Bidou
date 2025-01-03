@@ -1928,8 +1928,9 @@ handle_roof_tool_idle :: proc() -> Roof_Tool_State {
 			f32(floor.floor) * 3 +
 			terrain.get_tile_height(
 				int(ctx.cursor.pos.x + 0.5),
-				int(ctx.cursor.pos.y + 0.5),
+				int(ctx.cursor.pos.z + 0.5),
 			)
+        log.info(ctx.roof.offset)
 		ctx.roof.light = {1, 1, 1, 0.5}
 		ctx.roof.id = add_roof(ctx.roof)
 
