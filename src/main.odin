@@ -45,7 +45,7 @@ framebuffer_size_callback :: proc "c" (
 
 start :: proc() -> (ok: bool = false) {
 	game_context := new(game.Game_Context)
-    defer free(game_context)
+	defer free(game_context)
 	context.user_ptr = game_context
 
 	defer game.free_models()
@@ -54,10 +54,14 @@ start :: proc() -> (ok: bool = false) {
 		context.logger = log.create_console_logger()
 		defer log.destroy_console_logger(context.logger)
 	} else {
+		mode: int = 0
+        if ODIN_OS != .Windows {
+            mode = os.S_IRUSR + os.S_IWUSR
+        }
 		h, _ := os.open(
 			"logs",
 			os.O_WRONLY + os.O_CREATE,
-			os.S_IRUSR + os.S_IWUSR,
+			mode,
 		)
 		context.logger = log.create_file_logger(h)
 
@@ -111,7 +115,7 @@ start :: proc() -> (ok: bool = false) {
 	defer game.delete_objects()
 
 	game.init_game() or_return
-    defer game.deinit_game()
+	defer game.deinit_game()
 
 	world.init()
 
@@ -125,7 +129,7 @@ start :: proc() -> (ok: bool = false) {
 	time.stopwatch_start(&fps_stopwatch)
 	frames: i64 = 0
 
-    free_all(context.temp_allocator)
+	free_all(context.temp_allocator)
 
 	for !should_close {
 		previous_time_ns = current_time_ns
@@ -165,7 +169,7 @@ start :: proc() -> (ok: bool = false) {
 		// game.draw_object_tool()
 		world.draw()
 
-        // game.draw_game() or_return
+		// game.draw_game() or_return
 		tools.update(delta_time)
 
 		ui.draw(&ui_ctx)
@@ -178,7 +182,7 @@ start :: proc() -> (ok: bool = false) {
 		mouse.update()
 		cursor.update()
 
-        free_all(context.temp_allocator)
+		free_all(context.temp_allocator)
 
 		frames += 1
 	}

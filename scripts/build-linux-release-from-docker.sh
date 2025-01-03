@@ -1,6 +1,6 @@
 #!/bin/sh
 
-docker build -t build-urban-tycoons-linux -f Dockerfile.linux .
+docker buildx build -t build-urban-tycoons-linux -f Dockerfile.linux .
 
 docker create --name build-urban-tycoons-linux build-urban-tycoons-linux
 docker cp build-urban-tycoons-linux:/game/urban-tycoons ./urban-tycoons
