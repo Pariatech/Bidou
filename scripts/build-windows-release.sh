@@ -1,3 +1,3 @@
 #!/bin/sh
 
-deps/Odin/odin.exe build src/ -out=urban-tycoons.exe -o:aggressive
+deps/Odin/odin.exe build src/ -out=bidou.exe -o:aggressive

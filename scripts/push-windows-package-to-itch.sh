@@ -1,4 +1,4 @@
 #!/bin/sh
 
 pwd="$(pwd)"
-butler push "$pwd/urban-tycoons-windows.zip" pariatech/urban-tycoons:windows-64
+butler push "$pwd/bidou-windows.zip" pariatech/bidou:windows-64

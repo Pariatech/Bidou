@@ -3,4 +3,4 @@
 pwd="$(pwd)"
 
 
-butler push "$pwd/urban-tycoons-linux.zip" pariatech/urban-tycoons:linux
+butler push "$pwd/bidou-linux.zip" pariatech/bidou:linux

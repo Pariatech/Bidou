@@ -1,4 +1,4 @@
 #!/bin/sh
 
-rm urban-tycoons-windows.zip
-zip -r urban-tycoons-windows.zip resources urban-tycoons.exe
+rm bidou-windows.zip
+zip -r bidou-windows.zip resources bidou.exe

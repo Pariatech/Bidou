@@ -1,7 +1,7 @@
 #!/bin/sh
 
 
-./urban-tycoons &
+./bidou &
 game_pid=$!
 
 get_property_value() {

@@ -1,4 +1,4 @@
 #!/bin/sh
 
-rm urban-tycoons-macos.zip
-zip -r urban-tycoons-macos.zip urban-tycoons.app
+rm bidou-macos.zip
+zip -r bidou-macos.zip bidou.app
