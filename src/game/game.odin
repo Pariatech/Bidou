@@ -12,6 +12,7 @@ Game_Context :: struct {
 	object_blueprints: Object_Blueprints,
 	roofs:             Roofs_Context,
 	roof_tool:         Roof_Tool_Context,
+	cutaway:           Cutaway_Context,
 }
 
 get_game_context :: #force_inline proc() -> ^Game_Context {
@@ -50,6 +51,10 @@ get_roof_tool_context :: proc() -> ^Roof_Tool_Context {
 	return &get_game_context().roof_tool
 }
 
+get_cutaway_context :: proc() -> ^Cutaway_Context {
+    return &get_game_context().cutaway
+}
+
 init_game :: proc() -> bool {
 	load_object_blueprints() or_return
 	init_object_draws() or_return
@@ -74,7 +79,7 @@ init_game :: proc() -> bool {
 			offset = 0,
 			slope = 1,
 			light = {1, 1, 1, 1},
-            color = "big_square_tiles",
+			color = "big_square_tiles",
 		},
 	)
 
@@ -86,7 +91,7 @@ init_game :: proc() -> bool {
 			offset = 6,
 			slope = 1,
 			light = {1, 1, 1, 1},
-            color = "hexagon_tiles",
+			color = "hexagon_tiles",
 		},
 	)
 
@@ -98,7 +103,7 @@ init_game :: proc() -> bool {
 			offset = 6,
 			slope = 1,
 			light = {1, 1, 1, 1},
-            color = "big_square_tiles",
+			color = "big_square_tiles",
 		},
 	)
 
@@ -191,11 +196,11 @@ deinit_game :: proc() {
 }
 
 draw_game :: proc(floor: i32) -> bool {
-    draw_roof_tool()
+	draw_roof_tool()
 	draw_roofs(floor)
 	draw_objects(floor) or_return
 
-    return true
+	return true
 }
 
 update_game_on_camera_rotation :: proc() {

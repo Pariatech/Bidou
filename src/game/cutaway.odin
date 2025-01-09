@@ -6,29 +6,32 @@ import "core:math/linalg/glsl"
 import "../camera"
 import "../floor"
 
+Cutaway_Context :: struct {
+	cutaway_state:                 Cutaway_State,
+	previous_visible_chunks_start: glsl.ivec2,
+	previous_visible_chunks_end:   glsl.ivec2,
+}
+
 Cutaway_State :: enum {
 	Up,
 	Down,
 }
 
-cutaway_state: Cutaway_State
-
-previous_visible_chunks_start: glsl.ivec2
-previous_visible_chunks_end: glsl.ivec2
-
-CUTAWAY_WALL_MASK_MAP :: [State][Wall_Axis][camera.Rotation]Wall_Type{}
+CUTAWAY_WALL_MASK_MAP :: [Wall_State][Wall_Axis][camera.Rotation]Wall_Type{}
 
 set_walls_down :: proc() {
-	cutaway_state = .Down
+    ctx := get_cutaway_context()
+	ctx.cutaway_state = .Down
 	set_cutaway(.Down)
 }
 
 set_walls_up :: proc() {
-	cutaway_state = .Up
+    ctx := get_cutaway_context()
+	ctx.cutaway_state = .Up
 	set_cutaway(.Up)
 }
 
-set_cutaway :: proc(state: State) {
+set_cutaway :: proc(state: Wall_State) {
 	for x in camera.visible_chunks_start.x ..< camera.visible_chunks_end.x {
 		for z in camera.visible_chunks_start.y ..< camera.visible_chunks_end.y {
 			chunk := &chunks[floor.floor][x][z]
@@ -58,7 +61,8 @@ init_cutaways :: proc() {
 }
 
 apply_cutaway :: proc() -> bool {
-	if cutaway_state != .Down {
+    ctx := get_cutaway_context()
+	if ctx.cutaway_state != .Down {
 		return false
 	}
 
@@ -66,11 +70,11 @@ apply_cutaway :: proc() -> bool {
 		return true
 	}
 
-	if previous_visible_chunks_start != camera.visible_chunks_start {
+	if ctx.previous_visible_chunks_start != camera.visible_chunks_start {
 		return true
 	}
 
-	if previous_visible_chunks_end != camera.visible_chunks_end {
+	if ctx.previous_visible_chunks_end != camera.visible_chunks_end {
 		return true
 	}
 
@@ -86,6 +90,7 @@ wall_is_frame :: proc(w: Wall) -> bool {
 }
 
 update_cutaways :: proc(force: bool = false) {
+    ctx := get_cutaway_context()
 	if !force && !apply_cutaway() {
 		return
 	}
@@ -112,7 +117,7 @@ update_cutaways :: proc(force: bool = false) {
 				w.state = .Up
 			}
 
-			if cutaway_state == .Down {
+			if ctx.cutaway_state == .Down {
 				chunk := &chunks[floor.floor][x][z]
 				chunk.dirty = true
 
@@ -147,12 +152,13 @@ update_cutaways :: proc(force: bool = false) {
 		}
 	}
 
-	previous_visible_chunks_start = camera.visible_chunks_start
-	previous_visible_chunks_end = camera.visible_chunks_end
+	ctx.previous_visible_chunks_start = camera.visible_chunks_start
+	ctx.previous_visible_chunks_end = camera.visible_chunks_end
 }
 
 set_wall_up :: proc(pos: glsl.ivec3, axis: Wall_Axis) {
-	if cutaway_state == .Up {
+    ctx := get_cutaway_context()
+	if ctx.cutaway_state == .Up {
 		return
 	}
 
@@ -164,8 +170,8 @@ set_wall_up :: proc(pos: glsl.ivec3, axis: Wall_Axis) {
 	w.state = .Up
 	set_wall(pos, axis, w)
 
-	ew_left: State
-	ew_right: State
+	ew_left: Wall_State
+	ew_right: Wall_State
 
 	switch camera.rotation {
 	case .South_West, .North_West:
@@ -176,8 +182,8 @@ set_wall_up :: proc(pos: glsl.ivec3, axis: Wall_Axis) {
 		ew_right = .Left
 	}
 
-	ns_left: State
-	ns_right: State
+	ns_left: Wall_State
+	ns_right: Wall_State
 
 	switch camera.rotation {
 	case .South_West, .South_East:
@@ -188,8 +194,8 @@ set_wall_up :: proc(pos: glsl.ivec3, axis: Wall_Axis) {
 		ns_right = .Left
 	}
 
-	diagonal_left: State
-	diagonal_right: State
+	diagonal_left: Wall_State
+	diagonal_right: Wall_State
 
 	switch camera.rotation {
 	case .South_West, .South_East:
@@ -203,7 +209,7 @@ set_wall_up :: proc(pos: glsl.ivec3, axis: Wall_Axis) {
 	switch axis {
 	case .E_W:
 		if w, ok := get_wall(pos + {-1, 0, 0}, .E_W); ok {
-            w.state = ew_left
+			w.state = ew_left
 			set_wall(pos + {-1, 0, 0}, .E_W, w)
 		}
 		if w, ok := get_wall(pos + {1, 0, 0}, .E_W); ok {
@@ -216,7 +222,7 @@ set_wall_up :: proc(pos: glsl.ivec3, axis: Wall_Axis) {
 			set_wall(pos + {0, 0, 0}, .N_S, w)
 		}
 		if w, ok := get_wall(pos + {0, 0, -1}, .N_S); ok {
-            w.state = ns_left
+			w.state = ns_left
 			set_wall(pos + {0, 0, -1}, .N_S, w)
 		}
 		if w, ok := get_wall(pos + {1, 0, 0}, .N_S); ok {
@@ -224,12 +230,12 @@ set_wall_up :: proc(pos: glsl.ivec3, axis: Wall_Axis) {
 			set_wall(pos + {1, 0, 0}, .N_S, w)
 		}
 		if w, ok := get_wall(pos + {1, 0, -1}, .N_S); ok {
-            w.state = ns_left
+			w.state = ns_left
 			set_wall(pos + {1, 0, -1}, .N_S, w)
 		}
 
 		if w, ok := get_wall(pos + {-1, 0, 0}, .NW_SE); ok {
-            w.state = ew_left
+			w.state = ew_left
 			set_wall(pos + {-1, 0, 0}, .NW_SE, w)
 		}
 		if w, ok := get_wall(pos + {1, 0, -1}, .NW_SE); ok {
@@ -238,7 +244,7 @@ set_wall_up :: proc(pos: glsl.ivec3, axis: Wall_Axis) {
 		}
 
 		if w, ok := get_wall(pos + {-1, 0, -1}, .SW_NE); ok {
-            w.state = ew_left
+			w.state = ew_left
 			set_wall(pos + {-1, 0, -1}, .SW_NE, w)
 		}
 		if w, ok := get_wall(pos + {1, 0, 0}, .SW_NE); ok {
@@ -247,46 +253,46 @@ set_wall_up :: proc(pos: glsl.ivec3, axis: Wall_Axis) {
 		}
 	case .N_S:
 		if w, ok := get_wall(pos + {0, 0, -1}, .N_S); ok {
-            w.state = ns_left
+			w.state = ns_left
 			set_wall(pos + {0, 0, -1}, .N_S, w)
 		}
 		if w, ok := get_wall(pos + {0, 0, 1}, .N_S); ok {
-            w.state = ns_right
+			w.state = ns_right
 			set_wall(pos + {0, 0, 1}, .N_S, w)
 		}
 
 		if w, ok := get_wall(pos + {0, 0, 0}, .E_W); ok {
-            w.state = ew_right
+			w.state = ew_right
 			set_wall(pos + {0, 0, 0}, .E_W, w)
 		}
 		if w, ok := get_wall(pos + {-1, 0, 0}, .E_W); ok {
-            w.state = ew_left
+			w.state = ew_left
 			set_wall(pos + {-1, 0, 0}, .E_W, w)
 		}
 		if w, ok := get_wall(pos + {0, 0, 1}, .E_W); ok {
-            w.state = ew_right
+			w.state = ew_right
 			set_wall(pos + {0, 0, 1}, .E_W, w)
 		}
 		if w, ok := get_wall(pos + {-1, 0, 1}, .E_W); ok {
-            w.state = ew_left
+			w.state = ew_left
 			set_wall(pos + {-1, 0, 1}, .E_W, w)
 		}
 
 		if w, ok := get_wall(pos + {-1, 0, 1}, .NW_SE); ok {
-            w.state = ns_left
+			w.state = ns_left
 			set_wall(pos + {-1, 0, 1}, .NW_SE, w)
 		}
 		if w, ok := get_wall(pos + {0, 0, -1}, .NW_SE); ok {
-            w.state = ns_right
+			w.state = ns_right
 			set_wall(pos + {0, 0, -1}, .NW_SE, w)
 		}
 
 		if w, ok := get_wall(pos + {-1, 0, -1}, .SW_NE); ok {
-            w.state = ns_left
+			w.state = ns_left
 			set_wall(pos + {-1, 0, -1}, .SW_NE, w)
 		}
 		if w, ok := get_wall(pos + {0, 0, 1}, .SW_NE); ok {
-            w.state = ns_right
+			w.state = ns_right
 			set_wall(pos + {0, 0, 1}, .SW_NE, w)
 		}
 	case .SW_NE:

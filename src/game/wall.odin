@@ -54,7 +54,7 @@ Wall_Texture_Position :: enum {
 	Top,
 }
 
-State :: enum {
+Wall_State :: enum {
 	Up,
 	Down,
 	Left,
@@ -86,7 +86,7 @@ Wall :: struct {
 	type:       Wall_Type,
 	textures:   [Wall_Side]Wall_Texture,
 	mask:       Wall_Mask_Texture,
-	state:      State,
+	state:      Wall_State,
 	height:     f32,
 	roof_slope: Maybe(Wall_Roof_Slope),
 }
@@ -270,6 +270,8 @@ WALL_TYPE_TOP_MODEL_NAME_MAP :: [Wall_Type]string {
 	}
 
 chunks: [constants.CHUNK_HEIGHT][constants.WORLD_CHUNK_WIDTH][constants.WORLD_CHUNK_DEPTH]Chunk
+wall_texture_array: u32
+wall_mask_array: u32
 
 WALL_SIDE_TYPE_MAP :: [Wall_Type_Part][Wall_Type_Part]Wall_Type {
 		.End =  {
@@ -298,9 +300,6 @@ WALL_SIDE_TYPE_MAP :: [Wall_Type_Part][Wall_Type_Part]Wall_Type {
 		},
 	}
 
-wall_texture_array: u32
-wall_mask_array: u32
-
 make_wall :: proc(
 	type: Wall_Type = .Full,
 	textures: [Wall_Side]Wall_Texture =  {
@@ -308,7 +307,7 @@ make_wall :: proc(
 		.Inside = .Drywall,
 	},
 	mask: Wall_Mask_Texture = .Full_Mask,
-	state: State = .Up,
+	state: Wall_State = .Up,
 	height: f32 = 3,
 	roof_slope: Maybe(Wall_Roof_Slope) = nil,
 ) -> Wall {

@@ -32,6 +32,7 @@ init :: proc(title: cstring) -> (ok: bool = true) {
     glfw.SetWindowSizeCallback(handle, window_size_callback)
 
 	scale.x, scale.y = glfw.GetWindowContentScale(handle)
+	// scale = {1.5, 1.5} // There's a bug with this
 	dpi: glsl.vec2
 	dpi.x, dpi.y = glfw.GetMonitorContentScale(glfw.GetPrimaryMonitor())
 	log.debug("Window scale:", scale)

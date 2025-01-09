@@ -313,7 +313,7 @@ find_south_west_wall_intersect :: proc(
 	bool,
 ) {
 	wall_selection_distance := i32(WALL_SELECTION_DISTANCE)
-	if game.cutaway_state == .Down {
+	if game.get_cutaway_context().cutaway_state == .Down {
 		wall_selection_distance = 1
 	}
 	switch side {
