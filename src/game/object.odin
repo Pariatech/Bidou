@@ -22,6 +22,18 @@ import "../renderer"
 import "../terrain"
 // import "../wall"
 
+ALL_OBJECT_TYPES :: Object_Type_Set {
+	.Door,
+	.Window,
+	.Chair,
+	.Table,
+	.Counter,
+	.Painting,
+	.Computer,
+	.Plate,
+	.Couch,
+}
+
 Object_Type :: enum {
 	Door,
 	Window,
@@ -40,18 +52,6 @@ Object_Type :: enum {
 }
 
 Object_Type_Set :: bit_set[Object_Type]
-
-ALL_OBJECT_TYPES :: Object_Type_Set {
-	.Door,
-	.Window,
-	.Chair,
-	.Table,
-	.Counter,
-	.Painting,
-	.Computer,
-	.Plate,
-	.Couch,
-}
 
 Object_Orientation :: enum {
 	South,

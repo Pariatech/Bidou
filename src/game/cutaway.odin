@@ -32,9 +32,10 @@ set_walls_up :: proc() {
 }
 
 set_cutaway :: proc(state: Wall_State) {
+    ctx := get_walls_context()
 	for x in camera.visible_chunks_start.x ..< camera.visible_chunks_end.x {
 		for z in camera.visible_chunks_start.y ..< camera.visible_chunks_end.y {
-			chunk := &chunks[floor.floor][x][z]
+			chunk := &ctx.chunks[floor.floor][x][z]
 			chunk.dirty = true
 
 			for wall_pos, &w in chunk.east_west {
@@ -91,13 +92,14 @@ wall_is_frame :: proc(w: Wall) -> bool {
 
 update_cutaways :: proc(force: bool = false) {
     ctx := get_cutaway_context()
+    walls := get_walls_context()
 	if !force && !apply_cutaway() {
 		return
 	}
 
 	for x in camera.visible_chunks_start.x ..< camera.visible_chunks_end.x {
 		for z in camera.visible_chunks_start.y ..< camera.visible_chunks_end.y {
-			chunk := &chunks[floor.previous_floor][x][z]
+			chunk := &walls.chunks[floor.previous_floor][x][z]
 
 			chunk.dirty = true
 
@@ -118,7 +120,7 @@ update_cutaways :: proc(force: bool = false) {
 			}
 
 			if ctx.cutaway_state == .Down {
-				chunk := &chunks[floor.floor][x][z]
+				chunk := &walls.chunks[floor.floor][x][z]
 				chunk.dirty = true
 
 				for wall_pos, &w in chunk.east_west {

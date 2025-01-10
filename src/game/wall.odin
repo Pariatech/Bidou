@@ -98,7 +98,7 @@ Wall_Vertex :: struct {
 	texcoords: glsl.vec4,
 }
 
-Chunk :: struct {
+Wall_Chunk :: struct {
 	north_south:           map[glsl.ivec2]Wall,
 	east_west:             map[glsl.ivec2]Wall,
 	south_west_north_east: map[glsl.ivec2]Wall,
@@ -131,6 +131,12 @@ Wall_Texture :: enum (u16) {
 	Tiles_009,
 	Tiles_077,
 	WoodSiding_002,
+}
+
+Walls_Context :: struct {
+	chunks:        [constants.CHUNK_HEIGHT][constants.WORLD_CHUNK_WIDTH][constants.WORLD_CHUNK_DEPTH]Wall_Chunk,
+	texture_array: u32,
+	mask_array:    u32,
 }
 
 Wall_Index :: u32
@@ -269,10 +275,6 @@ WALL_TYPE_TOP_MODEL_NAME_MAP :: [Wall_Type]string {
 		.Extended       = "Wall.Up.Top.Full",
 	}
 
-chunks: [constants.CHUNK_HEIGHT][constants.WORLD_CHUNK_WIDTH][constants.WORLD_CHUNK_DEPTH]Chunk
-wall_texture_array: u32
-wall_mask_array: u32
-
 WALL_SIDE_TYPE_MAP :: [Wall_Type_Part][Wall_Type_Part]Wall_Type {
 		.End =  {
 			.End = .Full,
@@ -300,6 +302,20 @@ WALL_SIDE_TYPE_MAP :: [Wall_Type_Part][Wall_Type_Part]Wall_Type {
 		},
 	}
 
+deinit_walls :: proc() {
+    ctx := get_walls_context()
+    for &f in ctx.chunks {
+        for &r in f {
+            for &c in r {
+                delete(c.east_west)
+                delete(c.north_south)
+                delete(c.south_west_north_east)
+                delete(c.north_west_south_east)
+            }
+        }
+    }
+}
+
 make_wall :: proc(
 	type: Wall_Type = .Full,
 	textures: [Wall_Side]Wall_Texture =  {
@@ -324,9 +340,10 @@ make_wall :: proc(
 }
 
 load_wall_mask_array :: proc() -> (ok: bool) {
+    ctx := get_walls_context()
 	gl.ActiveTexture(gl.TEXTURE1)
-	gl.GenTextures(1, &wall_mask_array)
-	gl.BindTexture(gl.TEXTURE_2D_ARRAY, wall_mask_array)
+	gl.GenTextures(1, &ctx.mask_array)
+	gl.BindTexture(gl.TEXTURE_2D_ARRAY, ctx.mask_array)
 
 	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
@@ -342,9 +359,10 @@ load_wall_mask_array :: proc() -> (ok: bool) {
 }
 
 load_wall_texture_array :: proc() -> (ok: bool = true) {
+    ctx := get_walls_context()
 	gl.ActiveTexture(gl.TEXTURE0)
-	gl.GenTextures(1, &wall_texture_array)
-	gl.BindTexture(gl.TEXTURE_2D_ARRAY, wall_texture_array)
+	gl.GenTextures(1, &ctx.texture_array)
+	gl.BindTexture(gl.TEXTURE_2D_ARRAY, ctx.texture_array)
 
 	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.REPEAT)
 	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.REPEAT)
@@ -588,9 +606,10 @@ draw_wall :: proc(
 	}
 }
 
-get_chunk :: proc(pos: glsl.ivec3) -> ^Chunk {
+get_chunk :: proc(pos: glsl.ivec3) -> ^Wall_Chunk {
+    ctx := get_walls_context()
 	return(
-		&chunks[pos.y][pos.x / constants.CHUNK_WIDTH][pos.z / constants.CHUNK_DEPTH] \
+		&ctx.chunks[pos.y][pos.x / constants.CHUNK_WIDTH][pos.z / constants.CHUNK_DEPTH] \
 	)
 }
 
@@ -756,7 +775,7 @@ remove_south_west_north_east_wall :: proc(pos: glsl.ivec3) {
 }
 
 chunk_set_north_south_wall :: proc(
-	chunk: ^Chunk,
+	chunk: ^Wall_Chunk,
 	pos: glsl.ivec3,
 	wall: Wall,
 ) {
@@ -764,12 +783,12 @@ chunk_set_north_south_wall :: proc(
 	chunk.dirty = true
 }
 
-chunk_has_north_south_wall :: proc(chunk: ^Chunk, pos: glsl.ivec3) -> bool {
+chunk_has_north_south_wall :: proc(chunk: ^Wall_Chunk, pos: glsl.ivec3) -> bool {
 	return pos.xz in chunk.north_south
 }
 
 chunk_get_north_south_wall :: proc(
-	chunk: ^Chunk,
+	chunk: ^Wall_Chunk,
 	pos: glsl.ivec3,
 ) -> (
 	Wall,
@@ -778,22 +797,22 @@ chunk_get_north_south_wall :: proc(
 	return chunk.north_south[pos.xz]
 }
 
-chunk_remove_north_south_wall :: proc(chunk: ^Chunk, pos: glsl.ivec3) {
+chunk_remove_north_south_wall :: proc(chunk: ^Wall_Chunk, pos: glsl.ivec3) {
 	delete_key(&chunk.north_south, glsl.ivec2(pos.xz))
 	chunk.dirty = true
 }
 
-chunk_set_east_west_wall :: proc(chunk: ^Chunk, pos: glsl.ivec3, wall: Wall) {
+chunk_set_east_west_wall :: proc(chunk: ^Wall_Chunk, pos: glsl.ivec3, wall: Wall) {
 	chunk.east_west[pos.xz] = wall
 	chunk.dirty = true
 }
 
-chunk_has_east_west_wall :: proc(chunk: ^Chunk, pos: glsl.ivec3) -> bool {
+chunk_has_east_west_wall :: proc(chunk: ^Wall_Chunk, pos: glsl.ivec3) -> bool {
 	return pos.xz in chunk.east_west
 }
 
 chunk_get_east_west_wall :: proc(
-	chunk: ^Chunk,
+	chunk: ^Wall_Chunk,
 	pos: glsl.ivec3,
 ) -> (
 	Wall,
@@ -802,14 +821,14 @@ chunk_get_east_west_wall :: proc(
 	return chunk.east_west[pos.xz]
 }
 
-chunk_remove_east_west_wall :: proc(chunk: ^Chunk, pos: glsl.ivec3) {
+chunk_remove_east_west_wall :: proc(chunk: ^Wall_Chunk, pos: glsl.ivec3) {
 	delete_key(&chunk.east_west, glsl.ivec2(pos.xz))
 	chunk.dirty = true
 }
 
 
 chunk_set_north_west_south_east_wall :: proc(
-	chunk: ^Chunk,
+	chunk: ^Wall_Chunk,
 	pos: glsl.ivec3,
 	wall: Wall,
 ) {
@@ -818,14 +837,14 @@ chunk_set_north_west_south_east_wall :: proc(
 }
 
 chunk_has_north_west_south_east_wall :: proc(
-	chunk: ^Chunk,
+	chunk: ^Wall_Chunk,
 	pos: glsl.ivec3,
 ) -> bool {
 	return pos.xz in chunk.north_west_south_east
 }
 
 chunk_get_north_west_south_east_wall :: proc(
-	chunk: ^Chunk,
+	chunk: ^Wall_Chunk,
 	pos: glsl.ivec3,
 ) -> (
 	Wall,
@@ -835,7 +854,7 @@ chunk_get_north_west_south_east_wall :: proc(
 }
 
 chunk_remove_north_west_south_east_wall :: proc(
-	chunk: ^Chunk,
+	chunk: ^Wall_Chunk,
 	pos: glsl.ivec3,
 ) {
 	delete_key(&chunk.north_west_south_east, glsl.ivec2(pos.xz))
@@ -843,7 +862,7 @@ chunk_remove_north_west_south_east_wall :: proc(
 }
 
 chunk_set_south_west_north_east_wall :: proc(
-	chunk: ^Chunk,
+	chunk: ^Wall_Chunk,
 	pos: glsl.ivec3,
 	wall: Wall,
 ) {
@@ -852,14 +871,14 @@ chunk_set_south_west_north_east_wall :: proc(
 }
 
 chunk_has_south_west_north_east_wall :: proc(
-	chunk: ^Chunk,
+	chunk: ^Wall_Chunk,
 	pos: glsl.ivec3,
 ) -> bool {
 	return pos.xz in chunk.south_west_north_east
 }
 
 chunk_get_south_west_north_east_wall :: proc(
-	chunk: ^Chunk,
+	chunk: ^Wall_Chunk,
 	pos: glsl.ivec3,
 ) -> (
 	Wall,
@@ -869,14 +888,14 @@ chunk_get_south_west_north_east_wall :: proc(
 }
 
 chunk_remove_south_west_north_east_wall :: proc(
-	chunk: ^Chunk,
+	chunk: ^Wall_Chunk,
 	pos: glsl.ivec3,
 ) {
 	delete_key(&chunk.south_west_north_east, glsl.ivec2(pos.xz))
 	chunk.dirty = true
 }
 
-chunk_draw_walls :: proc(chunk: ^Chunk, pos: glsl.ivec3) {
+chunk_draw_walls :: proc(chunk: ^Wall_Chunk, pos: glsl.ivec3) {
 	if !chunk.initialized {
 		chunk.initialized = true
 		chunk.dirty = true
@@ -999,14 +1018,16 @@ chunk_draw_walls :: proc(chunk: ^Chunk, pos: glsl.ivec3) {
 
 
 draw_walls :: proc(floor: i32) {
+    ctx := get_walls_context()
+
 	gl.ActiveTexture(gl.TEXTURE0)
-	gl.BindTexture(gl.TEXTURE_2D_ARRAY, wall_texture_array)
+	gl.BindTexture(gl.TEXTURE_2D_ARRAY, ctx.texture_array)
 	gl.ActiveTexture(gl.TEXTURE1)
-	gl.BindTexture(gl.TEXTURE_2D_ARRAY, wall_mask_array)
+	gl.BindTexture(gl.TEXTURE_2D_ARRAY, ctx.mask_array)
 
 	for x in camera.visible_chunks_start.x ..< camera.visible_chunks_end.x {
 		for z in camera.visible_chunks_start.y ..< camera.visible_chunks_end.y {
-			chunk := &chunks[floor][x][z]
+			chunk := &ctx.chunks[floor][x][z]
 			chunk_draw_walls(chunk, {x, i32(floor), z})
 		}
 	}

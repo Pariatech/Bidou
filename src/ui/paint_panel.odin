@@ -37,7 +37,7 @@ paint_panel_body :: proc(
                    pos.y + FLOOR_PANEL_PADDING,
 			   },
 			   {PAINT_PANEL_TILE_WIDTH, PAINT_PANEL_TILE_HEIGHT},
-			   game.wall_texture_array,
+			   game.get_walls_context().texture_array,
 			   int(tex),
 			   left_border_width = border_width,
 			   right_border_width = border_width,

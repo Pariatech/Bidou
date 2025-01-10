@@ -13,6 +13,7 @@ Game_Context :: struct {
 	roofs:             Roofs_Context,
 	roof_tool:         Roof_Tool_Context,
 	cutaway:           Cutaway_Context,
+	walls:             Walls_Context,
 }
 
 get_game_context :: #force_inline proc() -> ^Game_Context {
@@ -52,7 +53,11 @@ get_roof_tool_context :: proc() -> ^Roof_Tool_Context {
 }
 
 get_cutaway_context :: proc() -> ^Cutaway_Context {
-    return &get_game_context().cutaway
+	return &get_game_context().cutaway
+}
+
+get_walls_context :: proc() -> ^Walls_Context {
+	return &get_game_context().walls
 }
 
 init_game :: proc() -> bool {
@@ -193,6 +198,7 @@ deinit_game :: proc() {
 	deinit_object_draws()
 	deinit_object_tool()
 	deinit_roofs()
+    deinit_walls()
 }
 
 draw_game :: proc(floor: i32) -> bool {

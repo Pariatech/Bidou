@@ -9,14 +9,6 @@ import "../camera"
 import "../constants"
 import "../terrain"
 
-Diagonal_Wall_Mask :: enum {
-	Full,
-	Side,
-	Left_Extension,
-	Right_Extension,
-	Cross,
-}
-
 DIAGONAL_WALL_TOP_CROSS_OFFSET :: -0.0002
 DIAGONAL_WALL_TOP_OFFSET :: 0.0003
 
@@ -93,6 +85,13 @@ DIAGONAL_WALL_TRANSFORM_MAP :: [camera.Rotation]glsl.mat4 {
 	.North_West = {0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 1},
 }
 
+Diagonal_Wall_Mask :: enum {
+	Full,
+	Side,
+	Left_Extension,
+	Right_Extension,
+	Cross,
+}
 
 draw_diagonal_wall :: proc(
 	pos: glsl.ivec3,
