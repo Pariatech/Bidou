@@ -6,7 +6,7 @@ import "core:math/linalg/glsl"
 import gl "vendor:OpenGL"
 
 import "../camera"
-import "../cursor"
+import "../game"
 import "../mouse"
 import "../renderer"
 import "../window"
@@ -160,6 +160,7 @@ scroll_bar :: proc(
 	dragging: ^bool,
 	color: glsl.vec4 = ROYAL_BLUE,
 ) {
+    cursor := game.get_cursor_context()
 	if mouse.is_button_press(.Left) &&
 	   cursor.pos.x >= pos.x &&
 	   cursor.pos.x < pos.x + size.x &&

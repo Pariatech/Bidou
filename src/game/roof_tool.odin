@@ -6,12 +6,8 @@ import "core:math"
 import "core:math/linalg/glsl"
 import "core:strings"
 
-import "../cursor"
-import "../floor"
 import "../keyboard"
 import "../mouse"
-
-import "../terrain"
 
 SQRT_2 :: 1.4142
 
@@ -44,6 +40,7 @@ init_roof_tool :: proc() {
 	cursor_top_map := ROOF_TOOL_CURSOR_TOP_MAP
 	ctx.cursor_top.texture = cursor_top_map[ctx.roof.type]
 
+    floor := get_floor_context()
 	floor.show_markers = true
 
 	ctx.roof.slope = 1
@@ -57,6 +54,7 @@ init_roof_tool :: proc() {
 
 deinit_roof_tool :: proc() {
 	ctx := get_roof_tool_context()
+    floor := get_floor_context()
 	// delete_object_draw(ctx.cursor.id)
 
 	floor.show_markers = false
@@ -68,8 +66,9 @@ deinit_roof_tool :: proc() {
 
 update_roof_tool :: proc() {
 	ctx := get_roof_tool_context()
+    floor := get_floor_context()
 
-	cursor.on_tile_intersect(
+	on_cursor_tile_intersect(
 		roof_tool_on_intersect,
 		floor.previous_floor,
 		floor.floor,
@@ -487,7 +486,7 @@ add_east_west_gable_roof_walls :: proc(
 add_gable_roof_walls :: proc(roof: Roof) {
 	t_start := roof.start + {0.5, 0.5}
 	t_end := roof.end + {0.5, 0.5}
-	tile_height := terrain.get_tile_height(int(t_start.x), int(t_start.y))
+	tile_height := get_tile_height(int(t_start.x), int(t_start.y))
 	floor := i32((roof.offset - tile_height) / 3)
 
 	if roof.orientation == .Diagonal {
@@ -1388,7 +1387,7 @@ remove_diagonal_half_hip_roof_walls :: proc(roof: Roof, floor: i32) {
 add_half_hip_roof_walls :: proc(roof: Roof) {
 	t_start := roof.start + {0.5, 0.5}
 	t_end := roof.end + {0.5, 0.5}
-	tile_height := terrain.get_tile_height(int(t_start.x), int(t_start.y))
+	tile_height := get_tile_height(int(t_start.x), int(t_start.y))
 	floor := i32((roof.offset - tile_height) / 3)
 
 	if roof.orientation == .Diagonal {
@@ -1871,7 +1870,7 @@ remove_diagonal_half_gable_roof_walls :: proc(roof: Roof, floor: i32) {
 add_half_gable_roof_walls :: proc(roof: Roof) {
 	t_start := roof.start + {0.5, 0.5}
 	t_end := roof.end + {0.5, 0.5}
-	tile_height := terrain.get_tile_height(int(t_start.x), int(t_start.y))
+	tile_height := get_tile_height(int(t_start.x), int(t_start.y))
 	floor := i32((roof.offset - tile_height) / 3)
 
 	if roof.orientation == .Diagonal {
@@ -1908,6 +1907,7 @@ add_half_gable_roof_walls :: proc(roof: Roof) {
 @(private = "file")
 handle_roof_tool_idle :: proc() -> Roof_Tool_State {
 	ctx := get_roof_tool_context()
+    floor := get_floor_context()
 
 	if keyboard.is_key_down(.Key_Left_Control) {
 		transition_to_remove_roof_state()
@@ -1926,7 +1926,7 @@ handle_roof_tool_idle :: proc() -> Roof_Tool_State {
 		ctx.roof.end = ctx.roof.start
 		ctx.roof.offset =
 			f32(floor.floor) * 3 +
-			terrain.get_tile_height(
+			get_tile_height(
 				int(ctx.cursor.pos.x + 0.5),
 				int(ctx.cursor.pos.z + 0.5),
 			)
@@ -2109,7 +2109,7 @@ remove_east_west_gable_roof_walls :: proc(
 remove_gable_roof_walls :: proc(roof: Roof) {
 	t_start := roof.start + {0.5, 0.5}
 	t_end := roof.end + {0.5, 0.5}
-	tile_height := terrain.get_tile_height(int(t_start.x), int(t_start.y))
+	tile_height := get_tile_height(int(t_start.x), int(t_start.y))
 	floor := i32((roof.offset - tile_height) / 3)
 
 	if roof.orientation == .Diagonal {
@@ -2177,7 +2177,7 @@ remove_north_south_half_hip_roof_walls :: proc(
 remove_half_hip_roof_walls :: proc(roof: Roof) {
 	t_start := roof.start + {0.5, 0.5}
 	t_end := roof.end + {0.5, 0.5}
-	tile_height := terrain.get_tile_height(int(t_start.x), int(t_start.y))
+	tile_height := get_tile_height(int(t_start.x), int(t_start.y))
 	floor := i32((roof.offset - tile_height) / 3)
 
 	if roof.orientation == .Diagonal {
@@ -2247,7 +2247,7 @@ remove_north_south_half_gable_roof_walls :: proc(
 remove_half_gable_roof_walls :: proc(roof: Roof) {
 	t_start := roof.start + {0.5, 0.5}
 	t_end := roof.end + {0.5, 0.5}
-	tile_height := terrain.get_tile_height(int(t_start.x), int(t_start.y))
+	tile_height := get_tile_height(int(t_start.x), int(t_start.y))
 	floor := i32((roof.offset - tile_height) / 3)
 
 	if roof.orientation == .Diagonal {

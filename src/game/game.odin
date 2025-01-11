@@ -14,6 +14,10 @@ Game_Context :: struct {
 	roof_tool:         Roof_Tool_Context,
 	cutaway:           Cutaway_Context,
 	walls:             Walls_Context,
+	cursor:            Cursor_Context,
+	terrain:           Terrain_Context,
+	floor:             Floor_Context,
+    tile_triangles:    Tile_Triangle_Context,
 }
 
 get_game_context :: #force_inline proc() -> ^Game_Context {
@@ -60,11 +64,28 @@ get_walls_context :: proc() -> ^Walls_Context {
 	return &get_game_context().walls
 }
 
+get_cursor_context :: proc() -> ^Cursor_Context {
+	return &get_game_context().cursor
+}
+
+get_terrain_context :: proc() -> ^Terrain_Context {
+	return &get_game_context().terrain
+}
+
+get_floor_context :: proc() -> ^Floor_Context {
+    return &get_game_context().floor
+}
+
+get_tile_triangles_context :: proc() -> ^Tile_Triangle_Context {
+    return &get_game_context().tile_triangles
+}
+
 init_game :: proc() -> bool {
 	load_object_blueprints() or_return
 	init_object_draws() or_return
 	init_object_tool()
 	init_roofs() or_return
+    tile_triangles_init() or_return
 
 	// add_roof({type = .Half_Hip, start = {0, 0}, end = {0, 1}})
 	// add_roof({type = .Half_Hip, start = {0, 3}, end = {0, 5}})
@@ -198,7 +219,8 @@ deinit_game :: proc() {
 	deinit_object_draws()
 	deinit_object_tool()
 	deinit_roofs()
-    deinit_walls()
+	deinit_walls()
+    tile_triangles_deinit()
 }
 
 draw_game :: proc(floor: i32) -> bool {

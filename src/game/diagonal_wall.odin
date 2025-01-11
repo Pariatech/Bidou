@@ -6,8 +6,6 @@ import "core:math/linalg"
 import glsl "core:math/linalg/glsl"
 
 import "../camera"
-import "../constants"
-import "../terrain"
 
 DIAGONAL_WALL_TOP_CROSS_OFFSET :: -0.0002
 DIAGONAL_WALL_TOP_OFFSET :: 0.0003
@@ -103,9 +101,10 @@ draw_diagonal_wall :: proc(
 	rotation_map := DIAGONAL_WALL_ROTATION_MAP
 	transform_map := DIAGONAL_WALL_TRANSFORM_MAP
 
+    terrain := get_terrain_context()
 	position := glsl.vec3 {
 		f32(pos.x),
-		f32(pos.y) * constants.WALL_HEIGHT +
+		f32(pos.y) * WALL_HEIGHT +
 		terrain.terrain_heights[pos.x][pos.z],
 		f32(pos.z),
 	}

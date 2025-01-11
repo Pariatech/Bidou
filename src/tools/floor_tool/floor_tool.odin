@@ -5,39 +5,35 @@ import "core:log"
 import "core:math"
 import "core:math/linalg/glsl"
 
-import "../../cursor"
-import "../../floor"
 import "../../game"
 import "../../keyboard"
 import "../../mouse"
-import "../../terrain"
-import "../../tile"
 
 position: glsl.ivec2
-side: tile.Tile_Triangle_Side
+side: game.Tile_Triangle_Side
 drag_start: glsl.ivec3
-drag_start_side: tile.Tile_Triangle_Side
-active_texture: tile.Texture = .Wood_Floor_008
+drag_start_side: game.Tile_Triangle_Side
+active_texture: game.Tile_Triangle_Texture = .Wood_Floor_008
 triangle_mode: bool = false
 placing: bool = false
 add_command: proc(_: Command)
 
 Tile_Triangle_Key :: struct {
 	pos:  glsl.ivec3,
-	side: tile.Tile_Triangle_Side,
+	side: game.Tile_Triangle_Side,
 }
 
-previous_floor_tiles: map[Tile_Triangle_Key]Maybe(tile.Tile_Triangle)
-new_floor_tiles: map[Tile_Triangle_Key]Maybe(tile.Tile_Triangle)
+previous_floor_tiles: map[Tile_Triangle_Key]Maybe(game.Tile_Triangle)
+new_floor_tiles: map[Tile_Triangle_Key]Maybe(game.Tile_Triangle)
 
 Command :: struct {
-	before: map[Tile_Triangle_Key]Maybe(tile.Tile_Triangle),
-	after:  map[Tile_Triangle_Key]Maybe(tile.Tile_Triangle),
+	before: map[Tile_Triangle_Key]Maybe(game.Tile_Triangle),
+	after:  map[Tile_Triangle_Key]Maybe(game.Tile_Triangle),
 }
 
 init :: proc() {
 	triangle_mode = false
-	floor.show_markers = true
+	game.get_floor_context().show_markers = true
 }
 
 deinit :: proc() {
@@ -47,7 +43,8 @@ deinit :: proc() {
 update :: proc() {
 	previous_position := position
 	previous_side := side
-	cursor.on_tile_intersect(on_intersect, floor.previous_floor, floor.floor)
+    floor := game.get_floor_context()
+	game.on_cursor_tile_intersect(on_intersect, floor.previous_floor, floor.floor)
 
 	reset :=
 		previous_position != position ||
@@ -83,7 +80,7 @@ update :: proc() {
 		if delete_mode {
 			if floor.floor == 0 {
 				flood_fill(pos, side, .Grass_004)
-			} else if terrain.is_tile_flat(pos.xz) {
+			} else if game.is_tile_flat(pos.xz) {
 				flood_fill(pos, side, .Floor_Marker)
 			}
 		} else {
@@ -131,22 +128,23 @@ save_command :: proc() {
 
 set_tile_triangle :: proc(
 	position: glsl.ivec3,
-	side: tile.Tile_Triangle_Side,
-	tile_triangle: Maybe(tile.Tile_Triangle),
+	side: game.Tile_Triangle_Side,
+	tile_triangle: Maybe(game.Tile_Triangle),
 ) {
-	if tile_triangle, ok := tile.get_tile_triangle(position, side); ok {
+	if tile_triangle, ok := game.tile_triangle_get_tile_triangle(position, side); ok {
 		previous_floor_tiles[{position, side}] = tile_triangle
 	} else {
 		previous_floor_tiles[{position, side}] = nil
 	}
 
 	new_floor_tiles[{position, side}] = tile_triangle
-	tile.set_tile_triangle(position, side, tile_triangle)
+	game.tile_triangle_set_tile_triangle(position, side, tile_triangle)
 }
 
 set_tile :: proc(position: glsl.ivec3, delete_mode: bool) {
+    floor := game.get_floor_context()
 	active_texture := active_texture
-	tile_triangle: Maybe(tile.Tile_Triangle) = tile.Tile_Triangle {
+	tile_triangle: Maybe(game.Tile_Triangle) = game.Tile_Triangle {
 		texture      = active_texture,
 		mask_texture = .Grid_Mask,
 	}
@@ -156,7 +154,7 @@ set_tile :: proc(position: glsl.ivec3, delete_mode: bool) {
 				tile_triangle.texture = .Grass_004
 			}
 		} else if position.y == floor.floor &&
-		   terrain.is_tile_flat(position.xz) {
+		   game.is_tile_flat(position.xz) {
 			if tile_triangle, ok := &tile_triangle.?; ok {
 				tile_triangle.texture = .Floor_Marker
 				tile_triangle.mask_texture = .Full_Mask
@@ -166,7 +164,7 @@ set_tile :: proc(position: glsl.ivec3, delete_mode: bool) {
 		}
 	}
 
-	if floor.floor > 0 && !terrain.is_tile_flat(position.xz) {
+	if floor.floor > 0 && !game.is_tile_flat(position.xz) {
 		return
 	}
 
@@ -202,7 +200,7 @@ set_tile :: proc(position: glsl.ivec3, delete_mode: bool) {
 			}
 			set_tile_triangle(position, next_side, tile_triangle)
 		} else {
-			for side in tile.Tile_Triangle_Side {
+			for side in game.Tile_Triangle_Side {
 				set_tile_triangle(position, side, tile_triangle)
 			}
 		}
@@ -228,11 +226,12 @@ on_intersect :: proc(intersect: glsl.vec3) {
 }
 
 revert_tiles :: proc() {
+    floor := game.get_floor_context()
 	for k, v in previous_floor_tiles {
 		if k.pos.y != floor.floor && v.?.texture == .Floor_Marker {
-		    tile.set_tile_triangle(k.pos, k.side, nil)
+		    game.tile_triangle_set_tile_triangle(k.pos, k.side, nil)
 		} else {
-		    tile.set_tile_triangle(k.pos, k.side, v)
+		    game.tile_triangle_set_tile_triangle(k.pos, k.side, v)
         }
 	}
 
@@ -241,6 +240,7 @@ revert_tiles :: proc() {
 }
 
 set_tiles :: proc(delete_mode: bool) {
+    floor := game.get_floor_context()
 	start := glsl.ivec3{}
 	end := glsl.ivec3{}
 	start.x = min(drag_start.x, position.x)
@@ -257,7 +257,7 @@ set_tiles :: proc(delete_mode: bool) {
 		if delete_mode {
 			if floor == 0 {
 				flood_fill(pos, side, .Grass_004, start, end, true)
-			} else if terrain.is_tile_flat(start.xz) {
+			} else if game.is_tile_flat(start.xz) {
 				flood_fill(pos, side, .Floor_Marker, start, end, true)
 			}
 		} else {
@@ -268,12 +268,12 @@ set_tiles :: proc(delete_mode: bool) {
 
 undo :: proc(command: Command) {
 	for k, v in command.before {
-		tile.set_tile_triangle(k.pos, k.side, v)
+		game.tile_triangle_set_tile_triangle(k.pos, k.side, v)
 	}
 }
 
 redo :: proc(command: Command) {
 	for k, v in command.after {
-		tile.set_tile_triangle(k.pos, k.side, v)
+		game.tile_triangle_set_tile_triangle(k.pos, k.side, v)
 	}
 }

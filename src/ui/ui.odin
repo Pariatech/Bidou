@@ -6,7 +6,6 @@ import "core:math/linalg/glsl"
 import gl "vendor:OpenGL"
 
 import "../camera"
-import "../floor"
 import "../tools"
 import "../game"
 import "../window"
@@ -145,9 +144,9 @@ handle_menu_item_clicked :: proc(using ctx: ^Context, item: Menu_Icon) {
 		// help_window_ctx.opened = true
 		help_window_ctx.opened = !help_window_ctx.opened
 	case .Floor_Up:
-		floor.move_up()
+		game.floor_move_up()
 	case .Floor_Down:
-		floor.move_down()
+		game.floor_move_down()
 	case .Camera_Rotate_Left:
 		camera.rotate_clockwise()
 		world.update_after_rotation(.Clockwise)

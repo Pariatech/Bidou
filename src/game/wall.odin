@@ -10,9 +10,7 @@ import "core:strings"
 import gl "vendor:OpenGL"
 
 import "../camera"
-import "../constants"
 import "../renderer"
-import "../terrain"
 import "../utils"
 
 
@@ -134,7 +132,7 @@ Wall_Texture :: enum (u16) {
 }
 
 Walls_Context :: struct {
-	chunks:        [constants.CHUNK_HEIGHT][constants.WORLD_CHUNK_WIDTH][constants.WORLD_CHUNK_DEPTH]Wall_Chunk,
+	chunks:        [CHUNK_HEIGHT][WORLD_CHUNK_WIDTH][WORLD_CHUNK_DEPTH]Wall_Chunk,
 	texture_array: u32,
 	mask_array:    u32,
 }
@@ -526,9 +524,10 @@ draw_wall :: proc(
 	index_buffer: ^[dynamic]Wall_Index,
 ) {
 	models := get_models_context()
+    terrain := get_terrain_context()
 	position := glsl.vec3 {
 		f32(pos.x),
-		f32(pos.y) * constants.WALL_HEIGHT +
+		f32(pos.y) * WALL_HEIGHT +
 		terrain.terrain_heights[pos.x][pos.z],
 		f32(pos.z),
 	}
@@ -609,7 +608,7 @@ draw_wall :: proc(
 get_chunk :: proc(pos: glsl.ivec3) -> ^Wall_Chunk {
     ctx := get_walls_context()
 	return(
-		&ctx.chunks[pos.y][pos.x / constants.CHUNK_WIDTH][pos.z / constants.CHUNK_DEPTH] \
+		&ctx.chunks[pos.y][pos.x / CHUNK_WIDTH][pos.z / CHUNK_DEPTH] \
 	)
 }
 
@@ -682,9 +681,9 @@ get_wall :: proc(pos: glsl.ivec3, axis: Wall_Axis) -> (Wall, bool) {
 
 has_north_south_wall :: proc(pos: glsl.ivec3) -> bool {
 	return(
-		(pos.x >= 0 && pos.x < constants.WORLD_WIDTH) &&
-		(pos.y >= 0 && pos.y < constants.WORLD_HEIGHT) &&
-		(pos.z >= 0 && pos.z < constants.WORLD_DEPTH) &&
+		(pos.x >= 0 && pos.x < WORLD_WIDTH) &&
+		(pos.y >= 0 && pos.y < WORLD_HEIGHT) &&
+		(pos.z >= 0 && pos.z < WORLD_DEPTH) &&
 		chunk_has_north_south_wall(get_chunk(pos), pos) \
 	)
 }
@@ -709,9 +708,9 @@ get_east_west_wall :: proc(pos: glsl.ivec3) -> (Wall, bool) {
 
 has_east_west_wall :: proc(pos: glsl.ivec3) -> bool {
 	return(
-		(pos.x >= 0 && pos.x < constants.WORLD_WIDTH) &&
-		(pos.y >= 0 && pos.y < constants.WORLD_HEIGHT) &&
-		(pos.z >= 0 && pos.z < constants.WORLD_DEPTH) &&
+		(pos.x >= 0 && pos.x < WORLD_WIDTH) &&
+		(pos.y >= 0 && pos.y < WORLD_HEIGHT) &&
+		(pos.z >= 0 && pos.z < WORLD_DEPTH) &&
 		chunk_has_east_west_wall(get_chunk(pos), pos) \
 	)
 }
@@ -732,9 +731,9 @@ set_north_west_south_east_wall :: proc(pos: glsl.ivec3, wall: Wall) {
 
 has_north_west_south_east_wall :: proc(pos: glsl.ivec3) -> bool {
 	return(
-		(pos.x >= 0 && pos.x < constants.WORLD_WIDTH) &&
-		(pos.y >= 0 && pos.y < constants.WORLD_HEIGHT) &&
-		(pos.z >= 0 && pos.z < constants.WORLD_DEPTH) &&
+		(pos.x >= 0 && pos.x < WORLD_WIDTH) &&
+		(pos.y >= 0 && pos.y < WORLD_HEIGHT) &&
+		(pos.z >= 0 && pos.z < WORLD_DEPTH) &&
 		chunk_has_north_west_south_east_wall(get_chunk(pos), pos) \
 	)
 }
@@ -759,9 +758,9 @@ set_south_west_north_east_wall :: proc(pos: glsl.ivec3, wall: Wall) {
 
 has_south_west_north_east_wall :: proc(pos: glsl.ivec3) -> bool {
 	return(
-		(pos.x >= 0 && pos.x < constants.WORLD_WIDTH) &&
-		(pos.y >= 0 && pos.y < constants.WORLD_HEIGHT) &&
-		(pos.z >= 0 && pos.z < constants.WORLD_DEPTH) &&
+		(pos.x >= 0 && pos.x < WORLD_WIDTH) &&
+		(pos.y >= 0 && pos.y < WORLD_HEIGHT) &&
+		(pos.z >= 0 && pos.z < WORLD_DEPTH) &&
 		chunk_has_south_west_north_east_wall(get_chunk(pos), pos) \
 	)
 }

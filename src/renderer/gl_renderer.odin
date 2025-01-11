@@ -8,7 +8,6 @@ import gl "vendor:OpenGL"
 import "vendor:glfw"
 import stbi "vendor:stb/image"
 
-import "../tile"
 import "../window"
 
 GL_MAJOR_VERSION :: 4
@@ -48,48 +47,6 @@ gl_debug_callback :: proc "c" (
 }
 
 
-load_mask_array :: proc() -> (ok: bool) {
-	gl.ActiveTexture(gl.TEXTURE1)
-	gl.GenTextures(1, &tile.mask_array)
-	gl.BindTexture(gl.TEXTURE_2D_ARRAY, tile.mask_array)
-
-	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.REPEAT)
-	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.REPEAT)
-
-	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-
-	return load_texture_2D_array(tile.MASK_PATHS)
-}
-
-load_texture_array :: proc() -> (ok: bool = true) {
-	gl.ActiveTexture(gl.TEXTURE0)
-	gl.GenTextures(1, &tile.texture_array)
-	gl.BindTexture(gl.TEXTURE_2D_ARRAY, tile.texture_array)
-
-	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.REPEAT)
-	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.REPEAT)
-
-	gl.TexParameteri(
-		gl.TEXTURE_2D_ARRAY,
-		gl.TEXTURE_MIN_FILTER,
-		gl.LINEAR_MIPMAP_LINEAR,
-	)
-	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-	max_anisotropy: f32
-	gl.GetFloatv(gl.MAX_TEXTURE_MAX_ANISOTROPY, &max_anisotropy)
-	gl.TexParameterf(
-		gl.TEXTURE_2D_ARRAY,
-		gl.TEXTURE_MAX_ANISOTROPY,
-		max_anisotropy,
-	)
-
-	// gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-	// gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-
-	return load_texture_2D_array(tile.TEXTURE_PATHS)
-}
-
 init :: proc() -> (ok: bool = true) {
 	gl.load_up_to(GL_MAJOR_VERSION, GL_MINOR_VERSION, glfw.gl_set_proc_address)
 
@@ -112,8 +69,6 @@ init :: proc() -> (ok: bool = true) {
     gl.CullFace(gl.BACK)
     gl.FrontFace(gl.CCW)
 
-	load_texture_array() or_return
-	load_mask_array() or_return
 	// gl.BindTexture(gl.TEXTURE_2D_ARRAY, 0)
 
 	// gl.BindTexture(gl.TEXTURE_2D_ARRAY, 0)
@@ -204,8 +159,6 @@ init :: proc() -> (ok: bool = true) {
 }
 
 deinit :: proc() {
-	gl.DeleteTextures(1, &tile.texture_array)
-	gl.DeleteTextures(1, &tile.mask_array)
 	gl.DeleteBuffers(1, &vao)
 	gl.DeleteBuffers(1, &vbo)
 	gl.DeleteBuffers(1, &ubo)

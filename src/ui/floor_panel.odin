@@ -2,7 +2,7 @@ package ui
 
 import "core:math/linalg/glsl"
 
-import "../tile"
+import "../game"
 import "../tools/floor_tool"
 import "../window"
 
@@ -19,7 +19,7 @@ floor_panel_body :: proc(
 	size: glsl.vec2,
 ) {
 	i: int = 0
-	for tex in tile.Texture {
+	for tex in game.Tile_Triangle_Texture {
 		if tex == .Floor_Marker || tex == .Grass_004 {
 			continue
 		}
@@ -39,7 +39,7 @@ floor_panel_body :: proc(
 				   f32(i % 2) * (FLOOR_PANEL_TILE_SIZE + 2),
 			   },
 			   {FLOOR_PANEL_TILE_SIZE, FLOOR_PANEL_TILE_SIZE},
-			   tile.texture_array,
+			   game.get_tile_triangles_context().texture_array,
 			   int(tex),
 			   left_border_width = border_width,
 			   right_border_width = border_width,

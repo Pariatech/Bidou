@@ -38,6 +38,8 @@ init :: proc(title: cstring) -> (ok: bool = true) {
 	log.debug("Window scale:", scale)
 	log.debug("Screen scale:", dpi)
 
+    glfw.SetWindowUserPointer(handle, context.user_ptr)
+
     // glfw.GetFramebufferSize()
 
 	return

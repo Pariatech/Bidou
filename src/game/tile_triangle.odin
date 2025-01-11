@@ -1,98 +1,35 @@
-package tile
+package game
 
 import "core:log"
-import "core:math/linalg/glsl"
 import "core:math"
+import "core:math/linalg/glsl"
 import gl "vendor:OpenGL"
 
 import "../camera"
-import "../constants"
-import "../terrain"
+import "../renderer"
 
-Texture :: enum (u16) {
-	Floor_Marker,
-	Grass_004,
-	Gravel_015,
-	Wood_082A,
-    Wood_Floor_008,
-    Wood_Floor_020,
-    Wood_Floor_052,
-    Tiles_081,
-    Tiles_014,
-    Tiles_015,
-    Tiles_050,
-    Tiles_111,
-    Tiles_131,
-	Asphalt,
-	Asphalt_Vertical_Line,
-	Asphalt_Horizontal_Line,
-	Concrete,
-	Sidewalk,
+TILE_TRIANGLE_TEXTURE_PATHS :: [Tile_Triangle_Texture]cstring {
+	.Floor_Marker            = "resources/textures/floors/floor-marker.png",
+	.Wood_082A               = "resources/textures/tiles/Wood082A.png",
+	.Wood_Floor_008          = "resources/textures/tiles/WoodFloor008.png",
+	.Wood_Floor_020          = "resources/textures/tiles/WoodFloor020.png",
+	.Wood_Floor_052          = "resources/textures/tiles/WoodFloor052.png",
+	.Tiles_081               = "resources/textures/tiles/Tiles081.png",
+	.Tiles_014               = "resources/textures/tiles/Tiles014.png",
+	.Tiles_015               = "resources/textures/tiles/Tiles015.png",
+	.Tiles_050               = "resources/textures/tiles/Tiles050.png",
+	.Tiles_111               = "resources/textures/tiles/Tiles111.png",
+	.Tiles_131               = "resources/textures/tiles/Tiles131.png",
+	.Grass_004               = "resources/textures/tiles/Grass004.png",
+	.Gravel_015              = "resources/textures/tiles/Gravel015.png",
+	.Asphalt                 = "resources/textures/tiles/asphalt.png",
+	.Asphalt_Vertical_Line   = "resources/textures/tiles/asphalt-vertical-line.png",
+	.Asphalt_Horizontal_Line = "resources/textures/tiles/asphalt-horizontal-line.png",
+	.Concrete                = "resources/textures/tiles/concrete.png",
+	.Sidewalk                = "resources/textures/tiles/sidewalk.png",
 }
 
-TEXTURE_PATHS :: [Texture]cstring {
-	.Floor_Marker                         = "resources/textures/floors/floor-marker.png",
-	.Wood_082A                             = "resources/textures/tiles/Wood082A.png",
-	.Wood_Floor_008                             = "resources/textures/tiles/WoodFloor008.png",
-	.Wood_Floor_020                             = "resources/textures/tiles/WoodFloor020.png",
-	.Wood_Floor_052                             = "resources/textures/tiles/WoodFloor052.png",
-	.Tiles_081                             = "resources/textures/tiles/Tiles081.png",
-	.Tiles_014                             = "resources/textures/tiles/Tiles014.png",
-	.Tiles_015                             = "resources/textures/tiles/Tiles015.png",
-	.Tiles_050                             = "resources/textures/tiles/Tiles050.png",
-	.Tiles_111                             = "resources/textures/tiles/Tiles111.png",
-	.Tiles_131                             = "resources/textures/tiles/Tiles131.png",
-	.Grass_004                             = "resources/textures/tiles/Grass004.png",
-	.Gravel_015                            = "resources/textures/tiles/Gravel015.png",
-	.Asphalt                              = "resources/textures/tiles/asphalt.png",
-	.Asphalt_Vertical_Line                = "resources/textures/tiles/asphalt-vertical-line.png",
-	.Asphalt_Horizontal_Line              = "resources/textures/tiles/asphalt-horizontal-line.png",
-	.Concrete                             = "resources/textures/tiles/concrete.png",
-	.Sidewalk                             = "resources/textures/tiles/sidewalk.png",
-}
-
-Mask :: enum (u16) {
-	Full_Mask,
-	Grid_Mask,
-	Leveling_Brush,
-	Dotted_Grid,
-}
-
-Tile_Triangle_Side :: enum {
-	South,
-	East,
-	North,
-	West,
-}
-
-Tile_Triangle :: struct {
-	texture:      Texture,
-	mask_texture: Mask,
-}
-
-Tile_Triangle_Vertex :: struct {
-	pos:       glsl.vec3,
-	light:     glsl.vec3,
-	texcoords: glsl.vec4,
-}
-
-Key :: struct {
-	x, z: int,
-	side: Tile_Triangle_Side,
-}
-
-Chunk :: struct {
-	triangles:     map[Key]Tile_Triangle,
-	dirty:         bool,
-	initialized:   bool,
-	vao, vbo, ebo: u32,
-	num_indices:   i32,
-}
-
-chunks: [constants.CHUNK_HEIGHT][constants.WORLD_CHUNK_WIDTH][constants.WORLD_CHUNK_DEPTH]Chunk
-texture_array: u32
-mask_array: u32
-tile_triangle_side_vertices_map :=
+TILE_TRIANGLE_SIDE_VERTICES_MAP ::
 	[Tile_Triangle_Side][3]Tile_Triangle_Vertex {
 		.South =  {
 			 {
@@ -164,14 +101,99 @@ tile_triangle_side_vertices_map :=
 		},
 	}
 
-MASK_PATHS :: [Mask]cstring {
+TILE_TRIANGLE_MASK_PATHS :: [Tile_Triangle_Mask]cstring {
 		.Full_Mask      = "resources/textures/masks/full.png",
 		.Grid_Mask      = "resources/textures/masks/grid.png",
 		.Leveling_Brush = "resources/textures/masks/leveling-brush.png",
 		.Dotted_Grid    = "resources/textures/masks/dotted-grid.png",
 	}
 
-draw_tile_triangle :: proc(
+Tile_Triangle_Texture :: enum (u16) {
+	Floor_Marker,
+	Grass_004,
+	Gravel_015,
+	Wood_082A,
+	Wood_Floor_008,
+	Wood_Floor_020,
+	Wood_Floor_052,
+	Tiles_081,
+	Tiles_014,
+	Tiles_015,
+	Tiles_050,
+	Tiles_111,
+	Tiles_131,
+	Asphalt,
+	Asphalt_Vertical_Line,
+	Asphalt_Horizontal_Line,
+	Concrete,
+	Sidewalk,
+}
+
+Tile_Triangle_Mask :: enum (u16) {
+	Full_Mask,
+	Grid_Mask,
+	Leveling_Brush,
+	Dotted_Grid,
+}
+
+Tile_Triangle_Side :: enum {
+	South,
+	East,
+	North,
+	West,
+}
+
+Tile_Triangle :: struct {
+	texture:      Tile_Triangle_Texture,
+	mask_texture: Tile_Triangle_Mask,
+}
+
+Tile_Triangle_Vertex :: struct {
+	pos:       glsl.vec3,
+	light:     glsl.vec3,
+	texcoords: glsl.vec4,
+}
+
+Tile_Triangle_Key :: struct {
+	x, z: int,
+	side: Tile_Triangle_Side,
+}
+
+Tile_Triangle_Chunk :: struct {
+	triangles:     map[Tile_Triangle_Key]Tile_Triangle,
+	dirty:         bool,
+	initialized:   bool,
+	vao, vbo, ebo: u32,
+	num_indices:   i32,
+}
+
+Tile_Triangle_Context :: struct {
+	chunks:        [CHUNK_HEIGHT][WORLD_CHUNK_WIDTH][WORLD_CHUNK_DEPTH]Tile_Triangle_Chunk,
+	texture_array: u32,
+	mask_array:    u32,
+}
+
+tile_triangles_init :: proc() -> bool {
+	tile_triangle_load_texture_array() or_return
+	tile_triangle_load_mask_array() or_return
+	return true
+}
+
+tile_triangles_deinit :: proc() {
+	tile := get_tile_triangles_context()
+	gl.DeleteTextures(1, &tile.texture_array)
+	gl.DeleteTextures(1, &tile.mask_array)
+
+	for &f in tile.chunks {
+		for &r in f {
+			for &c in r {
+				delete(c.triangles)
+			}
+		}
+	}
+}
+
+tile_triangle_draw_tile_triangle :: proc(
 	tri: Tile_Triangle,
 	side: Tile_Triangle_Side,
 	lights: [3]glsl.vec3,
@@ -183,6 +205,7 @@ draw_tile_triangle :: proc(
 ) {
 	index_offset := u32(len(vertices_buffer))
 
+	tile_triangle_side_vertices_map := TILE_TRIANGLE_SIDE_VERTICES_MAP
 	vertices := tile_triangle_side_vertices_map[side]
 	for vertex, i in vertices {
 		vertex := vertex
@@ -200,21 +223,28 @@ draw_tile_triangle :: proc(
 	append(indices, index_offset + 0, index_offset + 1, index_offset + 2)
 }
 
-draw_tiles :: proc(floor: i32) {
+tile_triangle_draw_tiles :: proc(floor: i32) {
+	tile_triangles := get_tile_triangles_context()
 	gl.ActiveTexture(gl.TEXTURE0)
-	gl.BindTexture(gl.TEXTURE_2D_ARRAY, texture_array)
+	gl.BindTexture(gl.TEXTURE_2D_ARRAY, tile_triangles.texture_array)
 	gl.ActiveTexture(gl.TEXTURE1)
-	gl.BindTexture(gl.TEXTURE_2D_ARRAY, mask_array)
+	gl.BindTexture(gl.TEXTURE_2D_ARRAY, tile_triangles.mask_array)
 
-	floor_slice := &chunks[floor]
+	floor_slice := &tile_triangles.chunks[floor]
 	for x in camera.visible_chunks_start.x ..< camera.visible_chunks_end.x {
 		for z in camera.visible_chunks_start.y ..< camera.visible_chunks_end.y {
-			chunk_draw_tiles(&floor_slice[x][z], {i32(x), i32(floor), i32(z)})
+			tile_triangle_chunk_draw_tiles(
+				&floor_slice[x][z],
+				{i32(x), i32(floor), i32(z)},
+			)
 		}
 	}
 }
 
-chunk_draw_tiles :: proc(chunk: ^Chunk, pos: glsl.ivec3) {
+tile_triangle_chunk_draw_tiles :: proc(
+	chunk: ^Tile_Triangle_Chunk,
+	pos: glsl.ivec3,
+) {
 	if !chunk.initialized {
 		chunk.initialized = true
 		chunk.dirty = true
@@ -274,17 +304,25 @@ chunk_draw_tiles :: proc(chunk: ^Chunk, pos: glsl.ivec3) {
 
 			x := int(index.x)
 			z := int(index.z)
-			lights := get_terrain_tile_triangle_lights(side, x, z, 1)
+			lights := tile_triangle_get_terrain_tile_triangle_lights(
+				side,
+				x,
+				z,
+				1,
+			)
 
-			heights := get_terrain_tile_triangle_heights(side, x, z, 1)
+			heights := tile_triangle_get_terrain_tile_triangle_heights(
+				side,
+				x,
+				z,
+				1,
+			)
 
 			for i in 0 ..< 3 {
-				heights[i] +=
-					f32(floor * constants.WALL_HEIGHT) +
-					constants.FLOOR_TILE_OFFSET
+				heights[i] += f32(floor * WALL_HEIGHT) + FLOOR_TILE_OFFSET
 			}
 
-			draw_tile_triangle(
+			tile_triangle_draw_tile_triangle(
 				tile_triangle,
 				side,
 				lights,
@@ -312,9 +350,9 @@ chunk_draw_tiles :: proc(chunk: ^Chunk, pos: glsl.ivec3) {
 		chunk.num_indices = i32(len(indices))
 	}
 
-    if chunk.num_indices == 0 {
-        return
-    }
+	if chunk.num_indices == 0 {
+		return
+	}
 
 	gl.DrawElements(gl.TRIANGLES, chunk.num_indices, gl.UNSIGNED_INT, nil)
 
@@ -323,7 +361,7 @@ chunk_draw_tiles :: proc(chunk: ^Chunk, pos: glsl.ivec3) {
 	gl.BindVertexArray(0)
 }
 
-get_terrain_tile_triangle_lights :: proc(
+tile_triangle_get_terrain_tile_triangle_lights :: proc(
 	side: Tile_Triangle_Side,
 	x, z, w: int,
 ) -> (
@@ -331,6 +369,7 @@ get_terrain_tile_triangle_lights :: proc(
 ) {
 	lights = {{1, 1, 1}, {1, 1, 1}, {1, 1, 1}}
 
+	terrain := get_terrain_context()
 	tile_lights := [4]glsl.vec3 {
 		terrain.terrain_lights[x][z],
 		terrain.terrain_lights[x + w][z],
@@ -361,18 +400,19 @@ get_terrain_tile_triangle_lights :: proc(
 	return
 }
 
-get_terrain_tile_triangle_heights :: proc(
+tile_triangle_get_terrain_tile_triangle_heights :: proc(
 	side: Tile_Triangle_Side,
 	x, z, w: int,
 ) -> (
 	heights: [3]f32,
 ) {
 	heights = {0, 0, 0}
-    left_x := math.clamp(x, 0, constants.WORLD_WIDTH)
-    right_x := math.clamp(x + w, 0, constants.WORLD_WIDTH)
-    top_z := math.clamp(z, 0, constants.WORLD_DEPTH)
-    bottom_z := math.clamp(z + w, 0, constants.WORLD_DEPTH)
+	left_x := math.clamp(x, 0, WORLD_WIDTH)
+	right_x := math.clamp(x + w, 0, WORLD_WIDTH)
+	top_z := math.clamp(z, 0, WORLD_DEPTH)
+	bottom_z := math.clamp(z + w, 0, WORLD_DEPTH)
 
+	terrain := get_terrain_context()
 	tile_heights := [4]f32 {
 		terrain.terrain_heights[left_x][top_z],
 		terrain.terrain_heights[right_x][top_z],
@@ -380,7 +420,7 @@ get_terrain_tile_triangle_heights :: proc(
 		terrain.terrain_heights[left_x][bottom_z],
 	}
 
-    // log.info(tile_heights)
+	// log.info(tile_heights)
 
 	heights[2] = 0
 	lowest := min(
@@ -415,7 +455,7 @@ get_terrain_tile_triangle_heights :: proc(
 	return
 }
 
-tile :: proc(
+tile_triangle_tile :: proc(
 	tile_triangle: Maybe(Tile_Triangle),
 ) -> [Tile_Triangle_Side]Maybe(Tile_Triangle) {
 	return(
@@ -428,14 +468,15 @@ tile :: proc(
 	)
 }
 
-chunk_init :: proc() {
-	for cx in 0 ..< constants.WORLD_CHUNK_WIDTH {
-		for cz in 0 ..< constants.WORLD_CHUNK_DEPTH {
-			chunk := &chunks[0][cx][cz]
-			for x in 0 ..< constants.CHUNK_WIDTH {
-				for z in 0 ..< constants.CHUNK_DEPTH {
+tile_triangle_chunk_init :: proc() {
+	ctx := get_tile_triangles_context()
+	for cx in 0 ..< WORLD_CHUNK_WIDTH {
+		for cz in 0 ..< WORLD_CHUNK_DEPTH {
+			chunk := &ctx.chunks[0][cx][cz]
+			for x in 0 ..< CHUNK_WIDTH {
+				for z in 0 ..< CHUNK_DEPTH {
 					for side in Tile_Triangle_Side {
-						chunk.triangles[{x = cx * constants.CHUNK_WIDTH + x, z = cz * constants.CHUNK_DEPTH + z, side = side}] =
+						chunk.triangles[{x = cx * CHUNK_WIDTH + x, z = cz * CHUNK_DEPTH + z, side = side}] =
 							Tile_Triangle {
 								texture      = .Grass_004,
 								mask_texture = .Grid_Mask,
@@ -447,34 +488,35 @@ chunk_init :: proc() {
 	}
 }
 
-get_chunk :: proc(pos: glsl.ivec3) -> ^Chunk {
-	x := pos.x / constants.CHUNK_WIDTH
-	z := pos.z / constants.CHUNK_DEPTH
-	return &chunks[pos.y][x][z]
+tile_triangle_get_chunk :: proc(pos: glsl.ivec3) -> ^Tile_Triangle_Chunk {
+	ctx := get_tile_triangles_context()
+	x := pos.x / CHUNK_WIDTH
+	z := pos.z / CHUNK_DEPTH
+	return &ctx.chunks[pos.y][x][z]
 }
 
-get_tile_triangle :: proc(
+tile_triangle_get_tile_triangle :: proc(
 	pos: glsl.ivec3,
 	side: Tile_Triangle_Side,
 ) -> (
 	Tile_Triangle,
 	bool,
 ) {
-	chunk := get_chunk(pos)
+	chunk := tile_triangle_get_chunk(pos)
 	return chunk.triangles[{x = int(pos.x), z = int(pos.z), side = side}]
 }
 
-set_tile_triangle :: proc(
+tile_triangle_set_tile_triangle :: proc(
 	pos: glsl.ivec3,
 	side: Tile_Triangle_Side,
 	tile_triangle: Maybe(Tile_Triangle),
 ) {
-	key := Key {
+	key := Tile_Triangle_Key {
 			x    = int(pos.x),
 			z    = int(pos.z),
 			side = side,
 		}
-	chunk := get_chunk(pos)
+	chunk := tile_triangle_get_chunk(pos)
 	if tile_triangle != nil {
 		chunk.triangles[key] = tile_triangle.?
 	} else {
@@ -483,12 +525,14 @@ set_tile_triangle :: proc(
 	chunk.dirty = true
 }
 
-get_tile :: proc(pos: glsl.ivec3) -> [Tile_Triangle_Side]Maybe(Tile_Triangle) {
-	chunk := get_chunk(pos)
+tile_triangle_get_tile :: proc(
+	pos: glsl.ivec3,
+) -> [Tile_Triangle_Side]Maybe(Tile_Triangle) {
+	chunk := tile_triangle_get_chunk(pos)
 	result := [Tile_Triangle_Side]Maybe(Tile_Triangle){}
 
 	for side in Tile_Triangle_Side {
-		key := Key {
+		key := Tile_Triangle_Key {
 				x    = int(pos.x),
 				z    = int(pos.z),
 				side = side,
@@ -502,34 +546,84 @@ get_tile :: proc(pos: glsl.ivec3) -> [Tile_Triangle_Side]Maybe(Tile_Triangle) {
 	return result
 }
 
-set_tile :: proc(
+tile_triangle_set_tile :: proc(
 	pos: glsl.ivec3,
 	tile: [Tile_Triangle_Side]Maybe(Tile_Triangle),
 ) {
-	chunk := get_chunk(pos)
+	chunk := tile_triangle_get_chunk(pos)
 	for tri, side in tile {
-		set_tile_triangle(pos, side, tri)
+		tile_triangle_set_tile_triangle(pos, side, tri)
 	}
 }
 
-set_tile_mask_texture :: proc(pos: glsl.ivec3, mask_texture: Mask) {
-	chunk := get_chunk(pos)
+tile_triangle_set_tile_mask_texture :: proc(
+	pos: glsl.ivec3,
+	mask_texture: Tile_Triangle_Mask,
+) {
+	chunk := tile_triangle_get_chunk(pos)
 	for side in Tile_Triangle_Side {
-		tri, ok := get_tile_triangle(pos, side)
+		tri, ok := tile_triangle_get_tile_triangle(pos, side)
 		if ok {
 			tri.mask_texture = mask_texture
-			set_tile_triangle(pos, side, tri)
+			tile_triangle_set_tile_triangle(pos, side, tri)
 		}
 	}
 }
 
-set_tile_texture :: proc(pos: glsl.ivec3, texture: Texture) {
+tile_triangle_set_tile_texture :: proc(
+	pos: glsl.ivec3,
+	texture: Tile_Triangle_Texture,
+) {
 	chunk := get_chunk(pos)
 	for side in Tile_Triangle_Side {
-		tri, ok := get_tile_triangle(pos, side)
+		tri, ok := tile_triangle_get_tile_triangle(pos, side)
 		if ok {
 			tri.texture = texture
-			set_tile_triangle(pos, side, tri)
+			tile_triangle_set_tile_triangle(pos, side, tri)
 		}
 	}
+}
+
+tile_triangle_load_mask_array :: proc() -> (ok: bool) {
+	tile_triangles := get_tile_triangles_context()
+	gl.ActiveTexture(gl.TEXTURE1)
+	gl.GenTextures(1, &tile_triangles.mask_array)
+	gl.BindTexture(gl.TEXTURE_2D_ARRAY, tile_triangles.mask_array)
+
+	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.REPEAT)
+
+	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+
+	return renderer.load_texture_2D_array(TILE_TRIANGLE_MASK_PATHS)
+}
+
+tile_triangle_load_texture_array :: proc() -> (ok: bool = true) {
+	tile_triangles := get_tile_triangles_context()
+	gl.ActiveTexture(gl.TEXTURE0)
+	gl.GenTextures(1, &tile_triangles.texture_array)
+	gl.BindTexture(gl.TEXTURE_2D_ARRAY, tile_triangles.texture_array)
+
+	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.REPEAT)
+
+	gl.TexParameteri(
+		gl.TEXTURE_2D_ARRAY,
+		gl.TEXTURE_MIN_FILTER,
+		gl.LINEAR_MIPMAP_LINEAR,
+	)
+	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+	max_anisotropy: f32
+	gl.GetFloatv(gl.MAX_TEXTURE_MAX_ANISOTROPY, &max_anisotropy)
+	gl.TexParameterf(
+		gl.TEXTURE_2D_ARRAY,
+		gl.TEXTURE_MAX_ANISOTROPY,
+		max_anisotropy,
+	)
+
+	// gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+	// gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+
+	return renderer.load_texture_2D_array(TILE_TRIANGLE_TEXTURE_PATHS)
 }

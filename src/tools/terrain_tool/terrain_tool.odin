@@ -7,14 +7,9 @@ import "core:math/rand"
 import "vendor:glfw"
 
 import "../../billboard"
-import "../../constants"
-import "../../cursor"
-import "../../floor"
+import "../../game"
 import "../../keyboard"
 import "../../mouse"
-import "../../terrain"
-import "../../tile"
-import "../../game"
 
 terrain_tool_cursor_pos: glsl.vec3
 terrain_tool_billboard: billboard.Key
@@ -55,14 +50,15 @@ TERRAIN_TOOL_MAX_SLOPE :: 1.0
 TERRAIN_TOOL_RANDOM_RADIUS :: 3
 
 init :: proc() {
-	cursor.intersect_with_tiles(on_intersect, 0)
+	game.cursor_intersect_with_tiles(on_intersect, 0)
+	cursor := game.get_cursor_context()
 	terrain_tool_cursor_pos = cursor.ray.origin
 
 	position := terrain_tool_intersect
 	position.x = math.ceil(position.x) - 0.5
 	position.z = math.ceil(position.z) - 0.5
 	position.y =
-		terrain.terrain_heights[terrain_tool_position.x][terrain_tool_position.y]
+		game.get_terrain_context().terrain_heights[terrain_tool_position.x][terrain_tool_position.y]
 
 	terrain_tool_billboard = {
 		type = .Cursor,
@@ -79,7 +75,7 @@ init :: proc() {
 	terrain_tool_drag_start = nil
 	terrain_tool_drag_end = nil
 
-	floor.show_markers = false
+	game.get_floor_context().show_markers = false
 }
 
 deinit :: proc() {
@@ -124,7 +120,7 @@ update :: proc(delta_time: f64) {
 		)
 	}
 
-	cursor.on_tile_intersect(on_intersect, 0, 0)
+	game.on_cursor_tile_intersect(on_intersect, 0, 0)
 
 	position := terrain_tool_intersect
 	position.x = math.ceil(position.x) - 0.5
@@ -157,7 +153,7 @@ update :: proc(delta_time: f64) {
 	}
 
 	position.y =
-		terrain.terrain_heights[terrain_tool_position.x][terrain_tool_position.y]
+		game.get_terrain_context().terrain_heights[terrain_tool_position.x][terrain_tool_position.y]
 	billboard.billboard_1x1_move(&terrain_tool_billboard, position)
 	shift_down := keyboard.is_key_down(.Key_Left_Shift)
 
@@ -186,23 +182,23 @@ update :: proc(delta_time: f64) {
 
 		for x in start_x ..< end_x {
 			for z in start_z ..< end_z {
-				tile.set_tile_mask_texture({x, 0, z}, .Leveling_Brush)
+				game.tile_triangle_set_tile_mask_texture({x, 0, z}, .Leveling_Brush)
 			}
 		}
 	} else {
 		start_x := max(terrain_tool_position.x - terrain_tool_brush_size, 0)
 		end_x := min(
 			terrain_tool_position.x + terrain_tool_brush_size,
-			constants.WORLD_WIDTH,
+			game.WORLD_WIDTH,
 		)
 		start_z := max(terrain_tool_position.y - terrain_tool_brush_size, 0)
 		end_z := min(
 			terrain_tool_position.y + terrain_tool_brush_size,
-			constants.WORLD_DEPTH,
+			game.WORLD_DEPTH,
 		)
 		for x in start_x ..< end_x {
 			for z in start_z ..< end_z {
-				tile.set_tile_mask_texture({x, 0, z}, .Dotted_Grid)
+				game.tile_triangle_set_tile_mask_texture({x, 0, z}, .Dotted_Grid)
 			}
 		}
 	}
@@ -216,20 +212,20 @@ on_intersect :: proc(intersect: glsl.vec3) {
 mark_array_dirty :: proc(start: glsl.ivec2, end: glsl.ivec2) {
 	start := start
 	end := end
-	start.x /= constants.CHUNK_WIDTH
-	end.x /= constants.CHUNK_WIDTH
-	start.y /= constants.CHUNK_DEPTH
-	end.y /= constants.CHUNK_DEPTH
+	start.x /= game.CHUNK_WIDTH
+	end.x /= game.CHUNK_WIDTH
+	start.y /= game.CHUNK_DEPTH
+	end.y /= game.CHUNK_DEPTH
 
 	start.x = max(start.x, 0)
 	start.y = max(start.y, 0)
-	end.x = min(end.x, constants.WORLD_CHUNK_WIDTH - 1)
-	end.y = min(end.y, constants.WORLD_CHUNK_DEPTH - 1)
+	end.x = min(end.x, game.WORLD_CHUNK_WIDTH - 1)
+	end.y = min(end.y, game.WORLD_CHUNK_DEPTH - 1)
 
 	for i in start.x ..= end.x {
 		for j in start.y ..= end.y {
-			for floor in 0 ..< constants.CHUNK_HEIGHT {
-				tile.chunks[floor][i][j].dirty = true
+			for floor in 0 ..< game.CHUNK_HEIGHT {
+				game.get_tile_triangles_context().chunks[floor][i][j].dirty = true
 			}
 		}
 	}
@@ -238,6 +234,7 @@ mark_array_dirty :: proc(start: glsl.ivec2, end: glsl.ivec2) {
 slope_move_point :: proc(x, z: i32) {
 	start := terrain_tool_drag_start.?
 	end := terrain_tool_position
+	terrain := game.get_terrain_context()
 	start_height := terrain.terrain_heights[start.x][start.y]
 	end_height := terrain.terrain_heights[end.x][end.y]
 	len := abs(end.x - start.x)
@@ -262,6 +259,7 @@ move_points :: proc(position: glsl.vec3) {
 
 		if mouse.is_button_up(.Left) {
 			if start_x != end_x || start_z != end_z {
+				terrain := game.get_terrain_context()
 				height := terrain.terrain_heights[drag_start.x][drag_start.y]
 
 				for x in start_x ..= end_x {
@@ -281,7 +279,7 @@ move_points :: proc(position: glsl.vec3) {
 
 				for x in start_x ..= end_x {
 					for z in start_z ..= end_z {
-						terrain.calculate_terrain_light(int(x), int(z))
+						game.calculate_terrain_light(int(x), int(z))
 					}
 				}
 			}
@@ -328,22 +326,23 @@ smooth_brush :: proc(delta_time: f64) {
 		)
 		end_x := min(
 			terrain_tool_position.x + terrain_tool_brush_size - 1,
-			constants.WORLD_WIDTH,
+			game.WORLD_WIDTH,
 		)
 		end_z := min(
 			terrain_tool_position.y + terrain_tool_brush_size - 1,
-			constants.WORLD_DEPTH,
+			game.WORLD_DEPTH,
 		)
 
 		for x in start_x ..= end_x {
 			for z in start_z ..= end_z {
 				start_x := max(x - 1, 0)
 				start_z := max(z - 1, 0)
-				end_x := min(x + 1, constants.WORLD_WIDTH)
-				end_z := min(z + 1, constants.WORLD_DEPTH)
+				end_x := min(x + 1, game.WORLD_WIDTH)
+				end_z := min(z + 1, game.WORLD_DEPTH)
 				points := f32((end_x - start_x + 1) * (end_z - start_z + 1))
 				average: f32 = 0
 
+				terrain := game.get_terrain_context()
 				for x in start_x ..= end_x {
 					for z in start_z ..= end_z {
 						average += terrain.terrain_heights[x][z] / points
@@ -374,22 +373,22 @@ smooth_brush :: proc(delta_time: f64) {
 }
 
 intersect_with_wall :: proc(x, z: i32) -> bool {
-	if x > 0 && z < constants.WORLD_DEPTH {
+	if x > 0 && z < game.WORLD_DEPTH {
 		if _, ok := game.get_east_west_wall({x - 1, 0, z}); ok {
 			return true
 		}
-		if x < constants.WORLD_WIDTH {
+		if x < game.WORLD_WIDTH {
 			if _, ok := game.get_east_west_wall({x, 0, z}); ok {
 				return true
 			}
 		}
 	}
 
-	if x < constants.WORLD_WIDTH && z > 0 {
+	if x < game.WORLD_WIDTH && z > 0 {
 		if _, ok := game.get_north_south_wall({x, 0, z - 1}); ok {
 			return true
 		}
-		if z < constants.WORLD_DEPTH {
+		if z < game.WORLD_DEPTH {
 			if _, ok := game.get_north_south_wall({x, 0, z}); ok {
 				return true
 			}
@@ -401,17 +400,17 @@ intersect_with_wall :: proc(x, z: i32) -> bool {
 		if ok {return true}
 	}
 
-	if x < constants.WORLD_WIDTH && z < constants.WORLD_DEPTH {
+	if x < game.WORLD_WIDTH && z < game.WORLD_DEPTH {
 		_, ok := game.get_south_west_north_east_wall({x, 0, z})
 		if ok {return true}
 	}
 
-	if x > 0 && z < constants.WORLD_DEPTH {
+	if x > 0 && z < game.WORLD_DEPTH {
 		_, ok := game.get_south_west_north_east_wall({x - 1, 0, z})
 		if ok {return true}
 	}
 
-	if x < constants.WORLD_WIDTH && z > 0 {
+	if x < game.WORLD_WIDTH && z > 0 {
 		_, ok := game.get_south_west_north_east_wall({x, 0, z - 1})
 		if ok {return true}
 	}
@@ -421,17 +420,17 @@ intersect_with_wall :: proc(x, z: i32) -> bool {
 		if ok {return true}
 	}
 
-	if x < constants.WORLD_WIDTH && z < constants.WORLD_DEPTH {
+	if x < game.WORLD_WIDTH && z < game.WORLD_DEPTH {
 		_, ok := game.get_north_west_south_east_wall({x, 0, z})
 		if ok {return true}
 	}
 
-	if x < constants.WORLD_WIDTH && z > 0 {
+	if x < game.WORLD_WIDTH && z > 0 {
 		_, ok := game.get_north_west_south_east_wall({x, 0, z - 1})
 		if ok {return true}
 	}
 
-	if x > 0 && z < constants.WORLD_DEPTH {
+	if x > 0 && z < game.WORLD_DEPTH {
 		_, ok := game.get_north_west_south_east_wall({x - 1, 0, z})
 		if ok {return true}
 	}
@@ -440,15 +439,15 @@ intersect_with_wall :: proc(x, z: i32) -> bool {
 }
 
 intersect_with_floor :: proc(x, z: i32) -> bool {
-	for y in 0 ..< constants.WORLD_HEIGHT {
+	for y in 0 ..< game.WORLD_HEIGHT {
 		start_x := math.max(x - 1, 0)
 		start_z := math.max(z - 1, 0)
-		end_x := math.min(x, constants.WORLD_WIDTH - 1)
-		end_z := math.min(z, constants.WORLD_DEPTH - 1)
+		end_x := math.min(x, game.WORLD_WIDTH - 1)
+		end_z := math.min(z, game.WORLD_DEPTH - 1)
 		for x in start_x ..= end_x {
 			for z in start_z ..= end_z {
-				triangles := tile.get_tile({x, i32(y), z})
-				for side in tile.Tile_Triangle_Side {
+				triangles := game.tile_triangle_get_tile({x, i32(y), z})
+				for side in game.Tile_Triangle_Side {
 					if triangle, ok := triangles[side].?; ok {
 						if triangle.texture != .Grass_004 {
 							return true
@@ -465,6 +464,7 @@ set_terrain_height :: proc(x, z: i32, height: f32) {
 	if intersect_with_wall(x, z) {return}
 	if intersect_with_floor(x, z) {return}
 
+	terrain := game.get_terrain_context()
 	if !({x, z} in current_command.before) {
 		current_command.before[{x, z}] = terrain.terrain_heights[x][z]
 	}
@@ -477,16 +477,17 @@ calculate_lights :: proc() {
 	start_x := max(terrain_tool_position.x - terrain_tool_brush_size, 0)
 	end_x := min(
 		terrain_tool_position.x + terrain_tool_brush_size,
-		constants.WORLD_WIDTH,
+		game.WORLD_WIDTH,
 	)
 	start_z := max(terrain_tool_position.y - terrain_tool_brush_size, 0)
 	end_z := min(
 		terrain_tool_position.y + terrain_tool_brush_size,
-		constants.WORLD_DEPTH,
+		game.WORLD_DEPTH,
 	)
+	terrain := game.get_terrain_context()
 	for x in start_x ..= end_x {
 		for z in start_z ..= end_z {
-			terrain.calculate_terrain_light(int(x), int(z))
+			game.calculate_terrain_light(int(x), int(z))
 		}
 	}
 }
@@ -541,6 +542,7 @@ move_point :: proc(delta_time: f64) {
 }
 
 move_point_height :: proc(x, z: i32, movement: f32) {
+	terrain := game.get_terrain_context()
 	height := terrain.terrain_heights[x][z]
 	height += movement
 
@@ -552,9 +554,9 @@ move_point_height :: proc(x, z: i32, movement: f32) {
 adjust_points :: proc(x, z, w, h: int, movement: f32) {
 	for i in 1 ..< int(terrain_tool_brush_size) {
 		start_x := max(x - i, 0) + 1
-		end_x := min(max(x + i, 0), constants.WORLD_WIDTH)
+		end_x := min(max(x + i, 0), game.WORLD_WIDTH)
 		start_z := max(z - i, 0)
-		end_z := min(max(z + i, 0), constants.WORLD_DEPTH)
+		end_z := min(max(z + i, 0), game.WORLD_DEPTH)
 
 		if x - i >= 0 {
 			for z in start_z ..= end_z {
@@ -568,7 +570,7 @@ adjust_points :: proc(x, z, w, h: int, movement: f32) {
 			}
 		}
 
-		if x + w + i <= constants.WORLD_WIDTH {
+		if x + w + i <= game.WORLD_WIDTH {
 			for z in start_z ..= end_z {
 				move_point_height(
 					i32(x + w + i),
@@ -592,7 +594,7 @@ adjust_points :: proc(x, z, w, h: int, movement: f32) {
 			}
 		}
 
-		if z + h + i <= constants.WORLD_DEPTH {
+		if z + h + i <= game.WORLD_DEPTH {
 			for x in start_x ..< end_x {
 				move_point_height(
 					i32(x),
@@ -615,7 +617,7 @@ cleanup :: proc() {
 
 		for x in start_x ..< end_x {
 			for z in start_z ..< end_z {
-				tile.set_tile_mask_texture({x, 0, z}, .Grid_Mask)
+				game.tile_triangle_set_tile_mask_texture({x, 0, z}, .Grid_Mask)
 			}
 		}
 
@@ -640,15 +642,15 @@ cleanup :: proc() {
 		)
 		end_x := min(
 			terrain_tool_position.x + terrain_tool_previous_brush_size,
-			constants.WORLD_WIDTH,
+			game.WORLD_WIDTH,
 		)
 		end_z := min(
 			terrain_tool_position.y + terrain_tool_previous_brush_size,
-			constants.WORLD_DEPTH,
+			game.WORLD_DEPTH,
 		)
 		for x in start_x ..< end_x {
 			for z in start_z ..< end_z {
-				tile.set_tile_mask_texture({x, 0, z}, .Grid_Mask)
+				game.tile_triangle_set_tile_mask_texture({x, 0, z}, .Grid_Mask)
 			}
 		}
 		mark_array_dirty(
@@ -701,6 +703,7 @@ decrease_brush_strength :: proc() {
 
 apply_state :: proc(state: map[glsl.ivec2]f32) {
 	start, end: glsl.ivec2
+	terrain := game.get_terrain_context()
 	for k, v in state {
 		x, z := k.x, k.y
 		terrain.terrain_heights[x][z] = v
@@ -713,24 +716,24 @@ apply_state :: proc(state: map[glsl.ivec2]f32) {
 
 	start.x = max(start.x - 1, 0)
 	start.y = max(start.y - 1, 0)
-	end.x = min(end.x + 1, constants.WORLD_WIDTH)
-	end.y = min(end.y + 1, constants.WORLD_DEPTH)
+	end.x = min(end.x + 1, game.WORLD_WIDTH)
+	end.y = min(end.y + 1, game.WORLD_DEPTH)
 	for x in start.x ..= end.x {
 		for z in start.y ..= end.y {
-			terrain.calculate_terrain_light(int(x), int(z))
-			if x < constants.WORLD_WIDTH && z < constants.WORLD_DEPTH {
-				i := x / constants.CHUNK_WIDTH
-				j := z / constants.CHUNK_DEPTH
-				tile.chunks[0][i][j].dirty = true
+			game.calculate_terrain_light(int(x), int(z))
+			if x < game.WORLD_WIDTH && z < game.WORLD_DEPTH {
+				i := x / game.CHUNK_WIDTH
+				j := z / game.CHUNK_DEPTH
+				game.get_tile_triangles_context().chunks[0][i][j].dirty = true
 			}
 		}
 	}
 }
 
 undo :: proc(command: Command) {
-    apply_state(command.before)
+	apply_state(command.before)
 }
 
 redo :: proc(command: Command) {
-    apply_state(command.after)
+	apply_state(command.after)
 }

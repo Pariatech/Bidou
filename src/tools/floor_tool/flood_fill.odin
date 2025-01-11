@@ -3,26 +3,22 @@ package floor_tool
 import "core:log"
 import "core:math/linalg/glsl"
 
-import "../../constants"
-import "../../floor"
-import "../../terrain"
-import "../../tile"
 import "../../game"
 
 Visited_Tile_Triangle :: struct {
 	position: glsl.ivec3,
-	side:     tile.Tile_Triangle_Side,
+	side:     game.Tile_Triangle_Side,
 }
 
 flood_fill :: proc(
 	position: glsl.ivec3,
-	side: tile.Tile_Triangle_Side,
-	texture: tile.Texture,
+	side: game.Tile_Triangle_Side,
+	texture: game.Tile_Triangle_Texture,
 	start: glsl.ivec3 = {0, 0, 0},
-	end: glsl.ivec3 = {constants.WORLD_WIDTH, 0, constants.WORLD_DEPTH},
+	end: glsl.ivec3 = {game.WORLD_WIDTH, 0, game.WORLD_DEPTH},
 	ignore_texture_check: bool = false,
 ) {
-	tile_triangle, ok := tile.get_tile_triangle(position, side)
+	tile_triangle, ok := game.tile_triangle_get_tile_triangle(position, side)
 	if !ok {return}
 	original_texture := tile_triangle.texture
 	if original_texture == texture {return}
@@ -191,8 +187,8 @@ flood_fill :: proc(
 process_next_visited :: proc(
 	from: Visited_Tile_Triangle,
 	to: Visited_Tile_Triangle,
-	original_texture: tile.Texture,
-	texture: tile.Texture,
+	original_texture: game.Tile_Triangle_Texture,
+	texture: game.Tile_Triangle_Texture,
 	visited_queue: ^[dynamic]Visited_Tile_Triangle,
 	start: glsl.ivec3,
 	end: glsl.ivec3,
@@ -220,32 +216,32 @@ process_next_visited :: proc(
 
 set_texture :: proc(
 	using visited: Visited_Tile_Triangle,
-	texture: tile.Texture,
+	texture: game.Tile_Triangle_Texture,
 ) {
-	mask_texture: tile.Mask = .Grid_Mask
+	mask_texture: game.Tile_Triangle_Mask = .Grid_Mask
 	if texture == .Floor_Marker {
 		mask_texture = .Full_Mask
 	}
 	set_tile_triangle(
 		position,
 		side,
-		tile.Tile_Triangle{texture = texture, mask_texture = mask_texture},
+		game.Tile_Triangle{texture = texture, mask_texture = mask_texture},
 	)
 }
 
 can_texture :: proc(
 	from: Visited_Tile_Triangle,
 	to: Visited_Tile_Triangle,
-	texture: tile.Texture,
+	texture: game.Tile_Triangle_Texture,
 	start: glsl.ivec3,
 	end: glsl.ivec3,
 	ignore_texture_check: bool,
 ) -> bool {
 	if to.position.x < 0 ||
 	   to.position.z < 0 ||
-	   to.position.x >= constants.WORLD_WIDTH ||
-	   to.position.z >= constants.WORLD_DEPTH ||
-	   (to.position.y > 0 && !terrain.is_tile_flat(to.position.xz)) ||
+	   to.position.x >= game.WORLD_WIDTH ||
+	   to.position.z >= game.WORLD_DEPTH ||
+	   (to.position.y > 0 && !game.is_tile_flat(to.position.xz)) ||
 	   to.position.x < start.x ||
 	   to.position.z < start.z ||
 	   to.position.x > end.x ||
@@ -332,7 +328,7 @@ can_texture :: proc(
 		}
 	}
 
-	tile_triangle, ok := tile.get_tile_triangle(to.position, to.side)
+	tile_triangle, ok := game.tile_triangle_get_tile_triangle(to.position, to.side)
 
 	return !ok || ignore_texture_check || tile_triangle.texture == texture
 	// return !ok || (!ignore_texture_check && tile_triangle.texture == texture)

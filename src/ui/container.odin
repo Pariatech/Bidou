@@ -3,7 +3,7 @@ package ui
 import "core:log"
 import "core:math/linalg/glsl"
 
-import "../cursor"
+import "../game"
 import "../mouse"
 
 Container :: struct {
@@ -55,6 +55,7 @@ container :: proc(
 }
 
 cursor_in :: proc(pos: glsl.vec2, size: glsl.vec2) -> bool {
+    cursor := game.get_cursor_context()
 	return(
 		cursor.pos.x >= pos.x &&
 		cursor.pos.x < pos.x + size.x &&

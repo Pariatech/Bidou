@@ -15,12 +15,6 @@ import "vendor:cgltf"
 import stbi "vendor:stb/image"
 
 import "../camera"
-import c "../constants"
-import "../cursor"
-import "../floor"
-import "../renderer"
-import "../terrain"
-// import "../wall"
 
 ALL_OBJECT_TYPES :: Object_Type_Set {
 	.Door,
@@ -107,11 +101,11 @@ Object :: struct {
 Object_Chunk :: struct {
 	objects:        [dynamic]Object,
 	dirty:          bool,
-	placement_map:  [c.CHUNK_WIDTH][c.CHUNK_DEPTH][Object_Placement][Object_Orientation]Maybe(Object_Type),
+	placement_map:  [CHUNK_WIDTH][CHUNK_DEPTH][Object_Placement][Object_Orientation]Maybe(Object_Type),
 	objects_inside: [dynamic]Object_Id,
 }
 
-Object_Chunks :: [c.CHUNK_HEIGHT][c.WORLD_CHUNK_WIDTH][c.WORLD_CHUNK_DEPTH]Object_Chunk
+Object_Chunks :: [CHUNK_HEIGHT][WORLD_CHUNK_WIDTH][WORLD_CHUNK_DEPTH]Object_Chunk
 
 Object_Uniform_Object :: struct {
 	mvp:   glsl.mat4,
@@ -133,9 +127,9 @@ init_objects :: proc() -> (ok: bool = true) {
 delete_objects :: proc() {
 	ctx := get_objects_context()
 
-	for y in 0 ..< c.CHUNK_HEIGHT {
-		for x in 0 ..< c.WORLD_CHUNK_WIDTH {
-			for z in 0 ..< c.WORLD_CHUNK_DEPTH {
+	for y in 0 ..< CHUNK_HEIGHT {
+		for x in 0 ..< WORLD_CHUNK_WIDTH {
+			for z in 0 ..< WORLD_CHUNK_DEPTH {
 				chunk := &ctx.chunks[y][x][z]
 				for &obj in chunk.objects {
 					delete(obj.children)
@@ -159,9 +153,9 @@ delete_objects :: proc() {
 update_objects_on_camera_rotation :: proc() {
 	ctx := get_objects_context()
 
-	for y in 0 ..< c.CHUNK_HEIGHT {
-		for x in 0 ..< c.WORLD_CHUNK_WIDTH {
-			for z in 0 ..< c.WORLD_CHUNK_DEPTH {
+	for y in 0 ..< CHUNK_HEIGHT {
+		for x in 0 ..< WORLD_CHUNK_WIDTH {
+			for z in 0 ..< WORLD_CHUNK_DEPTH {
 				chunk := &ctx.chunks[y][x][z]
 				// for &row in ctx.chunks {
 				// 	for &col in row {
@@ -175,17 +169,17 @@ update_objects_on_camera_rotation :: proc() {
 }
 
 world_pos_to_tile_pos :: proc(pos: glsl.vec3) -> (tile_pos: glsl.ivec2) {
-	tile_pos.x = clamp(i32(pos.x + 0.5), 0, c.WORLD_WIDTH - 1)
-	tile_pos.y = clamp(i32(pos.z + 0.5), 0, c.WORLD_DEPTH - 1)
+	tile_pos.x = clamp(i32(pos.x + 0.5), 0, WORLD_WIDTH - 1)
+	tile_pos.y = clamp(i32(pos.z + 0.5), 0, WORLD_DEPTH - 1)
 	return
 }
 
 world_pos_to_chunk_pos :: proc(pos: glsl.vec3) -> (chunk_pos: glsl.ivec3) {
 	tile_pos := world_pos_to_tile_pos(pos)
-	tile_height := terrain.get_tile_height(int(tile_pos.x), int(tile_pos.y))
-	chunk_pos.x = tile_pos.x / c.CHUNK_WIDTH
-	chunk_pos.y = i32(pos.y - tile_height) / c.WALL_HEIGHT
-	chunk_pos.z = tile_pos.y / c.CHUNK_DEPTH
+	tile_height := get_tile_height(int(tile_pos.x), int(tile_pos.y))
+	chunk_pos.x = tile_pos.x / CHUNK_WIDTH
+	chunk_pos.y = i32(pos.y - tile_height) / WALL_HEIGHT
+	chunk_pos.z = tile_pos.y / CHUNK_DEPTH
 	return
 }
 
@@ -193,14 +187,14 @@ add_object_inside_chunk :: proc(obj: Object) {
 	ctx := get_objects_context()
 
 	chunk_pos := world_pos_to_chunk_pos(obj.pos)
-	// chunk_min_x := i32((obj.bounding_box.min.x + 0.5) / c.CHUNK_WIDTH)
-	// chunk_max_x := i32((obj.bounding_box.max.x - 0.5) / c.CHUNK_WIDTH)
-	// chunk_min_z := i32((obj.bounding_box.min.z + 0.5) / c.CHUNK_DEPTH)
-	// chunk_max_z := i32((obj.bounding_box.max.z - 0.5) / c.CHUNK_DEPTH)
-	chunk_min_x := i32((obj.bounding_box.min.x) / c.CHUNK_WIDTH)
-	chunk_max_x := i32((obj.bounding_box.max.x) / c.CHUNK_WIDTH)
-	chunk_min_z := i32((obj.bounding_box.min.z) / c.CHUNK_DEPTH)
-	chunk_max_z := i32((obj.bounding_box.max.z) / c.CHUNK_DEPTH)
+	// chunk_min_x := i32((obj.bounding_box.min.x + 0.5) / CHUNK_WIDTH)
+	// chunk_max_x := i32((obj.bounding_box.max.x - 0.5) / CHUNK_WIDTH)
+	// chunk_min_z := i32((obj.bounding_box.min.z + 0.5) / CHUNK_DEPTH)
+	// chunk_max_z := i32((obj.bounding_box.max.z - 0.5) / CHUNK_DEPTH)
+	chunk_min_x := i32((obj.bounding_box.min.x) / CHUNK_WIDTH)
+	chunk_max_x := i32((obj.bounding_box.max.x) / CHUNK_WIDTH)
+	chunk_min_z := i32((obj.bounding_box.min.z) / CHUNK_DEPTH)
+	chunk_max_z := i32((obj.bounding_box.max.z) / CHUNK_DEPTH)
 	for x in chunk_min_x ..= chunk_max_x {
 		for z in chunk_min_z ..= chunk_max_z {
 			chunk := &ctx.chunks[chunk_pos.y][x][z]
@@ -213,14 +207,14 @@ remove_object_inside_chunk :: proc(obj: Object) {
 	ctx := get_objects_context()
 
 	chunk_pos := world_pos_to_chunk_pos(obj.pos)
-	// chunk_min_x := i32((obj.bounding_box.min.x + 0.5) / c.CHUNK_WIDTH)
-	// chunk_max_x := i32((obj.bounding_box.max.x - 0.5) / c.CHUNK_WIDTH)
-	// chunk_min_z := i32((obj.bounding_box.min.z + 0.5) / c.CHUNK_DEPTH)
-	// chunk_max_z := i32((obj.bounding_box.max.z - 0.5) / c.CHUNK_DEPTH)
-	chunk_min_x := i32((obj.bounding_box.min.x) / c.CHUNK_WIDTH)
-	chunk_max_x := i32((obj.bounding_box.max.x) / c.CHUNK_WIDTH)
-	chunk_min_z := i32((obj.bounding_box.min.z) / c.CHUNK_DEPTH)
-	chunk_max_z := i32((obj.bounding_box.max.z) / c.CHUNK_DEPTH)
+	// chunk_min_x := i32((obj.bounding_box.min.x + 0.5) / CHUNK_WIDTH)
+	// chunk_max_x := i32((obj.bounding_box.max.x - 0.5) / CHUNK_WIDTH)
+	// chunk_min_z := i32((obj.bounding_box.min.z + 0.5) / CHUNK_DEPTH)
+	// chunk_max_z := i32((obj.bounding_box.max.z - 0.5) / CHUNK_DEPTH)
+	chunk_min_x := i32((obj.bounding_box.min.x) / CHUNK_WIDTH)
+	chunk_max_x := i32((obj.bounding_box.max.x) / CHUNK_WIDTH)
+	chunk_min_z := i32((obj.bounding_box.min.z) / CHUNK_DEPTH)
+	chunk_max_z := i32((obj.bounding_box.max.z) / CHUNK_DEPTH)
 	for x in chunk_min_x ..= chunk_max_x {
 		for z in chunk_min_z ..= chunk_max_z {
 			chunk := &ctx.chunks[chunk_pos.y][x][z]
@@ -350,14 +344,14 @@ clamp_object :: proc(object: ^Object) {
 		object.pos.x = math.clamp(
 			object.pos.x,
 			f32(rotated_size.x) / 2,
-			c.WORLD_WIDTH - f32(rotated_size.x + 1) / 2,
+			WORLD_WIDTH - f32(rotated_size.x + 1) / 2,
 		)
 	}
 	if rotated_size.z != 1 {
 		object.pos.z = math.clamp(
 			object.pos.z,
 			f32(rotated_size.x) / 2,
-			c.WORLD_DEPTH - f32(rotated_size.z + 1) / 2,
+			WORLD_DEPTH - f32(rotated_size.z + 1) / 2,
 		)
 	}
 }
@@ -410,7 +404,7 @@ update_object_placement_map :: proc(obj: Object) {
 		chunk_pos := world_pos_to_chunk_pos(pos)
 		ctx := get_objects_context()
 		chunk := &ctx.chunks[chunk_pos.y][chunk_pos.x][chunk_pos.z]
-		chunk.placement_map[tile_pos.x % c.CHUNK_WIDTH][tile_pos.y % c.CHUNK_DEPTH][obj.placement][obj.orientation] =
+		chunk.placement_map[tile_pos.x % CHUNK_WIDTH][tile_pos.y % CHUNK_DEPTH][obj.placement][obj.orientation] =
 			obj.type
 	}
 }
@@ -487,9 +481,9 @@ can_add_object :: proc(obj: Object) -> bool {
 	tile_pos := world_pos_to_tile_pos(obj.pos)
 
 	if tile_pos.x < 0 ||
-	   tile_pos.x >= c.WORLD_WIDTH ||
+	   tile_pos.x >= WORLD_WIDTH ||
 	   tile_pos.y < 0 ||
-	   tile_pos.y >= c.WORLD_DEPTH {
+	   tile_pos.y >= WORLD_DEPTH {
 		return false
 	}
 
@@ -592,7 +586,7 @@ can_add_object_on_floor :: proc(obj: Object) -> bool {
 			return false
 		}
 
-		if !terrain.is_tile_flat(tile_pos) {
+		if !is_tile_flat(tile_pos) {
 			return false
 		}
 	}
@@ -657,7 +651,7 @@ has_object_at :: proc(
 	chunk := &objects.chunks[chunk_pos.y][chunk_pos.x][chunk_pos.z]
 
 	orientations :=
-		chunk.placement_map[tile_pos.x % c.CHUNK_WIDTH][tile_pos.y % c.CHUNK_DEPTH][placement]
+		chunk.placement_map[tile_pos.x % CHUNK_WIDTH][tile_pos.y % CHUNK_DEPTH][placement]
 
 	if orientation == nil {
 		for orientation in orientations {
@@ -816,7 +810,7 @@ ray_walker_next :: proc(
 	return
 }
 
-ray_intersect_box :: proc(ray: cursor.Ray, box: Box) -> bool {
+ray_intersect_box :: proc(ray: Cursor_Ray, box: Box) -> bool {
 	t_min, t_max := math.inf_f32(-1), math.inf_f32(1)
 
 	for axis in 0 ..= 2 {
@@ -866,7 +860,7 @@ delete_object_by_id :: proc(id: Object_Id) -> (ok: bool = true) {
 		chunk_pos := world_pos_to_chunk_pos(pos)
 		tile_pos := world_pos_to_tile_pos(pos)
 		chunk := &objects.chunks[chunk_pos.y][chunk_pos.x][chunk_pos.z]
-		chunk.placement_map[tile_pos.x % c.CHUNK_WIDTH][tile_pos.y % c.CHUNK_DEPTH][object.placement][object.orientation] =
+		chunk.placement_map[tile_pos.x % CHUNK_WIDTH][tile_pos.y % CHUNK_DEPTH][object.placement][object.orientation] =
 			nil
 	}
 
@@ -902,25 +896,29 @@ delete_object_by_id :: proc(id: Object_Id) -> (ok: bool = true) {
 
 get_object_under_cursor :: proc() -> (object_id: Object_Id, ok: bool = true) {
 	objects := get_objects_context()
+    cursor := get_cursor_context()
 	ray := Ray_2D {
 		origin    = cursor.ray.origin.xz,
 		direction = cursor.ray.direction.xz,
 	}
 
 	rect: Rect
-	rect.min.x = f32(camera.visible_chunks_start.x) * c.CHUNK_WIDTH
-	rect.min.y = f32(camera.visible_chunks_start.y) * c.CHUNK_DEPTH
-	rect.max.x = f32(camera.visible_chunks_end.x) * c.CHUNK_WIDTH
-	rect.max.y = f32(camera.visible_chunks_end.y) * c.CHUNK_DEPTH
+	rect.min.x = f32(camera.visible_chunks_start.x) * CHUNK_WIDTH
+	rect.min.y = f32(camera.visible_chunks_start.y) * CHUNK_DEPTH
+	rect.max.x = f32(camera.visible_chunks_end.x) * CHUNK_WIDTH
+	rect.max.y = f32(camera.visible_chunks_end.y) * CHUNK_DEPTH
 
-	chunk_ray_walker := init_ray_walker(ray, c.CHUNK_WIDTH, rect) or_return
+	chunk_ray_walker := init_ray_walker(ray, CHUNK_WIDTH, rect) or_return
 
 	object_under_placement: Object_Placement
 	object_under_id: Maybe(Object_Id)
+
+    floor := get_floor_context()
 	for pos in ray_walker_next(&chunk_ray_walker) {
 		chunk := &objects.chunks[floor.floor][i32(pos.x)][i32(pos.y)]
 		for id, i in chunk.objects_inside {
 			if obj, ok := get_object_by_id(id); ok {
+                cursor := get_cursor_context()
 				if ray_intersect_box(cursor.ray, obj.bounding_box) {
 					object_under_id = id
 					if obj.placement != .Floor {

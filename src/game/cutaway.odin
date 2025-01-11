@@ -4,7 +4,6 @@ import "core:log"
 import "core:math/linalg/glsl"
 
 import "../camera"
-import "../floor"
 
 Cutaway_Context :: struct {
 	cutaway_state:                 Cutaway_State,
@@ -33,6 +32,7 @@ set_walls_up :: proc() {
 
 set_cutaway :: proc(state: Wall_State) {
     ctx := get_walls_context()
+    floor := get_floor_context()
 	for x in camera.visible_chunks_start.x ..< camera.visible_chunks_end.x {
 		for z in camera.visible_chunks_start.y ..< camera.visible_chunks_end.y {
 			chunk := &ctx.chunks[floor.floor][x][z]
@@ -63,6 +63,8 @@ init_cutaways :: proc() {
 
 apply_cutaway :: proc() -> bool {
     ctx := get_cutaway_context()
+    floor := get_floor_context()
+
 	if ctx.cutaway_state != .Down {
 		return false
 	}
@@ -93,6 +95,7 @@ wall_is_frame :: proc(w: Wall) -> bool {
 update_cutaways :: proc(force: bool = false) {
     ctx := get_cutaway_context()
     walls := get_walls_context()
+    floor := get_floor_context()
 	if !force && !apply_cutaway() {
 		return
 	}

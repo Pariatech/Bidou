@@ -4,7 +4,7 @@ import "core:log"
 import "core:math/linalg/glsl"
 
 import "../camera"
-import "../cursor"
+import "../game"
 import "../mouse"
 import "../window"
 
@@ -116,6 +116,7 @@ help_window_body :: proc(
 
 	scroll_bar_percent = HELP_WINDOW_BODY_HEIGHT / (max.y - min.y)
 	height := max.y - min.y
+    cursor := game.get_cursor_context()
 	if cursor.pos.x >= pos.x &&
 	   cursor.pos.x < pos.x + size.x + HELP_WINDOW_SCROLL_BAR_WIDTH &&
 	   cursor.pos.y >= pos.y &&

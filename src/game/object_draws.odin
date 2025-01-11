@@ -7,8 +7,6 @@ import "core:slice"
 import gl "vendor:OpenGL"
 
 import "../camera"
-import c "../constants"
-import "../floor"
 
 Object_Draw_Id :: int
 
@@ -34,7 +32,7 @@ Object_Draw_Chunk :: struct {
 Object_Draws :: struct {
 	keys:    map[Object_Draw_Id]Object_Draw_Key,
 	next_id: Object_Draw_Id,
-	chunks:  [c.WORLD_HEIGHT][c.WORLD_CHUNK_WIDTH][c.WORLD_CHUNK_DEPTH]Object_Draw_Chunk,
+	chunks:  [WORLD_HEIGHT][WORLD_CHUNK_WIDTH][WORLD_CHUNK_DEPTH]Object_Draw_Chunk,
 	ubo:     u32,
 	shader:  Shader,
 }

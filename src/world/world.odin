@@ -6,12 +6,8 @@ import gl "vendor:OpenGL"
 
 import "../billboard"
 import "../camera"
-import "../constants"
-import "../floor"
-import "../furniture"
 import "../game"
 import "../renderer"
-import "../tile"
 import "../tools/wall_tool"
 
 house_x: i32 = 12
@@ -24,20 +20,20 @@ update :: proc() {
 	aabb := camera.get_aabb()
 	world_previously_visible_chunks_start = camera.visible_chunks_start
 	world_previously_visible_chunks_end = camera.visible_chunks_end
-	camera.visible_chunks_start.x = max(aabb.x / constants.CHUNK_WIDTH - 1, 0)
-	camera.visible_chunks_start.y = max(aabb.y / constants.CHUNK_DEPTH - 1, 0)
+	camera.visible_chunks_start.x = max(aabb.x / game.CHUNK_WIDTH - 1, 0)
+	camera.visible_chunks_start.y = max(aabb.y / game.CHUNK_DEPTH - 1, 0)
 	camera.visible_chunks_end.x = min(
-		(aabb.x + aabb.w) / constants.CHUNK_WIDTH + 1,
-		constants.WORLD_CHUNK_WIDTH,
+		(aabb.x + aabb.w) / game.CHUNK_WIDTH + 1,
+		game.WORLD_CHUNK_WIDTH,
 	)
 	camera.visible_chunks_end.y = min(
-		(aabb.y + aabb.h) / constants.CHUNK_DEPTH + 1,
-		constants.WORLD_CHUNK_DEPTH,
+		(aabb.y + aabb.h) / game.CHUNK_DEPTH + 1,
+		game.WORLD_CHUNK_DEPTH,
 	)
 }
 
 init :: proc() -> bool {
-	tile.chunk_init()
+	game.tile_triangle_chunk_init()
 
 	// furniture.add({1, 0, 1}, .Chair, .South)
 	// furniture.add({2, 0, 1}, .Chair, .East)
@@ -152,12 +148,12 @@ init :: proc() -> bool {
 		) or_return,
 	)
 
-	for x in 0 ..< constants.WORLD_WIDTH {
+	for x in 0 ..< game.WORLD_WIDTH {
 		for z in 1 ..= 3 {
-			tile.set_tile(
+			game.tile_triangle_set_tile(
 				{i32(x), 0, i32(z)},
-				tile.tile(
-					tile.Tile_Triangle {
+				game.tile_triangle_tile(
+					game.Tile_Triangle {
 						texture = .Asphalt,
 						mask_texture = .Full_Mask,
 					},
@@ -165,20 +161,20 @@ init :: proc() -> bool {
 			)
 		}
 
-		tile.set_tile(
+		game.tile_triangle_set_tile(
 			{i32(x), 0, 4},
-			tile.tile(
-				tile.Tile_Triangle {
+			game.tile_triangle_tile(
+				game.Tile_Triangle {
 					texture = .Asphalt_Horizontal_Line,
 					mask_texture = .Full_Mask,
 				},
 			),
 		)
 		for z in 5 ..= 7 {
-			tile.set_tile(
+			game.tile_triangle_set_tile(
 				{i32(x), 0, i32(z)},
-				tile.tile(
-					tile.Tile_Triangle {
+				game.tile_triangle_tile(
+					game.Tile_Triangle {
 						texture = .Asphalt,
 						mask_texture = .Full_Mask,
 					},
@@ -188,10 +184,10 @@ init :: proc() -> bool {
 	}
 
 	for x in 1 ..= 7 {
-		tile.set_tile(
+		game.tile_triangle_set_tile(
 			{i32(x), 0, 4},
-			tile.tile(
-				tile.Tile_Triangle {
+			game.tile_triangle_tile(
+				game.Tile_Triangle {
 					texture = .Asphalt,
 					mask_texture = .Full_Mask,
 				},
@@ -199,12 +195,12 @@ init :: proc() -> bool {
 		)
 	}
 
-	for z in 8 ..< constants.WORLD_WIDTH {
+	for z in 8 ..< game.WORLD_WIDTH {
 		for x in 1 ..= 3 {
-			tile.set_tile(
+			game.tile_triangle_set_tile(
 				{i32(x), 0, i32(z)},
-				tile.tile(
-					tile.Tile_Triangle {
+				game.tile_triangle_tile(
+					game.Tile_Triangle {
 						texture = .Asphalt,
 						mask_texture = .Full_Mask,
 					},
@@ -212,20 +208,20 @@ init :: proc() -> bool {
 			)
 		}
 
-		tile.set_tile(
+		game.tile_triangle_set_tile(
 			{4, 0, i32(z)},
-			tile.tile(
-				tile.Tile_Triangle {
+			game.tile_triangle_tile(
+				game.Tile_Triangle {
 					texture = .Asphalt_Vertical_Line,
 					mask_texture = .Full_Mask,
 				},
 			),
 		)
 		for x in 5 ..= 7 {
-			tile.set_tile(
+			game.tile_triangle_set_tile(
 				{i32(x), 0, i32(z)},
-				tile.tile(
-					tile.Tile_Triangle {
+				game.tile_triangle_tile(
+					game.Tile_Triangle {
 						texture = .Asphalt,
 						mask_texture = .Full_Mask,
 					},
@@ -234,11 +230,11 @@ init :: proc() -> bool {
 		}
 	}
 
-	for x in 8 ..< constants.WORLD_WIDTH {
-		tile.set_tile(
+	for x in 8 ..< game.WORLD_WIDTH {
+		game.tile_triangle_set_tile(
 			{i32(x), 0, 8},
-			tile.tile(
-				tile.Tile_Triangle {
+			game.tile_triangle_tile(
+				game.Tile_Triangle {
 					texture = .Sidewalk,
 					mask_texture = .Full_Mask,
 				},
@@ -246,11 +242,11 @@ init :: proc() -> bool {
 		)
 	}
 
-	for z in 9 ..< constants.WORLD_WIDTH {
-		tile.set_tile(
+	for z in 9 ..< game.WORLD_WIDTH {
+		game.tile_triangle_set_tile(
 			{8, 0, i32(z)},
-			tile.tile(
-				tile.Tile_Triangle {
+			game.tile_triangle_tile(
+				game.Tile_Triangle {
 					texture = .Sidewalk,
 					mask_texture = .Full_Mask,
 				},
@@ -261,17 +257,17 @@ init :: proc() -> bool {
 	return true
 }
 
-add_house_floor_triangles :: proc(floor: i32, texture: tile.Texture) {
-	tri := tile.Tile_Triangle {
+add_house_floor_triangles :: proc(floor: i32, texture: game.Tile_Triangle_Texture) {
+	tri := game.Tile_Triangle {
 		texture      = texture,
 		mask_texture = .Full_Mask,
 	}
 
 	for x in 0 ..< 12 {
 		for z in 0 ..< 11 {
-			tile.set_tile(
+			game.tile_triangle_set_tile(
 				{house_x + i32(x), floor, house_z + i32(z)},
-				tile.tile(tri),
+				game.tile_triangle_tile(tri),
 			)
 		}
 	}
@@ -316,7 +312,7 @@ add_house_floor_walls :: proc(
 				"Wood Window",
 				 {
 					f32(house_x),
-					f32(floor * constants.WALL_HEIGHT),
+					f32(floor * game.WALL_HEIGHT),
 					f32(house_z + 1 + i32(i)),
 				},
 				.West,
@@ -332,7 +328,7 @@ add_house_floor_walls :: proc(
 				"Wood Window",
 				 {
 					f32(house_x),
-					f32(floor * constants.WALL_HEIGHT),
+					f32(floor * game.WALL_HEIGHT),
 					f32(house_z + 5),
 				},
 				.West,
@@ -345,7 +341,7 @@ add_house_floor_walls :: proc(
 				"Wood Door",
 				 {
 					f32(house_x),
-					f32(floor * constants.WALL_HEIGHT),
+					f32(floor * game.WALL_HEIGHT),
 					f32(house_z + 5),
 				},
 				.West,
@@ -360,7 +356,7 @@ add_house_floor_walls :: proc(
 				"Wood Window",
 				 {
 					f32(house_x),
-					f32(floor * constants.WALL_HEIGHT),
+					f32(floor * game.WALL_HEIGHT),
 					f32(house_z + 7 + i32(i)),
 				},
 				.West,
@@ -404,7 +400,7 @@ add_house_floor_walls :: proc(
 			"Wood Window",
 			 {
 				f32(house_x + 2),
-				f32(floor * constants.WALL_HEIGHT),
+				f32(floor * game.WALL_HEIGHT),
 				f32(house_z),
 			},
 			.South,
@@ -417,7 +413,7 @@ add_house_floor_walls :: proc(
 			"Wood Window",
 			 {
 				f32(house_x + 4),
-				f32(floor * constants.WALL_HEIGHT),
+				f32(floor * game.WALL_HEIGHT),
 				f32(house_z),
 			},
 			.South,
@@ -430,7 +426,7 @@ add_house_floor_walls :: proc(
 			"Wood Window",
 			 {
 				f32(house_x + 7),
-				f32(floor * constants.WALL_HEIGHT),
+				f32(floor * game.WALL_HEIGHT),
 				f32(house_z),
 			},
 			.South,
@@ -444,7 +440,7 @@ add_house_floor_walls :: proc(
 				"Wood Door",
 				 {
 					f32(house_x + 9),
-					f32(floor * constants.WALL_HEIGHT),
+					f32(floor * game.WALL_HEIGHT),
 					f32(house_z),
 				},
 				.South,
@@ -457,7 +453,7 @@ add_house_floor_walls :: proc(
 				"Wood Window",
 				 {
 					f32(house_x + 9),
-					f32(floor * constants.WALL_HEIGHT),
+					f32(floor * game.WALL_HEIGHT),
 					f32(house_z),
 				},
 				.South,
@@ -501,7 +497,7 @@ add_house_floor_walls :: proc(
 			"Wood Window",
 			 {
 				f32(house_x + 2),
-				f32(floor * constants.WALL_HEIGHT),
+				f32(floor * game.WALL_HEIGHT),
 				f32(house_z + 11),
 			},
 			.South,
@@ -514,7 +510,7 @@ add_house_floor_walls :: proc(
 			"Wood Window",
 			 {
 				f32(house_x + 4),
-				f32(floor * constants.WALL_HEIGHT),
+				f32(floor * game.WALL_HEIGHT),
 				f32(house_z + 11),
 			},
 			.South,
@@ -527,7 +523,7 @@ add_house_floor_walls :: proc(
 			"Wood Window",
 			 {
 				f32(house_x + 7),
-				f32(floor * constants.WALL_HEIGHT),
+				f32(floor * game.WALL_HEIGHT),
 				f32(house_z + 11),
 			},
 			.South,
@@ -540,7 +536,7 @@ add_house_floor_walls :: proc(
 			"Wood Window",
 			 {
 				f32(house_x + 9),
-				f32(floor * constants.WALL_HEIGHT),
+				f32(floor * game.WALL_HEIGHT),
 				f32(house_z + 11),
 			},
 			.South,
@@ -584,7 +580,7 @@ add_house_floor_walls :: proc(
 			"Wood Window",
 			 {
 				f32(house_x + 11),
-				f32(floor * constants.WALL_HEIGHT),
+				f32(floor * game.WALL_HEIGHT),
 				f32(house_z + 2),
 			},
 			.East,
@@ -597,7 +593,7 @@ add_house_floor_walls :: proc(
 			"Wood Window",
 			 {
 				f32(house_x + 11),
-				f32(floor * constants.WALL_HEIGHT),
+				f32(floor * game.WALL_HEIGHT),
 				f32(house_z + 8),
 			},
 			.East,
@@ -613,7 +609,7 @@ draw :: proc() {
 	renderer.uniform_object.proj = camera.proj
 
 
-	for flr in 0 ..= floor.floor {
+	for flr in 0 ..= game.get_floor_context().floor {
 		gl.BindBuffer(gl.UNIFORM_BUFFER, renderer.ubo)
 
 		ubo_index := gl.GetUniformBlockIndex(
@@ -632,7 +628,7 @@ draw :: proc() {
 		)
 
 		gl.UseProgram(renderer.shader_program)
-		tile.draw_tiles(flr)
+		game.tile_triangle_draw_tiles(flr)
 		game.draw_walls(flr)
 		billboard.draw_billboards(flr)
 

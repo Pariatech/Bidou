@@ -7,9 +7,7 @@ import "core:math/linalg/glsl"
 
 import gl "vendor:OpenGL"
 
-import "../constants"
-import "../cursor"
-import "../floor"
+import "../game"
 import "../keyboard"
 import "../mouse"
 
@@ -317,8 +315,8 @@ object_tool_move_object :: proc() {
 				obj.pos.xz,
 				glsl.vec2{0, 0},
 				glsl.vec2 {
-					constants.WORLD_WIDTH - 1,
-					constants.WORLD_DEPTH - 1,
+					game.WORLD_WIDTH - 1,
+					game.WORLD_DEPTH - 1,
 				},
 			)
 		}
@@ -335,7 +333,8 @@ update_object_tool :: proc() {
 		previous_orientation = ctx.objects[0].orientation
 	}
 
-	cursor.on_tile_intersect(
+    floor := get_floor_context()
+	on_cursor_tile_intersect(
 		object_tool_on_intersect,
 		floor.previous_floor,
 		floor.floor,

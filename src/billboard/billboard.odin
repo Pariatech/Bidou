@@ -9,9 +9,8 @@ import "vendor:cgltf"
 import stbi "vendor:stb/image"
 
 import "../camera"
-import "../constants"
+import "../game"
 import "../renderer"
-import "../terrain"
 
 BILLBOARD_VERTEX_SHADER_PATH :: "resources/shaders/billboard.vert"
 BILLBOARD_FRAGMENT_SHADER_PATH :: "resources/shaders/billboard.frag"
@@ -27,10 +26,10 @@ billboard_uniform_object: Billboard_Uniform_Object
 billboard_ubo: u32
 billboard_1x1_draw_context: Billboard_Draw_Context
 billboard_2x2_draw_context: Billboard_Draw_Context
-chunks_1x1: [constants.CHUNK_HEIGHT][constants.WORLD_CHUNK_WIDTH][constants.WORLD_CHUNK_DEPTH]Billboard_Chunk(
+chunks_1x1: [game.CHUNK_HEIGHT][game.WORLD_CHUNK_WIDTH][game.WORLD_CHUNK_DEPTH]Billboard_Chunk(
 	Billboard_1x1,
 )
-chunks_2x2: [constants.CHUNK_HEIGHT][constants.WORLD_CHUNK_WIDTH][constants.WORLD_CHUNK_DEPTH]Billboard_Chunk(
+chunks_2x2: [game.CHUNK_HEIGHT][game.WORLD_CHUNK_WIDTH][game.WORLD_CHUNK_DEPTH]Billboard_Chunk(
 	Billboard_2x2,
 )
 
@@ -780,14 +779,14 @@ init_draw_contexts :: proc() -> bool {
 get_chunk_1x1 :: proc(pos: glsl.vec3) -> ^Billboard_Chunk(Billboard_1x1) {
 	floor := get_floor_from_vec3(pos)
 	x := clamp(
-		int(pos.x / constants.CHUNK_WIDTH),
+		int(pos.x / game.CHUNK_WIDTH),
 		0,
-		constants.WORLD_CHUNK_WIDTH - 1,
+		game.WORLD_CHUNK_WIDTH - 1,
 	)
 	z := clamp(
-		int(pos.z / constants.CHUNK_DEPTH),
+		int(pos.z / game.CHUNK_DEPTH),
 		0,
-		constants.WORLD_CHUNK_DEPTH - 1,
+		game.WORLD_CHUNK_DEPTH - 1,
 	)
 	return &chunks_1x1[floor][x][z]
 }
@@ -833,13 +832,13 @@ billboard_1x1_remove :: proc(key: Key) {
 }
 
 get_floor_from_vec3 :: proc(pos: glsl.vec3) -> int {
-	terrain_height := terrain.get_terrain_height(
+	terrain_height := game.get_terrain_height(
 		{i32(pos.x + 0.5), i32(pos.z + 0.5)},
 	)
 	return clamp(
-		int((pos.y - terrain_height) / constants.WALL_HEIGHT),
+		int((pos.y - terrain_height) / game.WALL_HEIGHT),
 		0,
-		constants.CHUNK_HEIGHT - 1,
+		game.CHUNK_HEIGHT - 1,
 	)
 }
 

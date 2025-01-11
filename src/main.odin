@@ -9,13 +9,10 @@ import "vendor:glfw"
 
 import "billboard"
 import "camera"
-import "cursor"
-import "floor"
 import "game"
 import "keyboard"
 import "mouse"
 import "renderer"
-import "terrain"
 import "tools"
 import "tools/floor_tool"
 import "tools/terrain_tool"
@@ -94,10 +91,10 @@ start :: proc() -> (ok: bool = false) {
 	defer keyboard.deinit()
 	mouse.init()
 	defer mouse.deinit()
-	cursor.init()
+	game.init_cursor()
 
 	billboard.init_draw_contexts() or_return
-	terrain.init_terrain()
+	game.init_terrain()
 
 	game.load_models() or_return
 
@@ -150,7 +147,7 @@ start :: proc() -> (ok: bool = false) {
 
 		renderer.begin_draw()
 
-		floor.update()
+		game.floor_update()
 		ui.update(&ui_ctx)
 
 		if keyboard.is_key_press(.Key_Q) {
@@ -180,7 +177,7 @@ start :: proc() -> (ok: bool = false) {
 		should_close = bool(glfw.WindowShouldClose(window.handle))
 		keyboard.update()
 		mouse.update()
-		cursor.update()
+		game.update_cursor()
 
 		free_all(context.temp_allocator)
 

@@ -6,13 +6,9 @@ import "core:math/linalg/glsl"
 
 import "../../billboard"
 import "../../camera"
-import "../../constants"
-import "../../cursor"
-import "../../floor"
 import "../../game"
 import "../../keyboard"
 import "../../mouse"
-import "../../terrain"
 
 wall_tool_billboard: billboard.Key
 wall_tool_position: glsl.ivec2
@@ -40,7 +36,8 @@ init :: proc() {
 		wall_tool_billboard,
 		{light = {1, 1, 1}, texture = .Wall_Cursor, depth_map = .Wall_Cursor},
 	)
-	cursor.intersect_with_tiles(on_tile_intersect, floor.floor)
+    floor := game.get_floor_context()
+	game.cursor_intersect_with_tiles(on_tile_intersect, floor.floor)
 	move_cursor()
 	floor.show_markers = true
 }
@@ -153,6 +150,7 @@ update_walls_rectangle :: proc(
 	east_west: proc(_: glsl.ivec3),
 	north_south: proc(_: glsl.ivec3),
 ) {
+    floor := game.get_floor_context()
 	start_x := min(wall_tool_position.x, wall_tool_drag_start.x)
 	end_x := max(wall_tool_position.x, wall_tool_drag_start.x)
 	start_z := min(wall_tool_position.y, wall_tool_drag_start.y)
@@ -205,6 +203,7 @@ diagonal_update :: proc(
 }
 
 south_west_north_east_update :: proc(fn: proc(_: glsl.ivec3)) {
+    floor := game.get_floor_context()
 	start_x := min(wall_tool_position.x, wall_tool_drag_start.x)
 	end_x := max(wall_tool_position.x, wall_tool_drag_start.x)
 	z := wall_tool_drag_start.y
@@ -219,6 +218,7 @@ south_west_north_east_update :: proc(fn: proc(_: glsl.ivec3)) {
 }
 
 north_west_south_east_update :: proc(fn: proc(_: glsl.ivec3)) {
+    floor := game.get_floor_context()
 	start_x := min(wall_tool_position.x, wall_tool_drag_start.x)
 	end_x := max(wall_tool_position.x, wall_tool_drag_start.x)
 	z := wall_tool_drag_start.y
@@ -246,6 +246,7 @@ cardinal_update :: proc(
 }
 
 east_west_update :: proc(fn: proc(_: glsl.ivec3)) {
+    floor := game.get_floor_context()
 	start_x := min(wall_tool_position.x, wall_tool_drag_start.x)
 	end_x := max(wall_tool_position.x, wall_tool_drag_start.x)
 	z := wall_tool_drag_start.y
@@ -255,6 +256,7 @@ east_west_update :: proc(fn: proc(_: glsl.ivec3)) {
 }
 
 north_south_update :: proc(fn: proc(_: glsl.ivec3)) {
+    floor := game.get_floor_context()
 	start_z := min(wall_tool_position.y, wall_tool_drag_start.y)
 	end_z := max(wall_tool_position.y, wall_tool_drag_start.y)
 	x := wall_tool_drag_start.x
@@ -390,8 +392,8 @@ remove_north_south_wall :: proc(pos: glsl.ivec3) {
 update_east_west_wall :: proc(pos: glsl.ivec3) {
 	if pos.x < 0 ||
 	   pos.z < 0 ||
-	   pos.x >= constants.WORLD_WIDTH ||
-	   pos.z >= constants.WORLD_DEPTH {
+	   pos.x >= game.WORLD_WIDTH ||
+	   pos.z >= game.WORLD_DEPTH {
 		return
 	}
 
@@ -438,8 +440,8 @@ update_east_west_wall :: proc(pos: glsl.ivec3) {
 update_north_south_wall :: proc(pos: glsl.ivec3) {
 	if pos.x < 0 ||
 	   pos.z < 0 ||
-	   pos.x >= constants.WORLD_WIDTH ||
-	   pos.z >= constants.WORLD_DEPTH {
+	   pos.x >= game.WORLD_WIDTH ||
+	   pos.z >= game.WORLD_DEPTH {
 		return
 	}
 
@@ -486,8 +488,8 @@ update_north_south_wall :: proc(pos: glsl.ivec3) {
 update_north_west_south_east_wall :: proc(pos: glsl.ivec3) {
 	if pos.x < 0 ||
 	   pos.z < 0 ||
-	   pos.x >= constants.WORLD_WIDTH ||
-	   pos.z >= constants.WORLD_DEPTH {
+	   pos.x >= game.WORLD_WIDTH ||
+	   pos.z >= game.WORLD_DEPTH {
 		return
 	}
 
@@ -537,8 +539,8 @@ update_north_west_south_east_wall :: proc(pos: glsl.ivec3) {
 update_south_west_north_east_wall :: proc(pos: glsl.ivec3) {
 	if pos.x < 0 ||
 	   pos.z < 0 ||
-	   pos.x >= constants.WORLD_WIDTH ||
-	   pos.z >= constants.WORLD_DEPTH {
+	   pos.x >= game.WORLD_WIDTH ||
+	   pos.z >= game.WORLD_DEPTH {
 		return
 	}
 
@@ -604,7 +606,7 @@ set_south_west_north_east_wall :: proc(
 		return
 	}
 
-	if !terrain.is_tile_flat(pos.xz) {
+	if !game.is_tile_flat(pos.xz) {
 		return
 	}
 
@@ -635,7 +637,7 @@ set_north_west_south_east_wall :: proc(
 		return
 	}
 
-	if !terrain.is_tile_flat(pos.xz) {
+	if !game.is_tile_flat(pos.xz) {
 		return
 	}
 
@@ -664,7 +666,7 @@ set_east_west_wall :: proc(pos: glsl.ivec3, texture: game.Wall_Texture) {
 		return
 	}
 
-	if !terrain.is_tile_flat(pos.xz) {
+	if !game.is_tile_flat(pos.xz) {
 		return
 	}
 
@@ -692,7 +694,7 @@ set_north_south_wall :: proc(pos: glsl.ivec3, texture: game.Wall_Texture) {
 		return
 	}
 
-	if !terrain.is_tile_flat(pos.xz) {
+	if !game.is_tile_flat(pos.xz) {
 		return
 	}
 
@@ -750,10 +752,12 @@ revert_removing_line :: proc() {
 }
 
 removing_line :: proc() {
+    floor := game.get_floor_context()
+
 	revert_removing_line()
 
 	previous_tool_position := wall_tool_position
-	cursor.on_tile_intersect(
+	game.on_cursor_tile_intersect(
 		on_tile_intersect,
 		floor.previous_floor,
 		floor.floor,
@@ -791,10 +795,12 @@ removing_line :: proc() {
 }
 
 adding_line :: proc() {
+    floor := game.get_floor_context()
+
 	revert_walls_line()
 
 	previous_tool_position := wall_tool_position
-	cursor.on_tile_intersect(
+	game.on_cursor_tile_intersect(
 		on_tile_intersect,
 		floor.previous_floor,
 		floor.floor,
@@ -839,10 +845,11 @@ update_line :: proc() {
 }
 
 adding_rectangle :: proc() {
+    floor := game.get_floor_context()
 	revert_walls_rectangle()
 
 	previous_tool_position := wall_tool_position
-	cursor.on_tile_intersect(
+	game.on_cursor_tile_intersect(
 		on_tile_intersect,
 		floor.previous_floor,
 		floor.floor,
@@ -883,10 +890,12 @@ revert_removing_rectangle :: proc() {
 }
 
 removing_rectangle :: proc() {
+    floor := game.get_floor_context()
+
 	revert_removing_rectangle()
 
 	previous_tool_position := wall_tool_position
-	cursor.on_tile_intersect(
+	game.on_cursor_tile_intersect(
 		on_tile_intersect,
 		floor.previous_floor,
 		floor.floor,
@@ -945,10 +954,13 @@ revert_walls_line :: proc() {
 }
 
 move_cursor :: proc() {
+    terrain := game.get_terrain_context()
+    floor := game.get_floor_context()
+
 	position: glsl.vec3
 	position.y =
 		terrain.terrain_heights[wall_tool_position.x][wall_tool_position.y]
-	position.y += f32(floor.floor) * constants.WALL_HEIGHT
+	position.y += f32(floor.floor) * game.WALL_HEIGHT
 
 	switch camera.rotation {
 	case .South_West:

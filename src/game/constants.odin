@@ -1,4 +1,4 @@
-package constants
+package game
 
 CHUNK_WIDTH :: 8
 CHUNK_DEPTH :: 8

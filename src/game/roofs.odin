@@ -11,10 +11,7 @@ import "core:strings"
 import gl "vendor:OpenGL"
 
 import "../camera"
-import c "../constants"
-import "../floor"
 import "../renderer"
-import "../terrain"
 
 // @(private = "file")
 ROOF_SIZE_PADDING :: glsl.vec2{0.4, 0.4}
@@ -73,7 +70,7 @@ Roof_Chunk :: struct {
 	roofs_inside: [dynamic]Roof_Id,
 }
 
-Roof_Chunks :: [c.CHUNK_HEIGHT][c.WORLD_CHUNK_WIDTH][c.WORLD_CHUNK_DEPTH]Roof_Chunk
+Roof_Chunks :: [CHUNK_HEIGHT][WORLD_CHUNK_WIDTH][WORLD_CHUNK_DEPTH]Roof_Chunk
 
 Roof_Uniform_Object :: struct {
 	mvp:   glsl.mat4,
@@ -239,6 +236,7 @@ deinit_roofs :: proc() {
 
 draw_roofs :: proc(flr: i32) {
 	roofs := get_roofs_context()
+    floor := get_floor_context()
 	if flr >= floor.floor + roofs.floor_offset {
 		return
 	}
@@ -377,13 +375,13 @@ add_roof :: proc(roof: Roof) -> Roof_Id {
 	start := bounds.start
 	end := bounds.end
 	for x := int(start.x + 0.5);
-	    x < int(end.x + 0.5) + c.CHUNK_WIDTH && x < c.WORLD_WIDTH;
-	    x += c.CHUNK_WIDTH {
+	    x < int(end.x + 0.5) + CHUNK_WIDTH && x < WORLD_WIDTH;
+	    x += CHUNK_WIDTH {
 		for z := int(start.y + 0.5);
-		    z < int(end.y + 0.5) + c.CHUNK_DEPTH && z < c.WORLD_DEPTH;
-		    z += c.CHUNK_DEPTH {
-			cx := x / c.CHUNK_WIDTH
-			cz := z / c.CHUNK_DEPTH
+		    z < int(end.y + 0.5) + CHUNK_DEPTH && z < WORLD_DEPTH;
+		    z += CHUNK_DEPTH {
+			cx := x / CHUNK_WIDTH
+			cz := z / CHUNK_DEPTH
 			append(&roofs.chunks[chunk_pos.y][cx][cz].roofs_inside, roof.id)
 		}
 	}
@@ -444,13 +442,13 @@ remove_roof :: proc(roof: Roof) {
 	start := bounds.start
 	end := bounds.end
 	for x := int(start.x + 0.5);
-	    x < int(end.x + 0.5) + c.CHUNK_WIDTH && x < c.WORLD_WIDTH;
-	    x += c.CHUNK_WIDTH {
+	    x < int(end.x + 0.5) + CHUNK_WIDTH && x < WORLD_WIDTH;
+	    x += CHUNK_WIDTH {
 		for z := int(start.y + 0.5);
-		    z < int(end.y + 0.5) + c.CHUNK_DEPTH && z < c.WORLD_DEPTH;
-		    z += c.CHUNK_DEPTH {
-			cx := x / c.CHUNK_WIDTH
-			cz := z / c.CHUNK_DEPTH
+		    z < int(end.y + 0.5) + CHUNK_DEPTH && z < WORLD_DEPTH;
+		    z += CHUNK_DEPTH {
+			cx := x / CHUNK_WIDTH
+			cz := z / CHUNK_DEPTH
 			current_chunk := &ctx.chunks[chunk_pos.y][cx][cz]
 			for id, i in current_chunk.roofs_inside {
 				if id == roof.id {
@@ -481,13 +479,13 @@ update_roof :: proc(roof: Roof) {
 		end := bounds.end
 
 		for x := int(start.x + 0.5);
-		    x < int(end.x + 0.5) + c.CHUNK_WIDTH && x < c.WORLD_WIDTH;
-		    x += c.CHUNK_WIDTH {
+		    x < int(end.x + 0.5) + CHUNK_WIDTH && x < WORLD_WIDTH;
+		    x += CHUNK_WIDTH {
 			for z := int(start.y + 0.5);
-			    z < int(end.y + 0.5) + c.CHUNK_DEPTH && z < c.WORLD_DEPTH;
-			    z += c.CHUNK_DEPTH {
-				cx := x / c.CHUNK_WIDTH
-				cz := z / c.CHUNK_DEPTH
+			    z < int(end.y + 0.5) + CHUNK_DEPTH && z < WORLD_DEPTH;
+			    z += CHUNK_DEPTH {
+				cx := x / CHUNK_WIDTH
+				cz := z / CHUNK_DEPTH
 				current_chunk := &ctx.chunks[chunk_pos.y][cx][cz]
 				for id, i in current_chunk.roofs_inside {
 					if id == roof.id {
@@ -502,13 +500,13 @@ update_roof :: proc(roof: Roof) {
 		start = bounds.start
 		end = bounds.end
 		for x := int(start.x + 0.5);
-		    x < int(end.x + 0.5) + c.CHUNK_WIDTH && x < c.WORLD_WIDTH;
-		    x += c.CHUNK_WIDTH {
+		    x < int(end.x + 0.5) + CHUNK_WIDTH && x < WORLD_WIDTH;
+		    x += CHUNK_WIDTH {
 			for z := int(start.y + 0.5);
-			    z < int(end.y + 0.5) + c.CHUNK_DEPTH && z < c.WORLD_DEPTH;
-			    z += c.CHUNK_DEPTH {
-				cx := x / c.CHUNK_WIDTH
-				cz := z / c.CHUNK_DEPTH
+			    z < int(end.y + 0.5) + CHUNK_DEPTH && z < WORLD_DEPTH;
+			    z += CHUNK_DEPTH {
+				cx := x / CHUNK_WIDTH
+				cz := z / CHUNK_DEPTH
 				append(&ctx.chunks[chunk_pos.y][cx][cz].roofs_inside, roof.id)
 			}
 		}
@@ -540,11 +538,11 @@ snap_roof :: proc(roof: ^Roof) {
 get_roof_chunk_pos :: proc(roof: Roof) -> glsl.ivec3 {
 	x := i32(roof.start.x + 0.5)
 	z := i32(roof.start.y + 0.5)
-	chunk_x := x / c.CHUNK_WIDTH
+	chunk_x := x / CHUNK_WIDTH
 
-	tile_height := terrain.get_tile_height(int(x), int(z))
-	chunk_y := i32((roof.offset - tile_height) / c.WALL_HEIGHT)
-	chunk_z := z / c.CHUNK_DEPTH
+	tile_height := get_tile_height(int(x), int(z))
+	chunk_y := i32((roof.offset - tile_height) / WALL_HEIGHT)
+	chunk_z := z / CHUNK_DEPTH
 	return {chunk_x, chunk_y, chunk_z}
 }
 
