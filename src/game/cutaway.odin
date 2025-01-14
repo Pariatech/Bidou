@@ -3,8 +3,6 @@ package game
 import "core:log"
 import "core:math/linalg/glsl"
 
-import "../camera"
-
 Cutaway_Context :: struct {
 	cutaway_state:                 Cutaway_State,
 	previous_visible_chunks_start: glsl.ivec2,
@@ -16,7 +14,7 @@ Cutaway_State :: enum {
 	Down,
 }
 
-CUTAWAY_WALL_MASK_MAP :: [Wall_State][Wall_Axis][camera.Rotation]Wall_Type{}
+CUTAWAY_WALL_MASK_MAP :: [Wall_State][Wall_Axis][Camera_Rotation]Wall_Type{}
 
 set_walls_down :: proc() {
     ctx := get_cutaway_context()
@@ -33,8 +31,8 @@ set_walls_up :: proc() {
 set_cutaway :: proc(state: Wall_State) {
     ctx := get_walls_context()
     floor := get_floor_context()
-	for x in camera.visible_chunks_start.x ..< camera.visible_chunks_end.x {
-		for z in camera.visible_chunks_start.y ..< camera.visible_chunks_end.y {
+	for x in camera().visible_chunks_start.x ..< camera().visible_chunks_end.x {
+		for z in camera().visible_chunks_start.y ..< camera().visible_chunks_end.y {
 			chunk := &ctx.chunks[floor.floor][x][z]
 			chunk.dirty = true
 
@@ -73,11 +71,11 @@ apply_cutaway :: proc() -> bool {
 		return true
 	}
 
-	if ctx.previous_visible_chunks_start != camera.visible_chunks_start {
+	if ctx.previous_visible_chunks_start != camera().visible_chunks_start {
 		return true
 	}
 
-	if ctx.previous_visible_chunks_end != camera.visible_chunks_end {
+	if ctx.previous_visible_chunks_end != camera().visible_chunks_end {
 		return true
 	}
 
@@ -100,8 +98,8 @@ update_cutaways :: proc(force: bool = false) {
 		return
 	}
 
-	for x in camera.visible_chunks_start.x ..< camera.visible_chunks_end.x {
-		for z in camera.visible_chunks_start.y ..< camera.visible_chunks_end.y {
+	for x in camera().visible_chunks_start.x ..< camera().visible_chunks_end.x {
+		for z in camera().visible_chunks_start.y ..< camera().visible_chunks_end.y {
 			chunk := &walls.chunks[floor.previous_floor][x][z]
 
 			chunk.dirty = true
@@ -157,8 +155,8 @@ update_cutaways :: proc(force: bool = false) {
 		}
 	}
 
-	ctx.previous_visible_chunks_start = camera.visible_chunks_start
-	ctx.previous_visible_chunks_end = camera.visible_chunks_end
+	ctx.previous_visible_chunks_start = camera().visible_chunks_start
+	ctx.previous_visible_chunks_end = camera().visible_chunks_end
 }
 
 set_wall_up :: proc(pos: glsl.ivec3, axis: Wall_Axis) {
@@ -178,7 +176,7 @@ set_wall_up :: proc(pos: glsl.ivec3, axis: Wall_Axis) {
 	ew_left: Wall_State
 	ew_right: Wall_State
 
-	switch camera.rotation {
+	switch camera().rotation {
 	case .South_West, .North_West:
 		ew_left = .Left
 		ew_right = .Right
@@ -190,7 +188,7 @@ set_wall_up :: proc(pos: glsl.ivec3, axis: Wall_Axis) {
 	ns_left: Wall_State
 	ns_right: Wall_State
 
-	switch camera.rotation {
+	switch camera().rotation {
 	case .South_West, .South_East:
 		ns_left = .Left
 		ns_right = .Right
@@ -202,7 +200,7 @@ set_wall_up :: proc(pos: glsl.ivec3, axis: Wall_Axis) {
 	diagonal_left: Wall_State
 	diagonal_right: Wall_State
 
-	switch camera.rotation {
+	switch camera().rotation {
 	case .South_West, .South_East:
 		diagonal_left = .Left
 		diagonal_right = .Right

@@ -10,7 +10,6 @@ import "core:strings"
 
 import gl "vendor:OpenGL"
 
-import "../camera"
 import "../renderer"
 
 // @(private = "file")
@@ -256,7 +255,7 @@ draw_roofs :: proc(flr: i32) {
 	gl.BindBufferBase(gl.UNIFORM_BUFFER, 2, roofs.ubo)
 
 	uniform_object := Roof_Uniform_Object {
-		mvp = camera.view_proj,
+		mvp = camera().view_proj,
 		light = {1, 1, 1},
 	}
 
@@ -270,8 +269,8 @@ draw_roofs :: proc(flr: i32) {
 	roof_ids: [dynamic]Roof_Id
 	defer delete(roof_ids)
 	y := flr
-	for x in camera.visible_chunks_start.x ..< camera.visible_chunks_end.x {
-		for z in camera.visible_chunks_start.y ..< camera.visible_chunks_end.y {
+	for x in camera().visible_chunks_start.x ..< camera().visible_chunks_end.x {
+		for z in camera().visible_chunks_start.y ..< camera().visible_chunks_end.y {
 			chunk := &roofs.chunks[y][x][z]
 			for roof_inside_id in chunk.roofs_inside {
 				existing := false

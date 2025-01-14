@@ -9,7 +9,6 @@ import gl "vendor:OpenGL"
 
 import "../game"
 import "../keyboard"
-import "../mouse"
 
 Object_Tool_Mode :: enum {
 	Pick,
@@ -132,19 +131,19 @@ object_tool_pick_object :: proc() {
 			if previous_obj, ok := get_object_by_id(
 				previous_object_under_cursor,
 			); ok {
-				mouse.set_cursor(.Arrow)
+				mouse_set_cursor(.Arrow)
 				previous_obj.light = {1, 1, 1}
 				update_object_draw(object_draw_from_object(previous_obj^))
 			}
 		}
 		if object_ptr, ok := get_object_by_id(object_under_cursor); ok {
 			object := object_ptr^
-			if mouse.is_button_press(.Left) {
+			if mouse_is_button_press(.Left) {
 				ctx.previous_mode = ctx.mode
 				if keyboard.is_key_down(.Key_Left_Control) {
 					delete_object_by_id(object_under_cursor)
 					ctx.previous_object_under_cursor = nil
-					mouse.set_cursor(.Arrow)
+					mouse_set_cursor(.Arrow)
 				} else if keyboard.is_key_down(.Key_Left_Shift) {
 					ctx.mode = .Place
 					append(&ctx.objects, object)
@@ -160,7 +159,7 @@ object_tool_pick_object :: proc() {
 					create_object_tool_tile_marker_object_draws()
 				} else {
 					ctx.mode = .Move
-					mouse.set_cursor(.Hand_Closed)
+					mouse_set_cursor(.Hand_Closed)
 					append(&ctx.objects, object)
 					append(&ctx.original_objects, object)
 
@@ -195,10 +194,10 @@ object_tool_pick_object :: proc() {
 				}
 			} else {
 				if keyboard.is_key_down(.Key_Left_Control) {
-					mouse.set_cursor(.Cross)
+					mouse_set_cursor(.Cross)
 					object.light = {0.8, 0.2, 0.2}
 				} else {
-					mouse.set_cursor(.Hand)
+					mouse_set_cursor(.Hand)
 					object.light = {1.5, 1.5, 1.5}
 				}
 				update_object_draw(object_draw_from_object(object))
@@ -208,7 +207,7 @@ object_tool_pick_object :: proc() {
 	} else if object_under_cursor, ok := ctx.previous_object_under_cursor.?;
 	   ok {
 		if object, ok := get_object_by_id(object_under_cursor); ok {
-			mouse.set_cursor(.Arrow)
+			mouse_set_cursor(.Arrow)
 			object.light = {1, 1, 1}
 			update_object_draw(object_draw_from_object(object^))
 			// ctx.previous_object_under_cursor = nil
@@ -234,7 +233,7 @@ object_tool_place_object :: proc() {
 
 	if keyboard.is_key_press(.Key_Escape) {
 		object_tool_on_escape()
-	} else if mouse.is_button_press(.Left) {
+	} else if mouse_is_button_press(.Left) {
 		id, _ := add_object(ctx.objects[0])
 
 		if !keyboard.is_key_down(.Key_Left_Shift) {
@@ -245,7 +244,7 @@ object_tool_place_object :: proc() {
 			clear_object_tool_tile_marker_object_draws()
 			clear(&ctx.objects)
 			ctx.previous_object_under_cursor = id
-			mouse.set_cursor(.Arrow)
+			mouse_set_cursor(.Arrow)
 		}
 	} else {
 		if keyboard.is_key_press(.Key_R) {
@@ -272,7 +271,7 @@ object_tool_move_object :: proc() {
 		clear_object_tool_tile_marker_object_draws()
 		clear(&ctx.objects)
 		clear(&ctx.original_objects)
-	} else if mouse.is_button_press(.Left) {
+	} else if mouse_is_button_press(.Left) {
 
 		for &obj in ctx.objects {
 			id, _ := add_object(obj)
@@ -291,7 +290,7 @@ object_tool_move_object :: proc() {
 
 			clear_object_tool_tile_marker_object_draws()
 			clear(&ctx.objects)
-			mouse.set_cursor(.Arrow)
+			mouse_set_cursor(.Arrow)
 		}
 
 		clear(&ctx.original_objects)
@@ -365,7 +364,7 @@ update_object_tool :: proc() {
 				}
 				break
 			} else if ctx.objects[0].placement == .Wall &&
-			   mouse.is_button_up(.Left) {
+			   mouse_is_button_up(.Left) {
 				snap_wall_object()
 				break
 			}

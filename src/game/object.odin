@@ -14,8 +14,6 @@ import gl "vendor:OpenGL"
 import "vendor:cgltf"
 import stbi "vendor:stb/image"
 
-import "../camera"
-
 ALL_OBJECT_TYPES :: Object_Type_Set {
 	.Door,
 	.Window,
@@ -903,10 +901,10 @@ get_object_under_cursor :: proc() -> (object_id: Object_Id, ok: bool = true) {
 	}
 
 	rect: Rect
-	rect.min.x = f32(camera.visible_chunks_start.x) * CHUNK_WIDTH
-	rect.min.y = f32(camera.visible_chunks_start.y) * CHUNK_DEPTH
-	rect.max.x = f32(camera.visible_chunks_end.x) * CHUNK_WIDTH
-	rect.max.y = f32(camera.visible_chunks_end.y) * CHUNK_DEPTH
+	rect.min.x = f32(camera().visible_chunks_start.x) * CHUNK_WIDTH
+	rect.min.y = f32(camera().visible_chunks_start.y) * CHUNK_DEPTH
+	rect.max.x = f32(camera().visible_chunks_end.x) * CHUNK_WIDTH
+	rect.max.y = f32(camera().visible_chunks_end.y) * CHUNK_DEPTH
 
 	chunk_ray_walker := init_ray_walker(ray, CHUNK_WIDTH, rect) or_return
 

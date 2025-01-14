@@ -5,10 +5,8 @@ import "core:math"
 import "core:math/linalg/glsl"
 
 import "../../billboard"
-import "../../camera"
 import "../../game"
 import "../../keyboard"
-import "../../mouse"
 
 wall_tool_billboard: billboard.Key
 wall_tool_position: glsl.ivec2
@@ -741,7 +739,7 @@ removing_north_south_wall :: proc(pos: glsl.ivec3) {
 }
 
 revert_removing_line :: proc() {
-	if mouse.is_button_down(.Left) || mouse.is_button_release(.Left) {
+	if game.mouse_is_button_down(.Left) || game.mouse_is_button_release(.Left) {
 		update_walls_line(
 			undo_removing_south_west_north_east_wall,
 			undo_removing_north_west_south_east_wall,
@@ -768,20 +766,20 @@ removing_line :: proc() {
 		move_cursor()
 	}
 
-	if mouse.is_button_press(.Left) {
+	if game.mouse_is_button_press(.Left) {
 		wall_tool_drag_start = wall_tool_position
 		clear(&wall_tool_south_west_north_east_walls)
 		clear(&wall_tool_north_west_south_east_walls)
 		clear(&wall_tool_east_west_walls)
 		clear(&wall_tool_north_south_walls)
-	} else if mouse.is_button_down(.Left) {
+	} else if game.mouse_is_button_down(.Left) {
 		update_walls_line(
 			removing_south_west_north_east_wall,
 			removing_north_west_south_east_wall,
 			removing_east_west_wall,
 			removing_north_south_wall,
 		)
-	} else if mouse.is_button_release(.Left) {
+	} else if game.mouse_is_button_release(.Left) {
 		update_walls_line(
 			removing_south_west_north_east_wall,
 			removing_north_west_south_east_wall,
@@ -810,20 +808,20 @@ adding_line :: proc() {
 		move_cursor()
 	}
 
-	if mouse.is_button_press(.Left) {
+	if game.mouse_is_button_press(.Left) {
 		wall_tool_drag_start = wall_tool_position
 		clear(&wall_tool_south_west_north_east_walls)
 		clear(&wall_tool_north_west_south_east_walls)
 		clear(&wall_tool_east_west_walls)
 		clear(&wall_tool_north_south_walls)
-	} else if mouse.is_button_down(.Left) {
+	} else if game.mouse_is_button_down(.Left) {
 		update_walls_line(
 			set_south_west_north_east_wall_frame,
 			set_north_west_south_east_wall_frame,
 			set_east_west_wall_frame,
 			set_north_south_wall_frame,
 		)
-	} else if mouse.is_button_release(.Left) {
+	} else if game.mouse_is_button_release(.Left) {
 		update_walls_line(
 			set_south_west_north_east_wall_drywall,
 			set_north_west_south_east_wall_drywall,
@@ -859,18 +857,18 @@ adding_rectangle :: proc() {
 		move_cursor()
 	}
 
-	if mouse.is_button_press(.Left) {
+	if game.mouse_is_button_press(.Left) {
 		wall_tool_drag_start = wall_tool_position
 		clear(&wall_tool_south_west_north_east_walls)
 		clear(&wall_tool_north_west_south_east_walls)
 		clear(&wall_tool_east_west_walls)
 		clear(&wall_tool_north_south_walls)
-	} else if mouse.is_button_down(.Left) {
+	} else if game.mouse_is_button_down(.Left) {
 		update_walls_rectangle(
 			set_east_west_wall_frame,
 			set_north_south_wall_frame,
 		)
-	} else if mouse.is_button_release(.Left) {
+	} else if game.mouse_is_button_release(.Left) {
 		update_walls_rectangle(
 			set_east_west_wall_drywall,
 			set_north_south_wall_drywall,
@@ -881,7 +879,7 @@ adding_rectangle :: proc() {
 }
 
 revert_removing_rectangle :: proc() {
-	if mouse.is_button_down(.Left) || mouse.is_button_release(.Left) {
+	if game.mouse_is_button_down(.Left) || game.mouse_is_button_release(.Left) {
 		update_walls_rectangle(
 			undo_removing_east_west_wall,
 			undo_removing_north_south_wall,
@@ -905,18 +903,18 @@ removing_rectangle :: proc() {
 		move_cursor()
 	}
 
-	if mouse.is_button_press(.Left) {
+	if game.mouse_is_button_press(.Left) {
 		wall_tool_drag_start = wall_tool_position
 		clear(&wall_tool_south_west_north_east_walls)
 		clear(&wall_tool_north_west_south_east_walls)
 		clear(&wall_tool_east_west_walls)
 		clear(&wall_tool_north_south_walls)
-	} else if mouse.is_button_down(.Left) {
+	} else if game.mouse_is_button_down(.Left) {
 		update_walls_rectangle(
 			removing_east_west_wall,
 			removing_north_south_wall,
 		)
-	} else if mouse.is_button_release(.Left) {
+	} else if game.mouse_is_button_release(.Left) {
 		update_walls_rectangle(
 			removing_east_west_wall,
 			removing_north_south_wall,
@@ -937,13 +935,13 @@ update_rectangle :: proc() {
 }
 
 revert_walls_rectangle :: proc() {
-	if mouse.is_button_down(.Left) || mouse.is_button_release(.Left) {
+	if game.mouse_is_button_down(.Left) || game.mouse_is_button_release(.Left) {
 		update_walls_rectangle(remove_east_west_wall, remove_north_south_wall)
 	}
 }
 
 revert_walls_line :: proc() {
-	if mouse.is_button_down(.Left) || mouse.is_button_release(.Left) {
+	if game.mouse_is_button_down(.Left) || game.mouse_is_button_release(.Left) {
 		update_walls_line(
 			remove_south_west_north_east_wall,
 			remove_north_west_south_east_wall,
@@ -962,7 +960,7 @@ move_cursor :: proc() {
 		terrain.terrain_heights[wall_tool_position.x][wall_tool_position.y]
 	position.y += f32(floor.floor) * game.WALL_HEIGHT
 
-	switch camera.rotation {
+	switch game.camera().rotation {
 	case .South_West:
 		position.x = f32(wall_tool_position.x)
 		position.z = f32(wall_tool_position.y)

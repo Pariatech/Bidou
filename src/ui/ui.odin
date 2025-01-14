@@ -5,12 +5,10 @@ import "core:math/linalg/glsl"
 
 import gl "vendor:OpenGL"
 
-import "../camera"
 import "../tools"
 import "../game"
 import "../window"
 import "../world"
-import "../mouse"
 
 MENU_ICON_TEXTURES :: [Menu_Icon]cstring {
 	.Info = "resources/icons/info.png",
@@ -148,10 +146,10 @@ handle_menu_item_clicked :: proc(using ctx: ^Context, item: Menu_Icon) {
 	case .Floor_Down:
 		game.floor_move_down()
 	case .Camera_Rotate_Left:
-		camera.rotate_clockwise()
+		game.camera_rotate_clockwise()
 		world.update_after_rotation(.Clockwise)
 	case .Camera_Rotate_Right:
-		camera.rotate_counter_clockwise()
+		game.camera_rotate_counter_clockwise()
 		world.update_after_rotation(.Counter_Clockwise)
 	case .Walls_Up:
 		game.set_walls_up()
@@ -203,7 +201,7 @@ menu :: proc(using ctx: ^Context, pos: glsl.vec2, size: glsl.vec2) {
 }
 
 update :: proc(using ctx: ^Context) {
-    if mouse.is_button_up(.Left) {
+    if game.mouse_is_button_up(.Left) {
         focus = false
     }
 

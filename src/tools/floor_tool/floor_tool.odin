@@ -7,7 +7,6 @@ import "core:math/linalg/glsl"
 
 import "../../game"
 import "../../keyboard"
-import "../../mouse"
 
 position: glsl.ivec2
 side: game.Tile_Triangle_Side
@@ -87,15 +86,15 @@ update :: proc() {
 			flood_fill(pos, side, active_texture)
 		}
 
-		if mouse.is_button_press(.Left) {
+		if game.mouse_is_button_press(.Left) {
 			save_command()
 			clear(&previous_floor_tiles)
 		}
-	} else if mouse.is_button_press(.Left) {
+	} else if game.mouse_is_button_press(.Left) {
 		placing = true
 		drag_start = {position.x, floor.floor, position.y}
 		drag_start_side = side
-	} else if placing && mouse.is_button_down(.Left) {
+	} else if placing && game.mouse_is_button_down(.Left) {
 		if reset {
 			if triangle_mode {
 				set_tile({position.x, floor.floor, position.y}, delete_mode)
@@ -103,7 +102,7 @@ update :: proc() {
 				set_tiles(delete_mode)
 			}
 		}
-	} else if placing && mouse.is_button_release(.Left) {
+	} else if placing && game.mouse_is_button_release(.Left) {
 		placing = false
 		save_command()
 		clear(&previous_floor_tiles)

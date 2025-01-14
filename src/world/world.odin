@@ -5,7 +5,6 @@ import "core:math/linalg/glsl"
 import gl "vendor:OpenGL"
 
 import "../billboard"
-import "../camera"
 import "../game"
 import "../renderer"
 import "../tools/wall_tool"
@@ -17,16 +16,16 @@ world_previously_visible_chunks_start: glsl.ivec2
 world_previously_visible_chunks_end: glsl.ivec2
 
 update :: proc() {
-	aabb := camera.get_aabb()
-	world_previously_visible_chunks_start = camera.visible_chunks_start
-	world_previously_visible_chunks_end = camera.visible_chunks_end
-	camera.visible_chunks_start.x = max(aabb.x / game.CHUNK_WIDTH - 1, 0)
-	camera.visible_chunks_start.y = max(aabb.y / game.CHUNK_DEPTH - 1, 0)
-	camera.visible_chunks_end.x = min(
+	aabb := game.camera_get_aabb()
+	world_previously_visible_chunks_start = game.camera().visible_chunks_start
+	world_previously_visible_chunks_end = game.camera().visible_chunks_end
+	game.camera().visible_chunks_start.x = max(aabb.x / game.CHUNK_WIDTH - 1, 0)
+	game.camera().visible_chunks_start.y = max(aabb.y / game.CHUNK_DEPTH - 1, 0)
+	game.camera().visible_chunks_end.x = min(
 		(aabb.x + aabb.w) / game.CHUNK_WIDTH + 1,
 		game.WORLD_CHUNK_WIDTH,
 	)
-	camera.visible_chunks_end.y = min(
+	game.camera().visible_chunks_end.y = min(
 		(aabb.y + aabb.h) / game.CHUNK_DEPTH + 1,
 		game.WORLD_CHUNK_DEPTH,
 	)
@@ -605,8 +604,8 @@ add_house_floor_walls :: proc(
 }
 
 draw :: proc() {
-	renderer.uniform_object.view = camera.view
-	renderer.uniform_object.proj = camera.proj
+	renderer.uniform_object.view = game.camera().view
+	renderer.uniform_object.proj = game.camera().proj
 
 
 	for flr in 0 ..= game.get_floor_context().floor {
@@ -637,7 +636,7 @@ draw :: proc() {
 	}
 }
 
-update_after_rotation :: proc(rotated: camera.Rotated) {
+update_after_rotation :: proc(rotated: game.Camera_Rotated) {
 	wall_tool.move_cursor()
 	billboard.update_after_rotation()
 	switch rotated {

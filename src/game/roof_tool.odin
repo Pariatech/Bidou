@@ -7,7 +7,6 @@ import "core:math/linalg/glsl"
 import "core:strings"
 
 import "../keyboard"
-import "../mouse"
 
 SQRT_2 :: 1.4142
 
@@ -1921,7 +1920,7 @@ handle_roof_tool_idle :: proc() -> Roof_Tool_State {
 		return .Painting
 	}
 
-	if mouse.is_button_press(.Left) {
+	if mouse_is_button_press(.Left) {
 		ctx.roof.start = ctx.cursor.pos.xz
 		ctx.roof.end = ctx.roof.start
 		ctx.roof.offset =
@@ -1950,7 +1949,7 @@ handle_roof_tool_placing :: proc() -> Roof_Tool_State {
 		return .Removing
 	}
 
-	if mouse.is_button_release(.Left) {
+	if mouse_is_button_release(.Left) {
 		ctx.roof.light = {1, 1, 1, 1}
 		update_roof(ctx.roof)
 		add_roof_walls(ctx.roof)
@@ -1988,7 +1987,7 @@ handle_roof_tool_removing :: proc() -> Roof_Tool_State {
 		glsl.floor(ctx.cursor.pos + glsl.vec3{0.5, 0, 0.5}) -
 		glsl.vec3{0.5, 0, 0.5}
 	if roof, ok := get_roof_at(pos); ok {
-		if mouse.is_button_press(.Left) {
+		if mouse_is_button_press(.Left) {
 			ctx.roof_under_cursor = nil
 			remove_roof_walls(roof)
 			remove_roof(roof)
@@ -2024,7 +2023,7 @@ handle_roof_tool_painting :: proc() -> Roof_Tool_State {
 		glsl.floor(ctx.cursor.pos + glsl.vec3{0.5, 0, 0.5}) -
 		glsl.vec3{0.5, 0, 0.5}
 	if roof, ok := get_roof_at(pos); ok {
-		if mouse.is_button_press(.Left) {
+		if mouse_is_button_press(.Left) {
 			ctx.roof_under_cursor = nil
 		} else {
 			if roof_under_cursor, ok := ctx.roof_under_cursor.?; ok {

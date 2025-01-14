@@ -8,7 +8,6 @@ import gl "vendor:OpenGL"
 import "vendor:cgltf"
 import stbi "vendor:stb/image"
 
-import "../camera"
 import "../game"
 import "../renderer"
 
@@ -1006,7 +1005,7 @@ billboard_update_draw_context_after_rotation :: proc(draw_context: $T) {
 		v := v
 		rotation := glsl.mat4Rotate(
 			{0, 1, 0},
-			(math.PI / 2) * f32(camera.rotation),
+			(math.PI / 2) * f32(game.camera().rotation),
 		)
 		v.pos = (glsl.vec4{v.pos.x, v.pos.y, v.pos.z, 1} * rotation).xyz
 		gl.BufferSubData(
@@ -1111,8 +1110,8 @@ draw_billboards :: proc(floor: i32) {
 	gl.UniformBlockBinding(billboard_shader_program, ubo_index, 2)
 	gl.BindBufferBase(gl.UNIFORM_BUFFER, 2, billboard_ubo)
 
-	billboard_uniform_object.view = camera.view
-	billboard_uniform_object.proj = camera.proj
+	billboard_uniform_object.view = game.camera().view
+	billboard_uniform_object.proj = game.camera().proj
 
 	gl.BufferData(
 		gl.UNIFORM_BUFFER,
@@ -1136,8 +1135,8 @@ draw_billboards :: proc(floor: i32) {
 	)
 
 	for &floor in chunks_1x1[:floor + 1] {
-		for x in camera.visible_chunks_start.x ..< camera.visible_chunks_end.x {
-			for z in camera.visible_chunks_start.y ..< camera.visible_chunks_end.y {
+		for x in game.camera().visible_chunks_start.x ..< game.camera().visible_chunks_end.x {
+			for z in game.camera().visible_chunks_start.y ..< game.camera().visible_chunks_end.y {
 				chunk_billboards_draw(&floor[x][z], billboard_1x1_draw_context)
 			}
 		}
@@ -1156,8 +1155,8 @@ draw_billboards :: proc(floor: i32) {
 	)
 
 	for &floor in chunks_2x2 {
-		for x in camera.visible_chunks_start.x ..< camera.visible_chunks_end.x {
-			for z in camera.visible_chunks_start.y ..< camera.visible_chunks_end.y {
+		for x in game.camera().visible_chunks_start.x ..< game.camera().visible_chunks_end.x {
+			for z in game.camera().visible_chunks_start.y ..< game.camera().visible_chunks_end.y {
 				chunk_billboards_draw(&floor[x][z], billboard_2x2_draw_context)
 			}
 		}

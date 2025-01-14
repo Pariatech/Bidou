@@ -4,7 +4,6 @@ import "core:log"
 import "core:math/linalg/glsl"
 
 import "../game"
-import "../mouse"
 
 Container :: struct {
 	pos:  glsl.vec2,
@@ -45,11 +44,11 @@ container :: proc(
 	body(ctx, pos, size)
 
 	if cursor_in(pos, size) {
-		if mouse.is_button_press(.Left) || mouse.is_button_up(.Left) {
+		if game.mouse_is_button_press(.Left) || game.mouse_is_button_up(.Left) {
 			focus = true
 		}
 		if focus {
-			mouse.capture_all()
+			game.mouse_capture_all()
 		}
 	}
 }

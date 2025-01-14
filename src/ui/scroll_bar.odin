@@ -5,9 +5,7 @@ import "core:math/linalg/glsl"
 
 import gl "vendor:OpenGL"
 
-import "../camera"
 import "../game"
-import "../mouse"
 import "../renderer"
 import "../window"
 
@@ -161,17 +159,17 @@ scroll_bar :: proc(
 	color: glsl.vec4 = ROYAL_BLUE,
 ) {
     cursor := game.get_cursor_context()
-	if mouse.is_button_press(.Left) &&
+	if game.mouse_is_button_press(.Left) &&
 	   cursor.pos.x >= pos.x &&
 	   cursor.pos.x < pos.x + size.x &&
 	   cursor.pos.y >= pos.y + offset^ * size.y &&
 	   cursor.pos.y < pos.y + offset^ * size.y + size.y * percent {
 		dragging^ = true
-		mouse.capture(.Left)
-	} else if dragging^ && mouse.is_button_release(.Left) {
+		game.mouse_capture(.Left)
+	} else if dragging^ && game.mouse_is_button_release(.Left) {
 		dragging^ = false
 	} else if !dragging^ &&
-	   mouse.is_button_down(.Left) &&
+	   game.mouse_is_button_down(.Left) &&
 	   cursor.pos.x >= pos.x &&
 	   cursor.pos.x < pos.x + size.x &&
 	   cursor.pos.y >= pos.y &&
@@ -179,7 +177,7 @@ scroll_bar :: proc(
 		offset^ = (cursor.pos.y - pos.y) / size.y
 		offset^ = clamp(offset^, 0, (1 - percent))
 		dragging^ = true
-		mouse.capture(.Left)
+		game.mouse_capture(.Left)
 	}
 
 	if dragging^ && cursor.previous_pos != cursor.pos {
@@ -187,15 +185,15 @@ scroll_bar :: proc(
 		offset^ = clamp(offset^, 0, (1 - percent))
 	}
 
-	if cursor_in(pos, size) && mouse.is_button_press(.Left) {
+	if cursor_in(pos, size) && game.mouse_is_button_press(.Left) {
         dragging^ = true
-	} else if dragging^ && mouse.is_button_release(.Left) {
+	} else if dragging^ && game.mouse_is_button_release(.Left) {
         dragging^ = false
     }
 
     if dragging^ {
 	    focus = true
-		mouse.capture_all()
+		game.mouse_capture_all()
     }
 
 	append(

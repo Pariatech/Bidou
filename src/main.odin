@@ -8,10 +8,8 @@ import "core:time"
 import "vendor:glfw"
 
 import "billboard"
-import "camera"
 import "game"
 import "keyboard"
-import "mouse"
 import "renderer"
 import "tools"
 import "tools/floor_tool"
@@ -89,8 +87,8 @@ start :: proc() -> (ok: bool = false) {
 
 	keyboard.init()
 	defer keyboard.deinit()
-	mouse.init()
-	defer mouse.deinit()
+	game.mouse_init()
+	defer game.mouse_deinit()
 	game.init_cursor()
 
 	billboard.init_draw_contexts() or_return
@@ -151,13 +149,13 @@ start :: proc() -> (ok: bool = false) {
 		ui.update(&ui_ctx)
 
 		if keyboard.is_key_press(.Key_Q) {
-			camera.rotate_counter_clockwise()
+			game.camera_rotate_counter_clockwise()
 			world.update_after_rotation(.Counter_Clockwise)
 		} else if keyboard.is_key_press(.Key_E) {
-			camera.rotate_clockwise()
+			game.camera_rotate_clockwise()
 			world.update_after_rotation(.Clockwise)
 		}
-		camera.update(delta_time)
+		game.camera_update(delta_time)
 
 		world.update()
 		game.update_cutaways()
@@ -176,7 +174,7 @@ start :: proc() -> (ok: bool = false) {
 
 		should_close = bool(glfw.WindowShouldClose(window.handle))
 		keyboard.update()
-		mouse.update()
+		game.mouse_update()
 		game.update_cursor()
 
 		free_all(context.temp_allocator)

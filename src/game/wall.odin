@@ -9,7 +9,6 @@ import "core:strings"
 
 import gl "vendor:OpenGL"
 
-import "../camera"
 import "../renderer"
 import "../utils"
 
@@ -1024,8 +1023,8 @@ draw_walls :: proc(floor: i32) {
 	gl.ActiveTexture(gl.TEXTURE1)
 	gl.BindTexture(gl.TEXTURE_2D_ARRAY, ctx.mask_array)
 
-	for x in camera.visible_chunks_start.x ..< camera.visible_chunks_end.x {
-		for z in camera.visible_chunks_start.y ..< camera.visible_chunks_end.y {
+	for x in camera().visible_chunks_start.x ..< camera().visible_chunks_end.x {
+		for z in camera().visible_chunks_start.y ..< camera().visible_chunks_end.y {
 			chunk := &ctx.chunks[floor][x][z]
 			chunk_draw_walls(chunk, {x, i32(floor), z})
 		}

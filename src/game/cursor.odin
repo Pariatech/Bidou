@@ -6,7 +6,6 @@ import "core:math"
 import "core:math/linalg/glsl"
 import "vendor:glfw"
 
-import "../camera"
 import "../window"
 
 Cursor_Context :: struct {
@@ -73,7 +72,7 @@ on_cursor_tile_intersect :: proc(
 }
 
 cursor_intersect_with_tiles :: proc(on_intersect: proc(_: glsl.vec3), floor: i32) {
-	switch camera.rotation {
+	switch camera().rotation {
 	case .South_West:
 		intersect_with_tiles_south_west(on_intersect, floor)
 	case .South_East:
@@ -116,9 +115,9 @@ update_ray :: proc() {
 	end_pos.z = 1
 
 	last_origin := ctx.ray.origin
-	ctx.ray.origin = (camera.inverse_view_proj * screen_pos).xyz
+	ctx.ray.origin = (camera().inverse_view_proj * screen_pos).xyz
 	ctx.moved = last_origin != ctx.ray.origin
-	ctx.ray.direction = (camera.inverse_view_proj * end_pos).xyz - ctx.ray.origin
+	ctx.ray.direction = (camera().inverse_view_proj * end_pos).xyz - ctx.ray.origin
 	ctx.ray.direction = glsl.normalize(ctx.ray.direction)
 }
 
@@ -236,27 +235,27 @@ intersect_with_tiles_south_west :: proc(
 	dz := ctx.ray.direction.z
 
 
-	left_x := f32(camera.visible_chunks_start.x * CHUNK_WIDTH)
+	left_x := f32(camera().visible_chunks_start.x * CHUNK_WIDTH)
 	left_z := z + ((left_x - x) / dx) * dz
 
-	right_z := f32(camera.visible_chunks_start.y * CHUNK_DEPTH)
+	right_z := f32(camera().visible_chunks_start.y * CHUNK_DEPTH)
 	right_x := x + ((right_z - z) / dz) * dx
 
-	if right_x >= f32(camera.visible_chunks_start.x * CHUNK_WIDTH) &&
-	   right_x <= f32(camera.visible_chunks_end.x * CHUNK_WIDTH) {
+	if right_x >= f32(camera().visible_chunks_start.x * CHUNK_WIDTH) &&
+	   right_x <= f32(camera().visible_chunks_end.x * CHUNK_WIDTH) {
 		x = right_x
 		z = right_z
 	} else if left_z >=
-		   f32(camera.visible_chunks_start.y * CHUNK_DEPTH) &&
-	   left_z <= f32(camera.visible_chunks_end.y * CHUNK_DEPTH) {
+		   f32(camera().visible_chunks_start.y * CHUNK_DEPTH) &&
+	   left_z <= f32(camera().visible_chunks_end.y * CHUNK_DEPTH) {
 		x = left_x
 		z = left_z
 	} else {
 		return
 	}
 
-	for x <= f32(camera.visible_chunks_end.x * CHUNK_WIDTH) &&
-	    z <= f32(camera.visible_chunks_end.y * CHUNK_DEPTH) {
+	for x <= f32(camera().visible_chunks_end.x * CHUNK_WIDTH) &&
+	    z <= f32(camera().visible_chunks_end.y * CHUNK_DEPTH) {
 
 		next_x := x + 1
 		next_z := z + 1
@@ -265,9 +264,9 @@ intersect_with_tiles_south_west :: proc(
 			break
 		}
 
-		if (next_x <= f32(camera.visible_chunks_end.x * CHUNK_WIDTH) &&
+		if (next_x <= f32(camera().visible_chunks_end.x * CHUNK_WIDTH) &&
 			   cursor_intersect_with_tile(next_x, z, on_intersect, floor)) ||
-		   next_z <= f32(camera.visible_chunks_end.y * CHUNK_DEPTH) &&
+		   next_z <= f32(camera().visible_chunks_end.y * CHUNK_DEPTH) &&
 			   cursor_intersect_with_tile(x, next_z, on_intersect, floor) {
 			break
 		}
@@ -288,27 +287,27 @@ intersect_with_tiles_south_east :: proc(
 	dx := ctx.ray.direction.x
 	dz := ctx.ray.direction.z
 
-	left_z := f32(camera.visible_chunks_start.y * CHUNK_DEPTH)
+	left_z := f32(camera().visible_chunks_start.y * CHUNK_DEPTH)
 	left_x := x + ((left_z - z) / dz) * dx
 
-	right_x := f32(camera.visible_chunks_end.x * CHUNK_WIDTH - 1)
+	right_x := f32(camera().visible_chunks_end.x * CHUNK_WIDTH - 1)
 	right_z := z + ((right_x - x) / dx) * dz
 
-	if left_x >= f32(camera.visible_chunks_start.x * CHUNK_WIDTH) &&
-	   left_x < f32(camera.visible_chunks_end.x * CHUNK_WIDTH) {
+	if left_x >= f32(camera().visible_chunks_start.x * CHUNK_WIDTH) &&
+	   left_x < f32(camera().visible_chunks_end.x * CHUNK_WIDTH) {
 		x = left_x
 		z = left_z
 	} else if right_z >=
-		   f32(camera.visible_chunks_start.y * CHUNK_DEPTH) &&
-	   right_z < f32(camera.visible_chunks_end.y * CHUNK_DEPTH) {
+		   f32(camera().visible_chunks_start.y * CHUNK_DEPTH) &&
+	   right_z < f32(camera().visible_chunks_end.y * CHUNK_DEPTH) {
 		x = right_x
 		z = right_z
 	} else {
 		return
 	}
 
-	for x >= f32(camera.visible_chunks_start.x * CHUNK_WIDTH) &&
-	    z < f32(camera.visible_chunks_end.y * CHUNK_DEPTH) {
+	for x >= f32(camera().visible_chunks_start.x * CHUNK_WIDTH) &&
+	    z < f32(camera().visible_chunks_end.y * CHUNK_DEPTH) {
 
 		next_x := x - 1
 		next_z := z + 1
@@ -317,9 +316,9 @@ intersect_with_tiles_south_east :: proc(
 			break
 		}
 
-		if (next_x >= f32(camera.visible_chunks_start.x * CHUNK_WIDTH) &&
+		if (next_x >= f32(camera().visible_chunks_start.x * CHUNK_WIDTH) &&
 			   cursor_intersect_with_tile(next_x, z, on_intersect, floor)) ||
-		   (next_z < f32(camera.visible_chunks_end.y * CHUNK_DEPTH) &&
+		   (next_z < f32(camera().visible_chunks_end.y * CHUNK_DEPTH) &&
 				   cursor_intersect_with_tile(
 					   x,
 					   next_z,
@@ -345,27 +344,27 @@ intersect_with_tiles_north_west :: proc(
 	dx := ctx.ray.direction.x
 	dz := ctx.ray.direction.z
 
-	left_z := f32(camera.visible_chunks_end.y * CHUNK_DEPTH - 1)
+	left_z := f32(camera().visible_chunks_end.y * CHUNK_DEPTH - 1)
 	left_x := x + ((left_z - z) / dz) * dx
 
-	right_x := f32(camera.visible_chunks_start.x * CHUNK_WIDTH)
+	right_x := f32(camera().visible_chunks_start.x * CHUNK_WIDTH)
 	right_z := z + ((right_x - x) / dx) * dz
 
-	if left_x >= f32(camera.visible_chunks_start.x * CHUNK_WIDTH) &&
-	   left_x < f32(camera.visible_chunks_end.x * CHUNK_WIDTH) {
+	if left_x >= f32(camera().visible_chunks_start.x * CHUNK_WIDTH) &&
+	   left_x < f32(camera().visible_chunks_end.x * CHUNK_WIDTH) {
 		x = left_x
 		z = left_z
 	} else if right_z >=
-		   f32(camera.visible_chunks_start.y * CHUNK_DEPTH) &&
-	   right_z < f32(camera.visible_chunks_end.y * CHUNK_DEPTH) {
+		   f32(camera().visible_chunks_start.y * CHUNK_DEPTH) &&
+	   right_z < f32(camera().visible_chunks_end.y * CHUNK_DEPTH) {
 		x = right_x
 		z = right_z
 	} else {
 		return
 	}
 
-	for x < f32(camera.visible_chunks_end.x * CHUNK_WIDTH) &&
-	    z >= f32(camera.visible_chunks_start.y * CHUNK_DEPTH) {
+	for x < f32(camera().visible_chunks_end.x * CHUNK_WIDTH) &&
+	    z >= f32(camera().visible_chunks_start.y * CHUNK_DEPTH) {
 
 		next_x := x + 1
 		next_z := z - 1
@@ -374,9 +373,9 @@ intersect_with_tiles_north_west :: proc(
 			break
 		}
 
-		if (next_x < f32(camera.visible_chunks_end.x * CHUNK_WIDTH) &&
+		if (next_x < f32(camera().visible_chunks_end.x * CHUNK_WIDTH) &&
 			   cursor_intersect_with_tile(next_x, z, on_intersect, floor)) ||
-		   (next_z >= f32(camera.visible_chunks_start.y * CHUNK_DEPTH) &&
+		   (next_z >= f32(camera().visible_chunks_start.y * CHUNK_DEPTH) &&
 				   cursor_intersect_with_tile(
 					   x,
 					   next_z,
@@ -402,27 +401,27 @@ intersect_with_tiles_north_east :: proc(
 	dx := ctx.ray.direction.x
 	dz := ctx.ray.direction.z
 
-	right_z := f32(camera.visible_chunks_end.y * CHUNK_DEPTH - 1)
+	right_z := f32(camera().visible_chunks_end.y * CHUNK_DEPTH - 1)
 	right_x := x + ((right_z - z) / dz) * dx
 
-	left_x := f32(camera.visible_chunks_end.x * CHUNK_WIDTH - 1)
+	left_x := f32(camera().visible_chunks_end.x * CHUNK_WIDTH - 1)
 	left_z := z + ((left_x - x) / dx) * dz
 
-	if left_z >= f32(camera.visible_chunks_start.y * CHUNK_DEPTH) &&
-	   left_z < f32(camera.visible_chunks_end.y * CHUNK_DEPTH) {
+	if left_z >= f32(camera().visible_chunks_start.y * CHUNK_DEPTH) &&
+	   left_z < f32(camera().visible_chunks_end.y * CHUNK_DEPTH) {
 		x = left_x
 		z = left_z
 	} else if right_x >=
-		   f32(camera.visible_chunks_start.x * CHUNK_DEPTH) &&
-	   right_x < f32(camera.visible_chunks_end.x * CHUNK_DEPTH) {
+		   f32(camera().visible_chunks_start.x * CHUNK_DEPTH) &&
+	   right_x < f32(camera().visible_chunks_end.x * CHUNK_DEPTH) {
 		x = right_x
 		z = right_z
 	} else {
 		return
 	}
 
-	for x >= f32(camera.visible_chunks_start.x * CHUNK_WIDTH) &&
-	    z >= f32(camera.visible_chunks_start.y * CHUNK_DEPTH) {
+	for x >= f32(camera().visible_chunks_start.x * CHUNK_WIDTH) &&
+	    z >= f32(camera().visible_chunks_start.y * CHUNK_DEPTH) {
 
 		next_x := x - 1
 		next_z := z - 1
@@ -431,9 +430,9 @@ intersect_with_tiles_north_east :: proc(
 			break
 		}
 
-		if (next_x >= f32(camera.visible_chunks_start.x * CHUNK_WIDTH) &&
+		if (next_x >= f32(camera().visible_chunks_start.x * CHUNK_WIDTH) &&
 			   cursor_intersect_with_tile(next_x, z, on_intersect, floor)) ||
-		   (next_z >= f32(camera.visible_chunks_start.y * CHUNK_DEPTH) &&
+		   (next_z >= f32(camera().visible_chunks_start.y * CHUNK_DEPTH) &&
 				   cursor_intersect_with_tile(
 					   x,
 					   next_z,

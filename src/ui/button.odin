@@ -1,7 +1,6 @@
 package ui
 
 import "../game"
-import "../mouse"
 import "core:math/linalg/glsl"
 
 Button :: struct {}
@@ -46,13 +45,13 @@ button :: proc(
 		size = txt_size,
 	)
 
-	if mouse.is_button_press(.Left) {
+	if game.mouse_is_button_press(.Left) {
         cursor := game.get_cursor_context()
 		if cursor.pos.x >= pos.x &&
 		   cursor.pos.x < pos.x + size.x &&
 		   cursor.pos.y >= pos.y &&
 		   cursor.pos.y < pos.y + size.y {
-			mouse.capture(.Left)
+			game.mouse_capture(.Left)
 
 			return true
 		}
@@ -98,13 +97,13 @@ icon_button :: proc(
 		},
 	)
 
-	if mouse.is_button_press(.Left) {
+	if game.mouse_is_button_press(.Left) {
         cursor := game.get_cursor_context()
 		if cursor.pos.x >= pos.x &&
 		   cursor.pos.x < pos.x + size.x &&
 		   cursor.pos.y >= pos.y &&
 		   cursor.pos.y < pos.y + size.y {
-			mouse.capture(.Left)
+			game.mouse_capture(.Left)
 
 			return true
 		}

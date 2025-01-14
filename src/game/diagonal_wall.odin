@@ -5,8 +5,6 @@ import "core:math"
 import "core:math/linalg"
 import glsl "core:math/linalg/glsl"
 
-import "../camera"
-
 DIAGONAL_WALL_TOP_CROSS_OFFSET :: -0.0002
 DIAGONAL_WALL_TOP_OFFSET :: 0.0003
 
@@ -61,7 +59,7 @@ DIAGONAL_WALL_TYPE_TOP_MODEL_NAME_MAP :: [Wall_Type]string {
 	.Extended       = "Wall_Diagonal.Up.Top.Full",
 }
 
-DIAGONAL_WALL_ROTATION_MAP :: #partial [Wall_Axis][camera.Rotation]Wall_Axis {
+DIAGONAL_WALL_ROTATION_MAP :: #partial [Wall_Axis][Camera_Rotation]Wall_Axis {
 	.SW_NE =  {
 		.South_West = .SW_NE,
 		.South_East = .NW_SE,
@@ -76,7 +74,7 @@ DIAGONAL_WALL_ROTATION_MAP :: #partial [Wall_Axis][camera.Rotation]Wall_Axis {
 	},
 }
 
-DIAGONAL_WALL_TRANSFORM_MAP :: [camera.Rotation]glsl.mat4 {
+DIAGONAL_WALL_TRANSFORM_MAP :: [Camera_Rotation]glsl.mat4 {
 	.South_West = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
 	.South_East = {0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1},
 	.North_East = {-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1},

@@ -17,67 +17,69 @@ Game_Context :: struct {
 	cursor:            Cursor_Context,
 	terrain:           Terrain_Context,
 	floor:             Floor_Context,
-    tile_triangles:    Tile_Triangle_Context,
+	tile_triangles:    Tile_Triangle_Context,
+	mouse:             Mouse,
+	camera:            Camera,
 }
 
-get_game_context :: #force_inline proc() -> ^Game_Context {
+game :: #force_inline proc() -> ^Game_Context {
 	return cast(^Game_Context)context.user_ptr
 }
 
 get_textures_context :: proc() -> ^Textures_Context {
-	return &get_game_context().textures
+	return &game().textures
 }
 
 get_objects_context :: proc() -> ^Objects_Context {
-	return &get_game_context().objects
+	return &game().objects
 }
 
 get_models_context :: proc() -> ^Models_Context {
-	return &get_game_context().models
+	return &game().models
 }
 
 get_shaders_context :: proc() -> ^Shaders_Context {
-	return &get_game_context().shaders
+	return &game().shaders
 }
 
 get_object_tool_context :: proc() -> ^Object_Tool_Context {
-	return &get_game_context().object_tool
+	return &game().object_tool
 }
 
 get_object_draws_context :: proc() -> ^Object_Draws {
-	return &get_game_context().object_draws
+	return &game().object_draws
 }
 
 get_roofs_context :: proc() -> ^Roofs_Context {
-	return &get_game_context().roofs
+	return &game().roofs
 }
 
 get_roof_tool_context :: proc() -> ^Roof_Tool_Context {
-	return &get_game_context().roof_tool
+	return &game().roof_tool
 }
 
 get_cutaway_context :: proc() -> ^Cutaway_Context {
-	return &get_game_context().cutaway
+	return &game().cutaway
 }
 
 get_walls_context :: proc() -> ^Walls_Context {
-	return &get_game_context().walls
+	return &game().walls
 }
 
 get_cursor_context :: proc() -> ^Cursor_Context {
-	return &get_game_context().cursor
+	return &game().cursor
 }
 
 get_terrain_context :: proc() -> ^Terrain_Context {
-	return &get_game_context().terrain
+	return &game().terrain
 }
 
 get_floor_context :: proc() -> ^Floor_Context {
-    return &get_game_context().floor
+	return &game().floor
 }
 
 get_tile_triangles_context :: proc() -> ^Tile_Triangle_Context {
-    return &get_game_context().tile_triangles
+	return &game().tile_triangles
 }
 
 init_game :: proc() -> bool {
@@ -85,7 +87,8 @@ init_game :: proc() -> bool {
 	init_object_draws() or_return
 	init_object_tool()
 	init_roofs() or_return
-    tile_triangles_init() or_return
+	tile_triangles_init() or_return
+    camera_init() or_return
 
 	// add_roof({type = .Half_Hip, start = {0, 0}, end = {0, 1}})
 	// add_roof({type = .Half_Hip, start = {0, 3}, end = {0, 5}})
@@ -220,7 +223,7 @@ deinit_game :: proc() {
 	deinit_object_tool()
 	deinit_roofs()
 	deinit_walls()
-    tile_triangles_deinit()
+	tile_triangles_deinit()
 }
 
 draw_game :: proc(floor: i32) -> bool {

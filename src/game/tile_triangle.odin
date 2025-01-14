@@ -5,7 +5,6 @@ import "core:math"
 import "core:math/linalg/glsl"
 import gl "vendor:OpenGL"
 
-import "../camera"
 import "../renderer"
 
 TILE_TRIANGLE_TEXTURE_PATHS :: [Tile_Triangle_Texture]cstring {
@@ -231,8 +230,8 @@ tile_triangle_draw_tiles :: proc(floor: i32) {
 	gl.BindTexture(gl.TEXTURE_2D_ARRAY, tile_triangles.mask_array)
 
 	floor_slice := &tile_triangles.chunks[floor]
-	for x in camera.visible_chunks_start.x ..< camera.visible_chunks_end.x {
-		for z in camera.visible_chunks_start.y ..< camera.visible_chunks_end.y {
+	for x in camera().visible_chunks_start.x ..< camera().visible_chunks_end.x {
+		for z in camera().visible_chunks_start.y ..< camera().visible_chunks_end.y {
 			tile_triangle_chunk_draw_tiles(
 				&floor_slice[x][z],
 				{i32(x), i32(floor), i32(z)},

@@ -6,8 +6,6 @@ import "core:slice"
 
 import gl "vendor:OpenGL"
 
-import "../camera"
-
 Object_Draw_Id :: int
 
 Object_Draw_Key :: struct {
@@ -90,7 +88,7 @@ draw_object :: proc(object: ^Object_Draw) -> bool {
 	// rotation := glsl.mat4Rotate({0, 1, 0}, rotation_radian)
 	// translate * rotation
 	uniform_object := Object_Uniform_Object {
-		mvp   = camera.view_proj * object.transform,
+		mvp   = camera().view_proj * object.transform,
 		light = object.light,
 	}
 
@@ -112,7 +110,7 @@ draw_object :: proc(object: ^Object_Draw) -> bool {
 }
 
 object_draws_sort :: proc(a: Object_Draw, b: Object_Draw) -> bool {
-	switch camera.rotation {
+	switch camera().rotation {
 	case .South_West:
 		return(
 			a.pos.x == b.pos.x && a.pos.z == b.pos.z && a.pos.y < b.pos.y ||
@@ -181,7 +179,7 @@ draw_objects :: proc(floor: i32) -> bool {
 	// gl.UseProgram(shader_program)
 
 	// for floor in 0 ..= floor.floor {
-		it := camera.make_visible_chunk_iterator()
+		it := camera_make_visible_chunk_iterator()
 		for pos in it->next() {
 			draw_chunk(&ctx.chunks[floor][pos.x][pos.y]) or_return
 		}
@@ -276,7 +274,7 @@ object_draw_from_object :: proc(
 	draw: Object_Draw
 	switch obj.orientation {
 	case .South, .North:
-		switch camera.rotation {
+		switch camera().rotation {
 		case .South_West:
 			draw.pos = obj.pos + {f32(obj.size.x) / 2, 0, f32(obj.size.z) / 2}
 		case .South_East:
@@ -287,7 +285,7 @@ object_draw_from_object :: proc(
 			draw.pos = obj.pos + {f32(obj.size.x), 0, -f32(obj.size.z) / 2}
 		}
 	case .East, .West:
-		switch camera.rotation {
+		switch camera().rotation {
 		case .South_West:
 			draw.pos = obj.pos + {f32(obj.size.z) / 2, 0, f32(obj.size.x) / 2}
 		case .South_East:

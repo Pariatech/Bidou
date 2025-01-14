@@ -4,14 +4,12 @@ import "core:log"
 import "core:math"
 import "core:math/linalg/glsl"
 
-import "../../camera"
 import "../../keyboard"
-import "../../mouse"
 import "../../game"
 
 WALL_SELECTION_DISTANCE :: 4
 
-WALL_SIDE_MAP :: [game.Wall_Axis][camera.Rotation]game.Wall_Side {
+WALL_SIDE_MAP :: [game.Wall_Axis][game.Camera_Rotation]game.Wall_Side {
 	.N_S =  {
 		.South_West = .Outside,
 		.South_East = .Inside,
@@ -92,7 +90,7 @@ update :: proc() {
 		keyboard.is_key_press(.Key_Left_Control) ||
 		keyboard.is_key_release(.Key_Left_Control)
 
-	if mouse.is_button_release(.Left) {
+	if game.mouse_is_button_release(.Left) {
 		add_command(current_command)
 		current_command = {}
 	}
@@ -111,7 +109,7 @@ update :: proc() {
 		found_wall_intersect, found_wall = find_wall_intersect(position, side)
 		clear_previous_walls()
 
-		if mouse.is_button_down(.Left) {
+		if game.mouse_is_button_down(.Left) {
 			found_wall_texture = texture
 		} else {
 			found_wall_texture = get_found_wall_texture()
@@ -136,7 +134,7 @@ update :: proc() {
 				found_wall_intersect.axis,
 			)
 		}
-	} else if found_wall && mouse.is_button_down(.Left) {
+	} else if found_wall && game.mouse_is_button_down(.Left) {
 		for &axis_walls in previous_walls {
 			clear(&axis_walls)
 		}
@@ -154,7 +152,7 @@ set_texture :: proc(tex: game.Wall_Texture) {
 
 apply_flood_fill :: proc(texture: game.Wall_Texture) {
 	side_map := WALL_SIDE_MAP
-	wall_side := side_map[found_wall_intersect.axis][camera.rotation]
+	wall_side := side_map[found_wall_intersect.axis][game.camera().rotation]
 
 	flood_fill(
 		found_wall_intersect.pos,
@@ -184,19 +182,19 @@ get_found_wall_texture :: proc() -> game.Wall_Texture {
 	switch axis {
 	case .E_W:
 		if w, ok := game.get_east_west_wall(pos); ok {
-			return w.textures[side_map[axis][camera.rotation]]
+			return w.textures[side_map[axis][game.camera().rotation]]
 		}
 	case .N_S:
 		if w, ok := game.get_north_south_wall(pos); ok {
-			return w.textures[side_map[axis][camera.rotation]]
+			return w.textures[side_map[axis][game.camera().rotation]]
 		}
 	case .NW_SE:
 		if w, ok := game.get_north_west_south_east_wall(pos); ok {
-			return w.textures[side_map[axis][camera.rotation]]
+			return w.textures[side_map[axis][game.camera().rotation]]
 		}
 	case .SW_NE:
 		if w, ok := game.get_south_west_north_east_wall(pos); ok {
-			return w.textures[side_map[axis][camera.rotation]]
+			return w.textures[side_map[axis][game.camera().rotation]]
 		}
 	}
 	return .Drywall
@@ -231,7 +229,7 @@ paint_wall :: proc(
 	case .E_W:
 		if w, ok := game.get_east_west_wall(position); ok {
 			save_old_wall(axis, position, w)
-			side := side_map[axis][camera.rotation]
+			side := side_map[axis][game.camera().rotation]
 			update_current_command(position, axis, side, texture, w)
 			w.textures[side] = texture
 			game.set_east_west_wall(position, w)
@@ -239,7 +237,7 @@ paint_wall :: proc(
 	case .N_S:
 		if w, ok := game.get_north_south_wall(position); ok {
 			save_old_wall(axis, position, w)
-			side := side_map[axis][camera.rotation]
+			side := side_map[axis][game.camera().rotation]
 			update_current_command(position, axis, side, texture, w)
 			w.textures[side] = texture
 			game.set_north_south_wall(position, w)
@@ -247,7 +245,7 @@ paint_wall :: proc(
 	case .NW_SE:
 		if w, ok := game.get_north_west_south_east_wall(position); ok {
 			save_old_wall(axis, position, w)
-			side := side_map[axis][camera.rotation]
+			side := side_map[axis][game.camera().rotation]
 			update_current_command(position, axis, side, texture, w)
 			w.textures[side] = texture
 			game.set_north_west_south_east_wall(position, w)
@@ -255,7 +253,7 @@ paint_wall :: proc(
 	case .SW_NE:
 		if w, ok := game.get_south_west_north_east_wall(position); ok {
 			save_old_wall(axis, position, w)
-			side := side_map[axis][camera.rotation]
+			side := side_map[axis][game.camera().rotation]
 			update_current_command(position, axis, side, texture, w)
 			w.textures[side] = texture
 			game.set_south_west_north_east_wall(position, w)
@@ -290,7 +288,7 @@ find_wall_intersect :: proc(
 	Wall_Intersect,
 	bool,
 ) {
-	switch camera.rotation {
+	switch game.camera().rotation {
 	case .South_West:
 		return find_south_west_wall_intersect(position, side)
 	case .South_East:

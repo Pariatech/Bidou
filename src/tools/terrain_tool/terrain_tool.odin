@@ -9,7 +9,6 @@ import "vendor:glfw"
 import "../../billboard"
 import "../../game"
 import "../../keyboard"
-import "../../mouse"
 
 terrain_tool_cursor_pos: glsl.vec3
 terrain_tool_billboard: billboard.Key
@@ -157,7 +156,7 @@ update :: proc(delta_time: f64) {
 	billboard.billboard_1x1_move(&terrain_tool_billboard, position)
 	shift_down := keyboard.is_key_down(.Key_Left_Shift)
 
-	if mouse.is_button_release(.Left) {
+	if game.mouse_is_button_release(.Left) {
 		add_command(current_command)
 		current_command = {}
 	}
@@ -257,7 +256,7 @@ move_points :: proc(position: glsl.vec3) {
 		end_x := max(drag_start.x, terrain_tool_position.x)
 		end_z := max(drag_start.y, terrain_tool_position.y)
 
-		if mouse.is_button_up(.Left) {
+		if game.mouse_is_button_up(.Left) {
 			if start_x != end_x || start_z != end_z {
 				terrain := game.get_terrain_context()
 				height := terrain.terrain_heights[drag_start.x][drag_start.y]
@@ -301,15 +300,15 @@ move_points :: proc(position: glsl.vec3) {
 		}
 
 		mark_array_dirty({start_x, start_z}, {end_x, end_z})
-	} else if mouse.is_button_down(.Left) {
+	} else if game.mouse_is_button_down(.Left) {
 		terrain_tool_drag_start = terrain_tool_position
 	}
 }
 
 smooth_brush :: proc(delta_time: f64) {
-	if mouse.is_button_down(.Left) {
+	if game.mouse_is_button_down(.Left) {
 		terrain_tool_tick_timer += delta_time
-	} else if mouse.is_button_release(.Left) && terrain_tool_tick_timer > 0 {
+	} else if game.mouse_is_button_release(.Left) && terrain_tool_tick_timer > 0 {
 		terrain_tool_tick_timer = 0
 	}
 
@@ -494,14 +493,14 @@ calculate_lights :: proc() {
 
 move_point :: proc(delta_time: f64) {
 	movement: f32 = 0
-	if mouse.is_button_down(.Left) && mode == .Raise {
+	if game.mouse_is_button_down(.Left) && mode == .Raise {
 		movement = terrain_tool_brush_strength
 		terrain_tool_tick_timer += delta_time
-	} else if (mouse.is_button_down(.Right) && mode == .Raise) ||
-	   (mouse.is_button_down(.Left) && mode == .Lower) {
+	} else if (game.mouse_is_button_down(.Right) && mode == .Raise) ||
+	   (game.mouse_is_button_down(.Left) && mode == .Lower) {
 		movement = -terrain_tool_brush_strength
 		terrain_tool_tick_timer += delta_time
-	} else if mouse.is_button_release(.Left) && terrain_tool_tick_timer > 0 {
+	} else if game.mouse_is_button_release(.Left) && terrain_tool_tick_timer > 0 {
 		terrain_tool_tick_timer = 0
 	}
 

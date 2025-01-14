@@ -3,9 +3,7 @@ package ui
 import "core:log"
 import "core:math/linalg/glsl"
 
-import "../camera"
 import "../game"
-import "../mouse"
 import "../window"
 
 HELP_TEXT :: `---- Camera ----
@@ -121,13 +119,13 @@ help_window_body :: proc(
 	   cursor.pos.x < pos.x + size.x + HELP_WINDOW_SCROLL_BAR_WIDTH &&
 	   cursor.pos.y >= pos.y &&
 	   cursor.pos.y < pos.y + size.y {
-		scroll_bar_offset -= (f32(mouse.vertical_scroll()) * scroll_bar_percent / 8)
+		scroll_bar_offset -= (f32(game.mouse_vertical_scroll()) * scroll_bar_percent / 8)
 		scroll_bar_offset = clamp(
 			scroll_bar_offset,
 			0,
 			(1 - scroll_bar_percent),
 		)
-		mouse.capture_vertical_scroll()
+		game.mouse_capture_vertical_scroll()
 	}
 
 	text_offset: f32 = height * scroll_bar_offset
