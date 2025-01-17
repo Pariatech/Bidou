@@ -4,7 +4,6 @@ import "core:math/linalg/glsl"
 
 import "../game"
 import "../tools/floor_tool"
-import "../window"
 
 Floor_Panel :: struct {
 	opened: bool,
@@ -56,8 +55,8 @@ floor_panel_body :: proc(
 floor_panel :: proc(using ctx: ^Context) {
 	container(
 		ctx,
-		pos = {0, window.size.y - 31 - PANEL_HEIGHT},
-		size = {window.size.x, PANEL_HEIGHT},
+		pos = {0, game.window().size.y - 31 - PANEL_HEIGHT},
+		size = {game.window().size.x, PANEL_HEIGHT},
 		left_border_width = 0,
 		body = floor_panel_body,
 	)

@@ -4,7 +4,6 @@ import "core:log"
 import "core:math/linalg/glsl"
 
 import "../game"
-import "../window"
 
 HELP_TEXT :: `---- Camera ----
 W,A,S,D:      Move camera
@@ -158,7 +157,7 @@ help_window_body :: proc(
 
 help_window :: proc(using ctx: ^Context) {
 	using help_window_ctx
-	x := window.size.x - HELP_WINDOW_WIDTH
+	x := game.window().size.x - HELP_WINDOW_WIDTH
 	container(
 		ctx,
 		pos = {x, 0},

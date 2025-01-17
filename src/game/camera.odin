@@ -7,7 +7,6 @@ import "core:math/linalg/glsl"
 import "vendor:glfw"
 
 import "../utils"
-import "../window"
 
 CAMERA_SPEED :: 8.0
 CAMERA_ZOOM_SPEED :: 0.05
@@ -88,7 +87,7 @@ camera_update :: proc(delta_time: f64) {
 	camera().zoom = math.clamp(camera().zoom, CAMERA_ZOOM_MIN, CAMERA_ZOOM_MAX)
 	// fixed_zoom := math.pow(2, math.round(math.log2(zoom)))
 
-	width, height := glfw.GetWindowSize(window.handle)
+	width, height := glfw.GetWindowSize(window().handle)
 
 	movement := glsl.dvec3 {
 		CAMERA_SPEED * delta_time * (camera().zoom + 1),
@@ -122,7 +121,7 @@ camera_update :: proc(delta_time: f64) {
 	)
 	aspect_ratio := f64(height) / f64(width)
 	scale := f64(width) / (math.pow(f64(2.8284), 5) / camera().zoom)
-	scale *= f64(window.scale.y)
+	scale *= f64(window().scale.y)
 
 	camera().left = scale
 	camera().right = -scale

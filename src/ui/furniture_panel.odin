@@ -5,7 +5,6 @@ import "core:strings"
 
 import g "../game"
 import "../tools"
-import "../window"
 
 FURNITURE_PANEL_TILE_SIZE :: 47
 FURNITURE_PANEL_PADDING :: 4
@@ -70,8 +69,8 @@ furniture_panel :: proc(using ctx: ^Context) {
 	if tools.active_tool == .Furniture {
 		container(
 			ctx,
-			pos = {0, window.size.y - 31 - PANEL_HEIGHT},
-			size = {window.size.x, PANEL_HEIGHT},
+			pos = {0, g.window().size.y - 31 - PANEL_HEIGHT},
+			size = {g.window().size.x, PANEL_HEIGHT},
 			left_border_width = 0,
 			body = furniture_panel_body,
 		)

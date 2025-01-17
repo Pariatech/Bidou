@@ -5,7 +5,6 @@ import "core:math/linalg/glsl"
 import "../tools"
 import "../tools/paint_tool"
 import "../game"
-import "../window"
 
 init_paint_panel :: proc() -> (ok: bool = true) {
 	return
@@ -55,8 +54,8 @@ paint_panel :: proc(using ctx: ^Context) {
 	if tools.active_tool == .Paint {
 		container(
 			ctx,
-			pos = {0, window.size.y - 31 - PANEL_HEIGHT},
-			size = {window.size.x, PANEL_HEIGHT},
+			pos = {0, game.window().size.y - 31 - PANEL_HEIGHT},
+			size = {game.window().size.x, PANEL_HEIGHT},
 			left_border_width = 0,
 			body = paint_panel_body,
 		)

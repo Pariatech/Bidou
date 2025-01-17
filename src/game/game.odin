@@ -21,6 +21,8 @@ Game_Context :: struct {
 	mouse:             Mouse,
 	camera:            Camera,
 	keyboard:          Keyboard,
+	window:            Window,
+	renderer:          Renderer,
 }
 
 game :: #force_inline proc() -> ^Game_Context {

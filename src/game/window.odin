@@ -1,0 +1,77 @@
+package game
+
+import "base:runtime"
+import "core:log"
+import "core:math/linalg/glsl"
+
+import gl "vendor:OpenGL"
+import "vendor:glfw"
+
+WINDOW_WIDTH :: 1280
+WINDOW_HEIGHT :: 720
+
+Window :: struct {
+	handle: glfw.WindowHandle,
+	size:   glsl.vec2,
+	scale:  glsl.vec2,
+}
+
+window :: proc() -> ^Window {
+	return &game().window
+}
+
+window_init :: proc(title: cstring) -> (ok: bool = true) {
+	window().size = {WINDOW_WIDTH, WINDOW_HEIGHT}
+	if !bool(glfw.Init()) {
+		log.fatal("GLFW has failed to load.")
+		return false
+	}
+
+	glfw.WindowHint(glfw.SAMPLES, 4)
+
+	glfw.WindowHint(glfw.CONTEXT_VERSION_MAJOR, 3)
+	glfw.WindowHint(glfw.CONTEXT_VERSION_MINOR, 2)
+	glfw.WindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+	glfw.WindowHint(glfw.OPENGL_FORWARD_COMPAT, gl.TRUE)
+
+	window().handle = glfw.CreateWindow(
+		WINDOW_WIDTH,
+		WINDOW_HEIGHT,
+		title,
+		nil,
+		nil,
+	)
+
+	glfw.SetWindowSizeCallback(window().handle, window_size_callback)
+
+	window().scale.x, window().scale.y = glfw.GetWindowContentScale(
+		window().handle,
+	)
+	// scale = {1.5, 1.5} // There's a bug with this
+	dpi: glsl.vec2
+	dpi.x, dpi.y = glfw.GetMonitorContentScale(glfw.GetPrimaryMonitor())
+	log.debug("Window scale:", window().scale)
+	log.debug("Screen scale:", dpi)
+
+	glfw.SetWindowUserPointer(window().handle, context.user_ptr)
+
+	// glfw.GetFramebufferSize()
+
+	return
+}
+
+window_deinit :: proc() {
+	defer glfw.DestroyWindow(window().handle)
+	defer glfw.Terminate()
+}
+
+window_size_callback :: proc "c" (
+	handle: glfw.WindowHandle,
+	width, height: i32,
+) {
+	context = runtime.default_context()
+	context.user_ptr = glfw.GetWindowUserPointer(handle)
+
+	window().size.x = f32(width)
+	window().size.y = f32(height)
+}

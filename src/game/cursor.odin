@@ -6,8 +6,6 @@ import "core:math"
 import "core:math/linalg/glsl"
 import "vendor:glfw"
 
-import "../window"
-
 Cursor_Context :: struct {
 	previous_pos:  glsl.vec2,
 	pos:           glsl.vec2,
@@ -22,11 +20,11 @@ Cursor_Ray :: struct {
 }
 
 init_cursor :: proc() {
-	glfw.SetCursorPosCallback(window.handle, pos_callback)
+	glfw.SetCursorPosCallback(window().handle, pos_callback)
 }
 
 set_cursor_pos :: proc(pos: glsl.vec2) {
-	glfw.SetCursorPos(window.handle, f64(pos.x), f64(pos.y))
+	glfw.SetCursorPos(window().handle, f64(pos.x), f64(pos.y))
 }
 
 update_cursor :: proc() {
@@ -103,8 +101,8 @@ pos_callback :: proc "c" (window: glfw.WindowHandle, xpos, ypos: f64) {
 update_ray :: proc() {
     ctx := get_cursor_context()
 	screen_pos: glsl.vec4
-	screen_pos.x = ctx.pos.x / window.size.x
-	screen_pos.y = ctx.pos.y / window.size.y
+	screen_pos.x = ctx.pos.x / window().size.x
+	screen_pos.y = ctx.pos.y / window().size.y
 
 	screen_pos.x = screen_pos.x * 2 - 1
 	screen_pos.y = (1 - screen_pos.y) * 2 - 1

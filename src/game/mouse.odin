@@ -6,8 +6,6 @@ import "core:math/linalg/glsl"
 import "vendor:glfw"
 import stbi "vendor:stb/image"
 
-import "../window"
-
 MOUSE_CURSOR_PATHS :: [Mouse_Cursor]cstring {
 	.Arrow       = "resources/cursors/arrow.png",
 	.Hand        = "resources/cursors/hand.png",
@@ -107,8 +105,8 @@ mouse_on_button :: proc "c" (
 }
 
 mouse_init :: proc() {
-	glfw.SetMouseButtonCallback(window.handle, mouse_on_button)
-	glfw.SetScrollCallback(window.handle, mouse_scroll_callback)
+	glfw.SetMouseButtonCallback(window().handle, mouse_on_button)
+	glfw.SetScrollCallback(window().handle, mouse_scroll_callback)
 
 	cursor_paths := MOUSE_CURSOR_PATHS
 	cursor_hotspots := MOUSE_CURSOR_HOTSPOTS
@@ -127,7 +125,7 @@ mouse_init :: proc() {
 
 		mouse().cursors[i] = glfw.CreateCursor(&image, hotspot.x, hotspot.y)
 	}
-	glfw.SetCursor(window.handle, mouse().cursors[.Arrow])
+	glfw.SetCursor(window().handle, mouse().cursors[.Arrow])
 }
 
 mouse_deinit :: proc() {
@@ -137,7 +135,7 @@ mouse_deinit :: proc() {
 }
 
 mouse_set_cursor :: proc(cursor: Mouse_Cursor) {
-	glfw.SetCursor(window.handle, mouse().cursors[cursor])
+	glfw.SetCursor(window().handle, mouse().cursors[cursor])
 }
 
 mouse_update :: proc() {

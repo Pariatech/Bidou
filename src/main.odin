@@ -8,12 +8,10 @@ import "core:time"
 import "vendor:glfw"
 
 import "game"
-import "renderer"
 import "tools"
 import "tools/floor_tool"
 import "tools/terrain_tool"
 import "ui"
-import "window"
 
 TITLE :: "Bidou"
 
@@ -22,15 +20,16 @@ delta_time: f64
 ui_ctx: ui.Context
 
 framebuffer_size_callback :: proc "c" (
-	_: glfw.WindowHandle,
+	handle: glfw.WindowHandle,
 	width, height: i32,
 ) {
 	context = runtime.default_context()
+    context.user_ptr = glfw.GetWindowUserPointer(handle)
 
 	// log.debug(glsl.ivec2{width, height})
 	// log.debug(glfw.GetWindowSize(handle))
 
-	renderer.framebuffer_resized = true
+	game.renderer().framebuffer_resized = true
 	// window.size.x = f32(width)
 	// window.size.y = f32(height)
 }
@@ -60,25 +59,25 @@ start :: proc() -> (ok: bool = false) {
 		defer log.destroy_file_logger(context.logger)
 	}
 
-	window.init(TITLE) or_return
-	defer window.deinit()
+	game.window_init(TITLE) or_return
+	defer game.window_deinit()
 
-	if window.handle == nil {
+	if game.window().handle == nil {
 		log.fatal("GLFW has failed to load the window.")
 		return
 	}
 
-	glfw.SetFramebufferSizeCallback(window.handle, framebuffer_size_callback)
+	glfw.SetFramebufferSizeCallback(game.window().handle, framebuffer_size_callback)
 
-	glfw.MakeContextCurrent(window.handle)
+	glfw.MakeContextCurrent(game.window().handle)
 	when ODIN_DEBUG {
 		glfw.SwapInterval(0)
 	} else {
 		glfw.SwapInterval(1)
 	}
 
-	if (!renderer.init()) do return
-	defer renderer.deinit()
+	if (!game.renderer_init()) do return
+	defer game.renderer_deinit()
 
 	game.init_wall_renderer() or_return
 
@@ -139,7 +138,7 @@ start :: proc() -> (ok: bool = false) {
 		// log.debug("Window:", glfw.GetWindowSize(window.handle))
 		// log.debug("Frambuffer:", glfw.GetFramebufferSize(window.handle))
 
-		renderer.begin_draw()
+		game.renderer_begin_draw()
 
 		game.floor_update()
 		ui.update(&ui_ctx)
@@ -165,10 +164,10 @@ start :: proc() -> (ok: bool = false) {
 
 		ui.draw(&ui_ctx)
 
-		renderer.end_draw()
+		game.renderer_end_draw()
 
 
-		should_close = bool(glfw.WindowShouldClose(window.handle))
+		should_close = bool(glfw.WindowShouldClose(game.window().handle))
 		game.keyboard_update()
 		game.mouse_update()
 		game.update_cursor()

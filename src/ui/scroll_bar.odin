@@ -6,8 +6,6 @@ import "core:math/linalg/glsl"
 import gl "vendor:OpenGL"
 
 import "../game"
-import "../renderer"
-import "../window"
 
 SCROLL_BAR_TEXTURES :: []cstring{"resources/icons/scrollbar_bg.png"}
 
@@ -47,8 +45,7 @@ init_scroll_bar_renderer :: proc(using ctx: ^Context) -> (ok: bool = false) {
 		gl.STATIC_DRAW,
 	)
 
-	renderer.load_shader_program(
-		&shader,
+	shader = game.load_shader_program(
 		ICON_VERTEX_SHADER,
 		ICON_FRAGMENT_SHADER,
 	) or_return
@@ -239,15 +236,15 @@ draw_scroll_bar :: proc(using ctx: ^Context, using scroll_bar: Scroll_Bar) {
 	scale := size.y / 32
 
 	for &v in vertices {
-		v.start = pos * window.scale
-		v.end = (pos + size) * window.scale
+		v.start = pos * game.window().scale
+		v.end = (pos + size) * game.window().scale
 		v.color = color
 		v.texcoord.z = f32(Scroll_Bar_Texture.Background)
 		v.texcoord.y *= scale
-		v.left_border_width = BORDER_WIDTH * window.scale.x
-		v.right_border_width = BORDER_WIDTH * window.scale.x
-		v.top_border_width = BORDER_WIDTH * window.scale.y
-		v.bottom_border_width = BORDER_WIDTH * window.scale.y
+		v.left_border_width = BORDER_WIDTH * game.window().scale.x
+		v.right_border_width = BORDER_WIDTH * game.window().scale.x
+		v.top_border_width = BORDER_WIDTH * game.window().scale.y
+		v.bottom_border_width = BORDER_WIDTH * game.window().scale.y
 	}
 
 	gl.BufferSubData(

@@ -5,8 +5,6 @@ import "core:math"
 import "core:math/linalg/glsl"
 import gl "vendor:OpenGL"
 
-import "../renderer"
-
 TILE_TRIANGLE_TEXTURE_PATHS :: [Tile_Triangle_Texture]cstring {
 	.Floor_Marker            = "resources/textures/floors/floor-marker.png",
 	.Wood_082A               = "resources/textures/tiles/Wood082A.png",
@@ -595,7 +593,7 @@ tile_triangle_load_mask_array :: proc() -> (ok: bool) {
 	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
 	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
 
-	return renderer.load_texture_2D_array(TILE_TRIANGLE_MASK_PATHS)
+	return texture_array_load(TILE_TRIANGLE_MASK_PATHS)
 }
 
 tile_triangle_load_texture_array :: proc() -> (ok: bool = true) {
@@ -624,5 +622,5 @@ tile_triangle_load_texture_array :: proc() -> (ok: bool = true) {
 	// gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
 	// gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
 
-	return renderer.load_texture_2D_array(TILE_TRIANGLE_TEXTURE_PATHS)
+	return texture_array_load(TILE_TRIANGLE_TEXTURE_PATHS)
 }

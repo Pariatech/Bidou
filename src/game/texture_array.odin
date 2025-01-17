@@ -1,33 +1,33 @@
-package renderer
+package game
 
-import "core:fmt"
+import "core:log"
 import gl "vendor:OpenGL"
 import stbi "vendor:stb/image"
 
-TEXTURE_SIZE :: 128
+TEXTURE_ARRAY_SIZE :: 128
 
-load_texture_2D_array_from_array :: proc(
+texture_array_load_from_array :: proc(
 	paths: [$T]cstring,
-	width: i32 = TEXTURE_SIZE,
-	height: i32 = TEXTURE_SIZE,
+	width: i32 = TEXTURE_ARRAY_SIZE,
+	height: i32 = TEXTURE_ARRAY_SIZE,
 ) -> (
 	ok: bool = true,
 ) {
     paths := paths
-    return load_texture_2D_array_from_slice(raw_data(&paths)[:len(paths)], width, height)
+    return texture_array_load_from_slice(raw_data(&paths)[:len(paths)], width, height)
 }
 
-load_texture_2D_array_from_slice :: proc(
+texture_array_load_from_slice :: proc(
 	paths: []cstring,
-	width: i32 = TEXTURE_SIZE,
-	height: i32 = TEXTURE_SIZE,
+	width: i32 = TEXTURE_ARRAY_SIZE,
+	height: i32 = TEXTURE_ARRAY_SIZE,
 ) -> (
 	ok: bool = true,
 ) {
 	textures := i32(len(paths))
 
 	if (textures == 0) {
-		fmt.println("No textures to load.")
+		log.warn("No textures to load.")
 		return true
 	}
 
@@ -53,12 +53,12 @@ load_texture_2D_array_from_slice :: proc(
 		defer stbi.image_free(pixels)
 
 		if pixels == nil {
-			fmt.eprintln("Failed to load texture: ", path)
+			log.error("Failed to load texture: ", path)
 			return false
 		}
 
 		if w != width {
-			fmt.eprintln(
+			log.error(
 				"Texture: ",
 				path,
 				" is of a different width. expected: ",
@@ -70,7 +70,7 @@ load_texture_2D_array_from_slice :: proc(
 		}
 
 		if h != height {
-			fmt.eprintln(
+			log.error(
 				"Texture: ",
 				path,
 				" is of a different height. expected: ",
@@ -101,7 +101,7 @@ load_texture_2D_array_from_slice :: proc(
 	return
 }
 
-load_texture_2D_array :: proc {
-	load_texture_2D_array_from_array,
-	load_texture_2D_array_from_slice,
+texture_array_load :: proc {
+	texture_array_load_from_array,
+	texture_array_load_from_slice,
 }

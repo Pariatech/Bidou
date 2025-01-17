@@ -4,7 +4,7 @@ import "core:math/linalg/glsl"
 
 import "../tools"
 import "../tools/terrain_tool"
-import "../window"
+import "../game"
 
 LAND_ICON_TEXTURES :: []cstring {
 	"resources/icons/land_brush_size.png",
@@ -199,7 +199,7 @@ land_panel :: proc(using ctx: ^Context) {
 	if tools.active_tool == .Terrain {
 		container(
 			ctx,
-			pos = {0, window.size.y - 31 - PANEL_HEIGHT},
+			pos = {0, game.window().size.y - 31 - PANEL_HEIGHT},
 			size =  {
 				LAND_PANEL_BRUSH_TILE_SIZE + LAND_PANEL_TILE_SIZE + 8,
 				PANEL_HEIGHT,
@@ -212,7 +212,7 @@ land_panel :: proc(using ctx: ^Context) {
 			ctx,
 			pos =  {
 				LAND_PANEL_BRUSH_TILE_SIZE + LAND_PANEL_TILE_SIZE + 8,
-				window.size.y - 31 - PANEL_HEIGHT,
+				game.window().size.y - 31 - PANEL_HEIGHT,
 			},
 			size = {(LAND_PANEL_TILE_SIZE + 2) * 3 + 6, PANEL_HEIGHT},
 			body = land_panel_body,

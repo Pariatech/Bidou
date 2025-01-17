@@ -9,7 +9,6 @@ import "core:strings"
 
 import gl "vendor:OpenGL"
 
-import "../renderer"
 import "../utils"
 
 
@@ -348,7 +347,7 @@ load_wall_mask_array :: proc() -> (ok: bool) {
 	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
 	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
 
-	return renderer.load_texture_2D_array(
+	return texture_array_load(
 		WALL_MASK_PATHS,
 		WALL_TEXTURE_WIDTH,
 		WALL_TEXTURE_HEIGHT,
@@ -378,7 +377,7 @@ load_wall_texture_array :: proc() -> (ok: bool = true) {
 		max_anisotropy,
 	)
 
-	return renderer.load_texture_2D_array(
+	return texture_array_load(
 		WALL_TEXTURE_PATHS,
 		WALL_TEXTURE_WIDTH,
 		WALL_TEXTURE_HEIGHT,

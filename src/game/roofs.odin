@@ -10,8 +10,6 @@ import "core:strings"
 
 import gl "vendor:OpenGL"
 
-import "../renderer"
-
 // @(private = "file")
 ROOF_SIZE_PADDING :: glsl.vec2{0.4, 0.4}
 
@@ -196,7 +194,7 @@ init_roofs :: proc() -> bool {
 		)
 	}
 
-	renderer.load_texture_2D_array(textures, 128, 128) or_return
+	texture_array_load(textures, 128, 128) or_return
 	set_shader_uniform(&roofs.shader, "texture_sampler", i32(0))
 
 	gl.BindVertexArray(0)

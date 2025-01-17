@@ -4,8 +4,6 @@ import "base:runtime"
 import "core:c"
 import "vendor:glfw"
 
-import "../window"
-
 Keyboard :: struct {
 	key_map: map[Keyboard_Key_Value]Keyboard_Key_State,
 }
@@ -202,7 +200,7 @@ keyboard_on_key :: proc "c" (
 }
 
 keyboard_init :: proc() {
-	glfw.SetKeyCallback(window.handle, keyboard_on_key)
+	glfw.SetKeyCallback(window().handle, keyboard_on_key)
 	// key_map = make(map[Key_Value]Key_State)
 }
 

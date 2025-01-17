@@ -5,26 +5,25 @@ import "core:math/linalg/glsl"
 
 import gl "vendor:OpenGL"
 
-import "../tools"
 import "../game"
-import "../window"
+import "../tools"
 
 MENU_ICON_TEXTURES :: [Menu_Icon]cstring {
-	.Info = "resources/icons/info.png",
-	.Floor_Up = "resources/icons/floor_up.png",
-	.Floor_Down = "resources/icons/floor_down.png",
-	.Camera_Rotate_Left = "resources/icons/camera_rotate_left.png",
+	.Info                = "resources/icons/info.png",
+	.Floor_Up            = "resources/icons/floor_up.png",
+	.Floor_Down          = "resources/icons/floor_down.png",
+	.Camera_Rotate_Left  = "resources/icons/camera_rotate_left.png",
 	.Camera_Rotate_Right = "resources/icons/camera_rotate_right.png",
-	.Walls_Up = "resources/icons/walls_up.png",
-	.Walls_Down = "resources/icons/walls_down.png",
-	.Landscape = "resources/icons/landscape.png",
-	.Wall = "resources/icons/wall.png",
-	.Floor = "resources/icons/floor.png",
-	.Paint = "resources/icons/paint_brush.png",
-	.Furniture = "resources/icons/furniture.png",
-    .Undo = "resources/icons/undo.png",
-    .Redo = "resources/icons/redo.png",
-    .Roof = "resources/roofs/roof_icon.png",
+	.Walls_Up            = "resources/icons/walls_up.png",
+	.Walls_Down          = "resources/icons/walls_down.png",
+	.Landscape           = "resources/icons/landscape.png",
+	.Wall                = "resources/icons/wall.png",
+	.Floor               = "resources/icons/floor.png",
+	.Paint               = "resources/icons/paint_brush.png",
+	.Furniture           = "resources/icons/furniture.png",
+	.Undo                = "resources/icons/undo.png",
+	.Redo                = "resources/icons/redo.png",
+	.Roof                = "resources/roofs/roof_icon.png",
 }
 
 
@@ -46,14 +45,14 @@ Menu_Icon :: enum (int) {
 	Camera_Rotate_Right,
 	Walls_Up,
 	Walls_Down,
-    Undo,
-    Redo,
+	Undo,
+	Redo,
 	Landscape,
 	Wall,
 	Floor,
 	Paint,
 	Furniture,
-    Roof,
+	Roof,
 }
 
 Draw_Call :: union {
@@ -104,10 +103,10 @@ init :: proc(using ctx: ^Context) -> (ok: bool = false) {
 	init_icon_renderer(ctx) or_return
 	init_scroll_bar_renderer(ctx) or_return
 
-    textures := MENU_ICON_TEXTURES
+	textures := MENU_ICON_TEXTURES
 	init_icon_texture_array(
 		&menu_icon_texture_array,
-        raw_data(&textures)[0:len(textures)],
+		raw_data(&textures)[0:len(textures)],
 	) or_return
 
 	init_icon_texture_array(
@@ -117,8 +116,8 @@ init :: proc(using ctx: ^Context) -> (ok: bool = false) {
 
 	init_land_panel() or_return
 	init_paint_panel() or_return
-    init_furniture_panel() or_return
-    init_roof_panel() or_return
+	init_furniture_panel() or_return
+	init_roof_panel() or_return
 
 	return true
 }
@@ -130,7 +129,12 @@ deinit :: proc(using ctx: ^Context) {
 }
 
 to_screen_pos :: proc(pos: glsl.vec2) -> glsl.vec2 {
-	return {pos.x / window.size.x * 2 - 1, -(pos.y / window.size.y * 2 - 1)}
+	return(
+		 {
+			pos.x / game.window().size.x * 2 - 1,
+			-(pos.y / game.window().size.y * 2 - 1),
+		} \
+	)
 }
 
 handle_menu_item_clicked :: proc(using ctx: ^Context, item: Menu_Icon) {
@@ -169,13 +173,13 @@ handle_menu_item_clicked :: proc(using ctx: ^Context, item: Menu_Icon) {
 	case .Furniture:
 		floor_panel_ctx.opened = false
 		tools.open_furniture_tool()
-    case .Roof:
+	case .Roof:
 		floor_panel_ctx.opened = false
-        tools.open_roof_tool()
-    case .Undo:
-        tools.undo()
-    case .Redo:
-        tools.redo()
+		tools.open_roof_tool()
+	case .Undo:
+		tools.undo()
+	case .Redo:
+		tools.redo()
 	}
 }
 
@@ -200,9 +204,9 @@ menu :: proc(using ctx: ^Context, pos: glsl.vec2, size: glsl.vec2) {
 }
 
 update :: proc(using ctx: ^Context) {
-    if game.mouse_is_button_up(.Left) {
-        focus = false
-    }
+	if game.mouse_is_button_up(.Left) {
+		focus = false
+	}
 
 	update_text_draws(&text_renderer)
 	clear(&draw_calls)
@@ -218,19 +222,19 @@ update :: proc(using ctx: ^Context) {
 	land_panel(ctx)
 	paint_panel(ctx)
 	furniture_panel(ctx)
-    roof_panel(ctx)
+	roof_panel(ctx)
 
 	container(
 		ctx,
-		pos = {0, window.size.y - 32},
+		pos = {0, game.window().size.y - 32},
 		size = {len(Menu_Icon) * 31, 32},
 		body = menu,
 	)
 }
 
 draw :: proc(using ctx: ^Context) {
-    gl.Disable(gl.CULL_FACE)
-    defer gl.Enable(gl.CULL_FACE)
+	gl.Disable(gl.CULL_FACE)
+	defer gl.Enable(gl.CULL_FACE)
 
 	gl.BindBuffer(gl.UNIFORM_BUFFER, ubo)
 	defer gl.BindBuffer(gl.UNIFORM_BUFFER, 0)

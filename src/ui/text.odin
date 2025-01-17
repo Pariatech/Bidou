@@ -8,8 +8,7 @@ import "core:strings"
 import gl "vendor:OpenGL"
 import "vendor:fontstash"
 
-import "../renderer"
-import "../window"
+import "../game"
 
 FONT_VERTEX_SHADER :: "resources/shaders/ui/font.vert"
 FONT_FRAGMENT_SHADER :: "resources/shaders/ui/font.frag"
@@ -168,8 +167,7 @@ init_text_renderer :: proc(using ctx: ^Context) -> (ok: bool = false) {
 
 	create_font_atlas_texture(ctx)
 
-	renderer.load_shader_program(
-		&text_renderer.shader,
+	text_renderer.shader = game.load_shader_program(
 		FONT_VERTEX_SHADER,
 		FONT_FRAGMENT_SHADER,
 	) or_return
@@ -181,7 +179,7 @@ init_text_renderer :: proc(using ctx: ^Context) -> (ok: bool = false) {
 deinit_text_renderer :: proc(using ctx: ^Context) {
 	using text_renderer
 
-    fontstash.Destroy(&fs)
+	fontstash.Destroy(&fs)
 }
 
 text_bounds :: proc(
@@ -374,8 +372,8 @@ text :: proc(
 		av         = av,
 		size       = size,
 		color      = color,
-		clip_start = clip_start * window.scale,
-		clip_end   = clip_end * window.scale,
+		clip_start = clip_start * game.window().scale,
+		clip_end   = clip_end * game.window().scale,
 	}
 
 	append(&draw_calls, text)

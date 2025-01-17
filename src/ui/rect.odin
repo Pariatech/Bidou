@@ -5,8 +5,7 @@ import "core:math/linalg/glsl"
 
 import gl "vendor:OpenGL"
 
-import "../renderer"
-import "../window"
+import "../game"
 
 RECT_VERTEX_SHADER :: "resources/shaders/ui/rect.vert"
 RECT_FRAGMENT_SHADER :: "resources/shaders/ui/rect.frag"
@@ -65,8 +64,7 @@ init_rect_renderer :: proc(using ctx: ^Context) -> (ok: bool = false) {
 		gl.STATIC_DRAW,
 	)
 
-	renderer.load_shader_program(
-		&shader,
+	shader = game.load_shader_program(
 		RECT_VERTEX_SHADER,
 		RECT_FRAGMENT_SHADER,
 	) or_return
@@ -181,15 +179,15 @@ draw_rect :: proc(using ctx: ^Context, rect: Rect) {
 
 	// log.info(rect)
 	for &v in vertices {
-		v.start = {rect.x, rect.y} * window.scale
-		v.end = {rect.x + rect.w, rect.y + rect.h} * window.scale
+		v.start = {rect.x, rect.y} * game.window().scale
+		v.end = {rect.x + rect.w, rect.y + rect.h} * game.window().scale
 		// v.start = to_screen_pos({rect.x, rect.y})
 		// v.end = to_screen_pos({rect.x + rect.w, rect.y + rect.h})
 		v.color = rect.color
-		v.left_border_width = rect.left_border_width * window.scale.x
-		v.right_border_width = rect.right_border_width * window.scale.x
-		v.top_border_width = rect.top_border_width * window.scale.y
-		v.bottom_border_width = rect.bottom_border_width * window.scale.y
+		v.left_border_width = rect.left_border_width * game.window().scale.x
+		v.right_border_width = rect.right_border_width * game.window().scale.x
+		v.top_border_width = rect.top_border_width * game.window().scale.y
+		v.bottom_border_width = rect.bottom_border_width * game.window().scale.y
 	}
 
 	gl.BufferSubData(

@@ -4,8 +4,6 @@ import "core:fmt"
 import "core:math/linalg/glsl"
 import gl "vendor:OpenGL"
 
-import "../renderer"
-
 HOUSE_X :: 12
 HOUSE_Z :: 12
 
@@ -538,29 +536,29 @@ world_add_house_floor_walls :: proc(
 }
 
 world_draw :: proc() {
-	renderer.uniform_object.view = camera().view
-	renderer.uniform_object.proj = camera().proj
+	renderer().uniform_object.view = camera().view
+	renderer().uniform_object.proj = camera().proj
 
 
 	for flr in 0 ..= get_floor_context().floor {
-		gl.BindBuffer(gl.UNIFORM_BUFFER, renderer.ubo)
+		gl.BindBuffer(gl.UNIFORM_BUFFER, renderer().ubo)
 
 		ubo_index := gl.GetUniformBlockIndex(
-			renderer.shader_program,
+			renderer().shader_program,
 			"UniformBufferObject",
 		)
-		gl.UniformBlockBinding(renderer.shader_program, ubo_index, 2)
+		gl.UniformBlockBinding(renderer().shader_program, ubo_index, 2)
 
 		// ubo_index := gl.GetUniformBlockIndex(renderer.shader_program, "ubo")
-		gl.BindBufferBase(gl.UNIFORM_BUFFER, 2, renderer.ubo)
+		gl.BindBufferBase(gl.UNIFORM_BUFFER, 2, renderer().ubo)
 		gl.BufferSubData(
 			gl.UNIFORM_BUFFER,
 			0,
-			size_of(renderer.Uniform_Object),
-			&renderer.uniform_object,
+			size_of(Renderer_Uniform_Object),
+			&renderer().uniform_object,
 		)
 
-		gl.UseProgram(renderer.shader_program)
+		gl.UseProgram(renderer().shader_program)
 		tile_triangle_draw_tiles(flr)
 		draw_walls(flr)
 
