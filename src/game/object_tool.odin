@@ -8,7 +8,6 @@ import "core:math/linalg/glsl"
 import gl "vendor:OpenGL"
 
 import "../game"
-import "../keyboard"
 
 Object_Tool_Mode :: enum {
 	Pick,
@@ -140,11 +139,11 @@ object_tool_pick_object :: proc() {
 			object := object_ptr^
 			if mouse_is_button_press(.Left) {
 				ctx.previous_mode = ctx.mode
-				if keyboard.is_key_down(.Key_Left_Control) {
+				if keyboard_is_key_down(.Key_Left_Control) {
 					delete_object_by_id(object_under_cursor)
 					ctx.previous_object_under_cursor = nil
 					mouse_set_cursor(.Arrow)
-				} else if keyboard.is_key_down(.Key_Left_Shift) {
+				} else if keyboard_is_key_down(.Key_Left_Shift) {
 					ctx.mode = .Place
 					append(&ctx.objects, object)
 
@@ -193,7 +192,7 @@ object_tool_pick_object :: proc() {
 					ctx.previous_object_under_cursor = nil
 				}
 			} else {
-				if keyboard.is_key_down(.Key_Left_Control) {
+				if keyboard_is_key_down(.Key_Left_Control) {
 					mouse_set_cursor(.Cross)
 					object.light = {0.8, 0.2, 0.2}
 				} else {
@@ -231,12 +230,12 @@ object_tool_on_escape :: proc() {
 object_tool_place_object :: proc() {
 	ctx := get_object_tool_context()
 
-	if keyboard.is_key_press(.Key_Escape) {
+	if keyboard_is_key_press(.Key_Escape) {
 		object_tool_on_escape()
 	} else if mouse_is_button_press(.Left) {
 		id, _ := add_object(ctx.objects[0])
 
-		if !keyboard.is_key_down(.Key_Left_Shift) {
+		if !keyboard_is_key_down(.Key_Left_Shift) {
 			ctx.previous_mode = ctx.mode
 			ctx.mode = .Pick
 
@@ -247,7 +246,7 @@ object_tool_place_object :: proc() {
 			mouse_set_cursor(.Arrow)
 		}
 	} else {
-		if keyboard.is_key_press(.Key_R) {
+		if keyboard_is_key_press(.Key_R) {
 			for &object in ctx.objects {
 				rotate_object(&object)
 			}
@@ -259,7 +258,7 @@ object_tool_place_object :: proc() {
 object_tool_move_object :: proc() {
 	ctx := get_object_tool_context()
 
-	if keyboard.is_key_press(.Key_Escape) {
+	if keyboard_is_key_press(.Key_Escape) {
 		ctx.previous_mode = ctx.mode
 		ctx.mode = .Pick
 		for obj in ctx.original_objects {
@@ -279,7 +278,7 @@ object_tool_move_object :: proc() {
 		}
 
 		ctx.previous_mode = ctx.mode
-		if keyboard.is_key_down(.Key_Left_Shift) {
+		if keyboard_is_key_down(.Key_Left_Shift) {
 			ctx.mode = .Place
 		} else {
 			ctx.mode = .Pick
@@ -296,7 +295,7 @@ object_tool_move_object :: proc() {
 		clear(&ctx.original_objects)
 	} else {
 		root_pos := ctx.objects[0].pos
-		if keyboard.is_key_press(.Key_R) {
+		if keyboard_is_key_press(.Key_R) {
 			for &object in ctx.objects {
 				rotate_object(&object)
 				t_pos := object.pos - root_pos

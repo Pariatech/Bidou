@@ -2,18 +2,17 @@ package tools
 
 import "core:log"
 
-import "../keyboard"
 import "floor_tool"
 import "paint_tool"
 import "terrain_tool"
 import "wall_tool"
 import "../game"
 
-TERRAIN_TOOL_KEY :: keyboard.Key_Value.Key_1
-WALL_TOOL_KEY :: keyboard.Key_Value.Key_2
-FLOOR_TOOL_KEY :: keyboard.Key_Value.Key_3
-PAINT_TOOL_KEY :: keyboard.Key_Value.Key_4
-FURNITURE_TOOL_KEY :: keyboard.Key_Value.Key_7
+TERRAIN_TOOL_KEY :: game.Keyboard_Key_Value.Key_1
+WALL_TOOL_KEY :: game.Keyboard_Key_Value.Key_2
+FLOOR_TOOL_KEY :: game.Keyboard_Key_Value.Key_3
+PAINT_TOOL_KEY :: game.Keyboard_Key_Value.Key_4
+FURNITURE_TOOL_KEY :: game.Keyboard_Key_Value.Key_7
 
 active_tool: Tool = .Furniture
 
@@ -27,15 +26,15 @@ Tool :: enum {
 }
 
 update :: proc(delta_time: f64) {
-	if keyboard.is_key_press(WALL_TOOL_KEY) {
+	if game.keyboard_is_key_press(WALL_TOOL_KEY) {
 		open_wall_tool()
-	} else if keyboard.is_key_press(TERRAIN_TOOL_KEY) {
+	} else if game.keyboard_is_key_press(TERRAIN_TOOL_KEY) {
 		open_land_tool()
-	} else if keyboard.is_key_press(FLOOR_TOOL_KEY) {
+	} else if game.keyboard_is_key_press(FLOOR_TOOL_KEY) {
 		open_floor_tool()
-	} else if keyboard.is_key_press(PAINT_TOOL_KEY) {
+	} else if game.keyboard_is_key_press(PAINT_TOOL_KEY) {
 		open_paint_tool()
-	} else if keyboard.is_key_press(FURNITURE_TOOL_KEY) {
+	} else if game.keyboard_is_key_press(FURNITURE_TOOL_KEY) {
         // open_furniture_tool()
     }
 

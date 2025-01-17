@@ -5,8 +5,6 @@ import "core:math"
 import "core:math/linalg/glsl"
 import "core:testing"
 
-import "../keyboard"
-
 FLOOR_OFFSET :: 0.0004
 
 Floor_Context :: struct {
@@ -83,9 +81,9 @@ floor_update_markers :: proc() {
 floor_update :: proc() {
     ctx := get_floor_context()
 	ctx.previous_floor = ctx.floor
-	if keyboard.is_key_press(.Key_Page_Up) {
+	if keyboard_is_key_press(.Key_Page_Up) {
 		floor_move_up()
-	} else if keyboard.is_key_press(.Key_Page_Down) {
+	} else if keyboard_is_key_press(.Key_Page_Down) {
 		floor_move_down()
 	}
 

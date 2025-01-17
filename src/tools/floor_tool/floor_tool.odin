@@ -6,7 +6,6 @@ import "core:math"
 import "core:math/linalg/glsl"
 
 import "../../game"
-import "../../keyboard"
 
 position: glsl.ivec2
 side: game.Tile_Triangle_Side
@@ -49,21 +48,21 @@ update :: proc() {
 		previous_position != position ||
 		floor.previous_floor != floor.floor ||
 		previous_side != side ||
-		keyboard.is_key_press(.Key_Left_Shift) ||
-		keyboard.is_key_release(.Key_Left_Shift)
+		game.keyboard_is_key_press(.Key_Left_Shift) ||
+		game.keyboard_is_key_release(.Key_Left_Shift)
 
 	previous_triangle_mode := triangle_mode
-	if keyboard.is_key_down(.Key_Left_Control) &&
-	   keyboard.is_key_press(.Key_F) {
+	if game.keyboard_is_key_down(.Key_Left_Control) &&
+	   game.keyboard_is_key_press(.Key_F) {
 		triangle_mode = !triangle_mode
 	}
 	if triangle_mode != previous_triangle_mode {
 		reset = true
 	}
 
-	delete_mode := keyboard.is_key_down(.Key_Left_Control)
-	if keyboard.is_key_press(.Key_Left_Control) ||
-	   keyboard.is_key_release(.Key_Left_Control) {
+	delete_mode := game.keyboard_is_key_down(.Key_Left_Control)
+	if game.keyboard_is_key_press(.Key_Left_Control) ||
+	   game.keyboard_is_key_release(.Key_Left_Control) {
 		reset = true
 	}
 
@@ -73,7 +72,7 @@ update :: proc() {
 		clear(&new_floor_tiles)
 	}
 
-	if keyboard.is_key_down(.Key_Left_Shift) {
+	if game.keyboard_is_key_down(.Key_Left_Shift) {
 		placing = true
 		pos := glsl.ivec3{position.x, floor.floor, position.y}
 		if delete_mode {

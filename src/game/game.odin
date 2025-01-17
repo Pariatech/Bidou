@@ -20,6 +20,7 @@ Game_Context :: struct {
 	tile_triangles:    Tile_Triangle_Context,
 	mouse:             Mouse,
 	camera:            Camera,
+	keyboard:          Keyboard,
 }
 
 game :: #force_inline proc() -> ^Game_Context {
@@ -88,7 +89,7 @@ init_game :: proc() -> bool {
 	init_object_tool()
 	init_roofs() or_return
 	tile_triangles_init() or_return
-    camera_init() or_return
+	camera_init() or_return
 
 	// add_roof({type = .Half_Hip, start = {0, 0}, end = {0, 1}})
 	// add_roof({type = .Half_Hip, start = {0, 3}, end = {0, 5}})

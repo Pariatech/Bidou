@@ -8,7 +8,6 @@ import "core:time"
 import "vendor:glfw"
 
 import "game"
-import "keyboard"
 import "renderer"
 import "tools"
 import "tools/floor_tool"
@@ -83,8 +82,8 @@ start :: proc() -> (ok: bool = false) {
 
 	game.init_wall_renderer() or_return
 
-	keyboard.init()
-	defer keyboard.deinit()
+	game.keyboard_init()
+	defer game.keyboard_deinit()
 	game.mouse_init()
 	defer game.mouse_deinit()
 	game.init_cursor()
@@ -145,10 +144,10 @@ start :: proc() -> (ok: bool = false) {
 		game.floor_update()
 		ui.update(&ui_ctx)
 
-		if keyboard.is_key_press(.Key_Q) {
+		if game.keyboard_is_key_press(.Key_Q) {
 			game.camera_rotate_counter_clockwise()
 			game.world_update_after_rotation(.Counter_Clockwise)
-		} else if keyboard.is_key_press(.Key_E) {
+		} else if game.keyboard_is_key_press(.Key_E) {
 			game.camera_rotate_clockwise()
 			game.world_update_after_rotation(.Clockwise)
 		}
@@ -170,7 +169,7 @@ start :: proc() -> (ok: bool = false) {
 
 
 		should_close = bool(glfw.WindowShouldClose(window.handle))
-		keyboard.update()
+		game.keyboard_update()
 		game.mouse_update()
 		game.update_cursor()
 

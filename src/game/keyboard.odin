@@ -1,21 +1,24 @@
-package keyboard
+package game
 
-import "core:c"
 import "base:runtime"
+import "core:c"
 import "vendor:glfw"
 
 import "../window"
 
-key_map: map[Key_Value]Key_State
+Keyboard :: struct {
+	key_map: map[Keyboard_Key_Value]Keyboard_Key_State,
+}
 
-Key_State :: enum {
+Keyboard_Key_State :: enum {
 	Press,
 	Repeat,
 	Release,
 	Down,
 	Up,
 }
-Key_Value :: enum {
+
+Keyboard_Key_Value :: enum {
 	/* Named printable keys */
 	Key_Space         = 32,
 	Key_Apostrophe    = 39, /* ' */
@@ -154,27 +157,31 @@ Key_Value :: enum {
 	Key_Menu          = 348,
 }
 
-is_key_down :: proc(key: Key_Value) -> bool {
-	state, ok := key_map[key]
+keyboard :: proc() -> ^Keyboard {
+	return &game().keyboard
+}
+
+keyboard_is_key_down :: proc(key: Keyboard_Key_Value) -> bool {
+	state, ok := keyboard().key_map[key]
 	return ok && (state == .Press || state == .Down || state == .Repeat)
 }
 
-is_key_up :: proc(key: Key_Value) -> bool {
-	state, ok := key_map[key]
+keyboard_is_key_up :: proc(key: Keyboard_Key_Value) -> bool {
+	state, ok := keyboard().key_map[key]
 	return !ok || (state == .Release || state == .Up)
 }
 
-is_key_press :: proc(key: Key_Value) -> bool {
-	state, ok := key_map[key]
+keyboard_is_key_press :: proc(key: Keyboard_Key_Value) -> bool {
+	state, ok := keyboard().key_map[key]
 	return ok && state == .Press
 }
 
-is_key_release :: proc(key: Key_Value) -> bool {
-	state, ok := key_map[key]
+keyboard_is_key_release :: proc(key: Keyboard_Key_Value) -> bool {
+	state, ok := keyboard().key_map[key]
 	return ok && state == .Release
 }
 
-on_key :: proc "c" (
+keyboard_on_key :: proc "c" (
 	window: glfw.WindowHandle,
 	key: c.int,
 	scancode: c.int,
@@ -182,28 +189,30 @@ on_key :: proc "c" (
 	mods: c.int,
 ) {
 	context = runtime.default_context()
+	context.user_ptr = glfw.GetWindowUserPointer(window)
+
 	switch action {
 	case glfw.RELEASE:
-		key_map[cast(Key_Value)key] = .Release
+		keyboard().key_map[cast(Keyboard_Key_Value)key] = .Release
 	case glfw.PRESS:
-		key_map[cast(Key_Value)key] = .Press
+		keyboard().key_map[cast(Keyboard_Key_Value)key] = .Press
 	case glfw.REPEAT:
-		key_map[cast(Key_Value)key] = .Repeat
+		keyboard().key_map[cast(Keyboard_Key_Value)key] = .Repeat
 	}
 }
 
-init :: proc() {
-	glfw.SetKeyCallback(window.handle, on_key)
-	key_map = make(map[Key_Value]Key_State)
+keyboard_init :: proc() {
+	glfw.SetKeyCallback(window.handle, keyboard_on_key)
+	// key_map = make(map[Key_Value]Key_State)
 }
 
-deinit :: proc() {
-    delete(key_map)
+keyboard_deinit :: proc() {
+	delete(keyboard().key_map)
 }
 
-update :: proc() {
-	for key in key_map {
-		switch state := &key_map[key]; state^ {
+keyboard_update :: proc() {
+	for key in keyboard().key_map {
+		switch state := &keyboard().key_map[key]; state^ {
 		case .Press, .Repeat, .Down:
 			state^ = .Down
 		case .Release, .Up:

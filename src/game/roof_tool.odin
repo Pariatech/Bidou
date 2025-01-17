@@ -6,8 +6,6 @@ import "core:math"
 import "core:math/linalg/glsl"
 import "core:strings"
 
-import "../keyboard"
-
 SQRT_2 :: 1.4142
 
 // @(private = "file")
@@ -1908,13 +1906,13 @@ handle_roof_tool_idle :: proc() -> Roof_Tool_State {
 	ctx := get_roof_tool_context()
     floor := get_floor_context()
 
-	if keyboard.is_key_down(.Key_Left_Control) {
+	if keyboard_is_key_down(.Key_Left_Control) {
 		transition_to_remove_roof_state()
 
 		return .Removing
 	}
 
-	if keyboard.is_key_press(.Key_Left_Shift) {
+	if keyboard_is_key_press(.Key_Left_Shift) {
 		transition_to_paint_roof_state()
 
 		return .Painting
@@ -1943,7 +1941,7 @@ handle_roof_tool_idle :: proc() -> Roof_Tool_State {
 handle_roof_tool_placing :: proc() -> Roof_Tool_State {
 	ctx := get_roof_tool_context()
 
-	if keyboard.is_key_down(.Key_Left_Control) {
+	if keyboard_is_key_down(.Key_Left_Control) {
 		transition_to_remove_roof_state()
 		remove_roof(ctx.roof)
 		return .Removing
@@ -1970,13 +1968,13 @@ handle_roof_tool_removing :: proc() -> Roof_Tool_State {
 		update_roof(roof)
 	}
 
-	if keyboard.is_key_release(.Key_Left_Control) ||
-	   keyboard.is_key_press(.Key_Escape) {
+	if keyboard_is_key_release(.Key_Left_Control) ||
+	   keyboard_is_key_press(.Key_Escape) {
 		transition_to_idle_roof_state()
 		return .Idle
 	}
 
-	if keyboard.is_key_press(.Key_Left_Shift) {
+	if keyboard_is_key_press(.Key_Left_Shift) {
 		transition_to_paint_roof_state()
 		return .Painting
 	}
@@ -2011,8 +2009,8 @@ handle_roof_tool_painting :: proc() -> Roof_Tool_State {
 		update_roof(roof)
 	}
 
-	if keyboard.is_key_release(.Key_Left_Shift) ||
-	   keyboard.is_key_press(.Key_Escape) {
+	if keyboard_is_key_release(.Key_Left_Shift) ||
+	   keyboard_is_key_press(.Key_Escape) {
 		transition_to_idle_roof_state()
 		return .Idle
 	}

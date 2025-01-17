@@ -5,7 +5,6 @@ import "core:math"
 import "core:math/linalg/glsl"
 
 import "../../game"
-import "../../keyboard"
 
 wall_tool_cursor: game.Object_Draw
 wall_tool_position: glsl.ivec2
@@ -39,33 +38,33 @@ deinit :: proc() {
 }
 
 update :: proc() {
-	if keyboard.is_key_release(.Key_Left_Control) {
+	if game.keyboard_is_key_release(.Key_Left_Control) {
 		wall_tool_cursor.light = {1, 1, 1}
 
-		if keyboard.is_key_down(.Key_Left_Shift) {
+		if game.keyboard_is_key_down(.Key_Left_Shift) {
 			revert_removing_rectangle()
 		} else {
 			revert_removing_line()
 		}
-	} else if keyboard.is_key_press(.Key_Left_Control) {
+	} else if game.keyboard_is_key_press(.Key_Left_Control) {
 		wall_tool_cursor.light = {1, 0, 0}
 
-		if keyboard.is_key_down(.Key_Left_Shift) {
+		if game.keyboard_is_key_down(.Key_Left_Shift) {
 			revert_walls_rectangle()
 		} else {
 			revert_walls_line()
 		}
 	}
 
-	if keyboard.is_key_release(.Key_Left_Shift) {
+	if game.keyboard_is_key_release(.Key_Left_Shift) {
 		revert_walls_rectangle()
-	} else if keyboard.is_key_press(.Key_Left_Shift) {
+	} else if game.keyboard_is_key_press(.Key_Left_Shift) {
 		revert_walls_line()
 	}
 
 	if mode == .Rectangle ||
 	   mode == .Demolish_Rectangle ||
-	   keyboard.is_key_down(.Key_Left_Shift) {
+	   game.keyboard_is_key_down(.Key_Left_Shift) {
 		update_rectangle()
 	} else {
 		update_line()
@@ -804,7 +803,7 @@ adding_line :: proc() {
 }
 
 update_line :: proc() {
-	if mode == .Demolish || keyboard.is_key_down(.Key_Left_Control) {
+	if mode == .Demolish || game.keyboard_is_key_down(.Key_Left_Control) {
 		removing_line()
 	} else {
 		adding_line()
@@ -896,8 +895,8 @@ removing_rectangle :: proc() {
 
 update_rectangle :: proc() {
 	if mode == .Demolish_Rectangle ||
-	   keyboard.is_key_down(.Key_Left_Control) ||
-	   (mode == .Demolish && keyboard.is_key_down(.Key_Left_Shift)) {
+	   game.keyboard_is_key_down(.Key_Left_Control) ||
+	   (mode == .Demolish && game.keyboard_is_key_down(.Key_Left_Shift)) {
 		removing_rectangle()
 	} else {
 		adding_rectangle()

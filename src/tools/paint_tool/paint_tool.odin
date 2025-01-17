@@ -4,7 +4,6 @@ import "core:log"
 import "core:math"
 import "core:math/linalg/glsl"
 
-import "../../keyboard"
 import "../../game"
 
 WALL_SELECTION_DISTANCE :: 4
@@ -83,12 +82,12 @@ update :: proc() {
 	game.on_cursor_tile_intersect(on_intersect, floor.previous_floor, floor.floor)
 
 	texture := texture
-	if keyboard.is_key_down(.Key_Left_Control) {
+	if game.keyboard_is_key_down(.Key_Left_Control) {
 		texture = .Drywall
 	}
 	delete_state_changed :=
-		keyboard.is_key_press(.Key_Left_Control) ||
-		keyboard.is_key_release(.Key_Left_Control)
+		game.keyboard_is_key_press(.Key_Left_Control) ||
+		game.keyboard_is_key_release(.Key_Left_Control)
 
 	if game.mouse_is_button_release(.Left) {
 		add_command(current_command)
@@ -100,8 +99,8 @@ update :: proc() {
 		previous_position != position ||
 		previous_side != side ||
 		delete_state_changed ||
-		keyboard.is_key_press(.Key_Left_Shift) ||
-		keyboard.is_key_release(.Key_Left_Shift)
+		game.keyboard_is_key_press(.Key_Left_Shift) ||
+		game.keyboard_is_key_release(.Key_Left_Shift)
 	if changed {
 		previous_found_wall := found_wall
 		previous_found_wall_intersect := found_wall_intersect
@@ -117,7 +116,7 @@ update :: proc() {
 			clear(&current_command.after)
 		}
 
-		if keyboard.is_key_down(.Key_Left_Shift) {
+		if game.keyboard_is_key_down(.Key_Left_Shift) {
 			apply_flood_fill(texture)
 		}
 

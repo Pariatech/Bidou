@@ -6,7 +6,6 @@ import "core:math/linalg"
 import "core:math/linalg/glsl"
 import "vendor:glfw"
 
-import "../keyboard"
 import "../utils"
 import "../window"
 
@@ -99,15 +98,15 @@ camera_update :: proc(delta_time: f64) {
 
 	movement *= camera().translate / camera().distance
 
-	if keyboard.is_key_down(.Key_W) {
+	if keyboard_is_key_down(.Key_W) {
 		camera().position += glsl.dvec3{-movement.x, 0, -movement.z}
-	} else if keyboard.is_key_down(.Key_S) {
+	} else if keyboard_is_key_down(.Key_S) {
 		camera().position += glsl.dvec3{movement.x, 0, movement.z}
 	}
 
-	if keyboard.is_key_down(.Key_A) {
+	if keyboard_is_key_down(.Key_A) {
 		camera().position += glsl.dvec3{movement.z, 0, -movement.x}
-	} else if keyboard.is_key_down(.Key_D) {
+	} else if keyboard_is_key_down(.Key_D) {
 		camera().position += glsl.dvec3{-movement.z, 0, movement.x}
 	}
 

@@ -7,7 +7,6 @@ import "core:math/rand"
 import "vendor:glfw"
 
 import "../../game"
-import "../../keyboard"
 
 terrain_tool_cursor_pos: glsl.vec3
 terrain_tool_cursor: game.Object_Draw
@@ -82,8 +81,8 @@ deinit :: proc() {
 update :: proc(delta_time: f64) {
 	cleanup()
 
-	if keyboard.is_key_press(.Key_Equal) {
-		if keyboard.is_key_down(.Key_Left_Shift) {
+	if game.keyboard_is_key_press(.Key_Equal) {
+		if game.keyboard_is_key_down(.Key_Left_Shift) {
 			increase_brush_strength()
 		} else {
 			increase_brush_size()
@@ -98,8 +97,8 @@ update :: proc(delta_time: f64) {
 				terrain_tool_position.y + terrain_tool_brush_size,
 			},
 		)
-	} else if keyboard.is_key_press(.Key_Minus) {
-		if keyboard.is_key_down(.Key_Left_Shift) {
+	} else if game.keyboard_is_key_press(.Key_Minus) {
+		if game.keyboard_is_key_down(.Key_Left_Shift) {
 			decrease_brush_strength()
 		} else {
 			decrease_brush_size()
@@ -151,7 +150,7 @@ update :: proc(delta_time: f64) {
 	position.y =
 		game.get_terrain_context().terrain_heights[terrain_tool_position.x][terrain_tool_position.y]
 	terrain_tool_cursor.transform = glsl.mat4Translate(position)
-	shift_down := keyboard.is_key_down(.Key_Left_Shift)
+	shift_down := game.keyboard_is_key_down(.Key_Left_Shift)
 
 	if game.mouse_is_button_release(.Left) {
 		add_command(current_command)
@@ -164,7 +163,7 @@ update :: proc(delta_time: f64) {
 	   mode == .Slope ||
 	   terrain_tool_drag_start != nil {
 		move_points(position)
-	} else if keyboard.is_key_down(.Key_Left_Control) || mode == .Smooth {
+	} else if game.keyboard_is_key_down(.Key_Left_Control) || mode == .Smooth {
 		smooth_brush(delta_time)
 	} else {
 		move_point(delta_time)
