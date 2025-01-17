@@ -4,11 +4,10 @@ import "core:log"
 import "core:math"
 import "core:math/linalg/glsl"
 
-import "../../billboard"
 import "../../game"
 import "../../keyboard"
 
-wall_tool_billboard: billboard.Key
+wall_tool_cursor: game.Object_Draw
 wall_tool_position: glsl.ivec2
 wall_tool_drag_start: glsl.ivec2
 wall_tool_north_south_walls: map[glsl.ivec3]game.Wall
@@ -27,33 +26,21 @@ Mode :: enum {
 }
 
 init :: proc() {
-	wall_tool_billboard = {
-		type = .Cursor,
-	}
-	billboard.billboard_1x1_set(
-		wall_tool_billboard,
-		{light = {1, 1, 1}, texture = .Wall_Cursor, depth_map = .Wall_Cursor},
-	)
-    floor := game.get_floor_context()
+	wall_tool_cursor.model = game.ROOF_TOOL_CURSOR_MODEL
+	wall_tool_cursor.texture = game.ROOF_TOOL_CURSOR_TEXTURE
+	wall_tool_cursor.light = {1, 1, 1}
+	floor := game.get_floor_context()
 	game.cursor_intersect_with_tiles(on_tile_intersect, floor.floor)
 	move_cursor()
 	floor.show_markers = true
 }
 
 deinit :: proc() {
-	billboard.billboard_1x1_remove(wall_tool_billboard)
 }
 
 update :: proc() {
 	if keyboard.is_key_release(.Key_Left_Control) {
-		billboard.billboard_1x1_set(
-			wall_tool_billboard,
-			 {
-				light = {1, 1, 1},
-				texture = .Wall_Cursor,
-				depth_map = .Wall_Cursor,
-			},
-		)
+		wall_tool_cursor.light = {1, 1, 1}
 
 		if keyboard.is_key_down(.Key_Left_Shift) {
 			revert_removing_rectangle()
@@ -61,14 +48,7 @@ update :: proc() {
 			revert_removing_line()
 		}
 	} else if keyboard.is_key_press(.Key_Left_Control) {
-		billboard.billboard_1x1_set(
-			wall_tool_billboard,
-			 {
-				light = {1, 0, 0},
-				texture = .Wall_Cursor,
-				depth_map = .Wall_Cursor,
-			},
-		)
+		wall_tool_cursor.light = {1, 0, 0}
 
 		if keyboard.is_key_down(.Key_Left_Shift) {
 			revert_walls_rectangle()
@@ -90,6 +70,8 @@ update :: proc() {
 	} else {
 		update_line()
 	}
+
+	game.draw_one_object(&wall_tool_cursor)
 }
 
 get_mode :: proc() -> Mode {return mode}
@@ -97,24 +79,10 @@ get_mode :: proc() -> Mode {return mode}
 set_mode :: proc(m: Mode) {
 	if (mode == .Demolish || mode == .Demolish_Rectangle) &&
 	   (m == .Build || m == .Rectangle) {
-		billboard.billboard_1x1_set(
-			wall_tool_billboard,
-			 {
-				light = {1, 1, 1},
-				texture = .Wall_Cursor,
-				depth_map = .Wall_Cursor,
-			},
-		)
+		wall_tool_cursor.light = {1, 1, 1}
 	} else if (mode == .Build || mode == .Rectangle) &&
 	   (m == .Demolish || m == .Demolish_Rectangle) {
-		billboard.billboard_1x1_set(
-			wall_tool_billboard,
-			 {
-				light = {1, 0, 0},
-				texture = .Wall_Cursor,
-				depth_map = .Wall_Cursor,
-			},
-		)
+		wall_tool_cursor.light = {1, 0, 0}
 	}
 
 	if mode == .Build && m == .Rectangle {
@@ -148,7 +116,7 @@ update_walls_rectangle :: proc(
 	east_west: proc(_: glsl.ivec3),
 	north_south: proc(_: glsl.ivec3),
 ) {
-    floor := game.get_floor_context()
+	floor := game.get_floor_context()
 	start_x := min(wall_tool_position.x, wall_tool_drag_start.x)
 	end_x := max(wall_tool_position.x, wall_tool_drag_start.x)
 	start_z := min(wall_tool_position.y, wall_tool_drag_start.y)
@@ -201,7 +169,7 @@ diagonal_update :: proc(
 }
 
 south_west_north_east_update :: proc(fn: proc(_: glsl.ivec3)) {
-    floor := game.get_floor_context()
+	floor := game.get_floor_context()
 	start_x := min(wall_tool_position.x, wall_tool_drag_start.x)
 	end_x := max(wall_tool_position.x, wall_tool_drag_start.x)
 	z := wall_tool_drag_start.y
@@ -216,7 +184,7 @@ south_west_north_east_update :: proc(fn: proc(_: glsl.ivec3)) {
 }
 
 north_west_south_east_update :: proc(fn: proc(_: glsl.ivec3)) {
-    floor := game.get_floor_context()
+	floor := game.get_floor_context()
 	start_x := min(wall_tool_position.x, wall_tool_drag_start.x)
 	end_x := max(wall_tool_position.x, wall_tool_drag_start.x)
 	z := wall_tool_drag_start.y
@@ -244,7 +212,7 @@ cardinal_update :: proc(
 }
 
 east_west_update :: proc(fn: proc(_: glsl.ivec3)) {
-    floor := game.get_floor_context()
+	floor := game.get_floor_context()
 	start_x := min(wall_tool_position.x, wall_tool_drag_start.x)
 	end_x := max(wall_tool_position.x, wall_tool_drag_start.x)
 	z := wall_tool_drag_start.y
@@ -254,7 +222,7 @@ east_west_update :: proc(fn: proc(_: glsl.ivec3)) {
 }
 
 north_south_update :: proc(fn: proc(_: glsl.ivec3)) {
-    floor := game.get_floor_context()
+	floor := game.get_floor_context()
 	start_z := min(wall_tool_position.y, wall_tool_drag_start.y)
 	end_z := max(wall_tool_position.y, wall_tool_drag_start.y)
 	x := wall_tool_drag_start.x
@@ -582,7 +550,7 @@ update_south_west_north_east_wall :: proc(pos: glsl.ivec3) {
 
 	type_map := game.WALL_SIDE_TYPE_MAP
 	w.type = type_map[left_type_part][right_type_part]
-    // log.info(w)
+	// log.info(w)
 	// log.info(pos, w.type)
 	game.set_south_west_north_east_wall(pos, w)
 }
@@ -739,7 +707,8 @@ removing_north_south_wall :: proc(pos: glsl.ivec3) {
 }
 
 revert_removing_line :: proc() {
-	if game.mouse_is_button_down(.Left) || game.mouse_is_button_release(.Left) {
+	if game.mouse_is_button_down(.Left) ||
+	   game.mouse_is_button_release(.Left) {
 		update_walls_line(
 			undo_removing_south_west_north_east_wall,
 			undo_removing_north_west_south_east_wall,
@@ -750,7 +719,7 @@ revert_removing_line :: proc() {
 }
 
 removing_line :: proc() {
-    floor := game.get_floor_context()
+	floor := game.get_floor_context()
 
 	revert_removing_line()
 
@@ -793,7 +762,7 @@ removing_line :: proc() {
 }
 
 adding_line :: proc() {
-    floor := game.get_floor_context()
+	floor := game.get_floor_context()
 
 	revert_walls_line()
 
@@ -843,7 +812,7 @@ update_line :: proc() {
 }
 
 adding_rectangle :: proc() {
-    floor := game.get_floor_context()
+	floor := game.get_floor_context()
 	revert_walls_rectangle()
 
 	previous_tool_position := wall_tool_position
@@ -879,7 +848,8 @@ adding_rectangle :: proc() {
 }
 
 revert_removing_rectangle :: proc() {
-	if game.mouse_is_button_down(.Left) || game.mouse_is_button_release(.Left) {
+	if game.mouse_is_button_down(.Left) ||
+	   game.mouse_is_button_release(.Left) {
 		update_walls_rectangle(
 			undo_removing_east_west_wall,
 			undo_removing_north_south_wall,
@@ -888,7 +858,7 @@ revert_removing_rectangle :: proc() {
 }
 
 removing_rectangle :: proc() {
-    floor := game.get_floor_context()
+	floor := game.get_floor_context()
 
 	revert_removing_rectangle()
 
@@ -935,13 +905,15 @@ update_rectangle :: proc() {
 }
 
 revert_walls_rectangle :: proc() {
-	if game.mouse_is_button_down(.Left) || game.mouse_is_button_release(.Left) {
+	if game.mouse_is_button_down(.Left) ||
+	   game.mouse_is_button_release(.Left) {
 		update_walls_rectangle(remove_east_west_wall, remove_north_south_wall)
 	}
 }
 
 revert_walls_line :: proc() {
-	if game.mouse_is_button_down(.Left) || game.mouse_is_button_release(.Left) {
+	if game.mouse_is_button_down(.Left) ||
+	   game.mouse_is_button_release(.Left) {
 		update_walls_line(
 			remove_south_west_north_east_wall,
 			remove_north_west_south_east_wall,
@@ -952,28 +924,17 @@ revert_walls_line :: proc() {
 }
 
 move_cursor :: proc() {
-    terrain := game.get_terrain_context()
-    floor := game.get_floor_context()
+	terrain := game.get_terrain_context()
+	floor := game.get_floor_context()
 
 	position: glsl.vec3
 	position.y =
 		terrain.terrain_heights[wall_tool_position.x][wall_tool_position.y]
+
 	position.y += f32(floor.floor) * game.WALL_HEIGHT
 
-	switch game.camera().rotation {
-	case .South_West:
-		position.x = f32(wall_tool_position.x)
-		position.z = f32(wall_tool_position.y)
-	case .South_East:
-		position.x = f32(wall_tool_position.x - 1)
-		position.z = f32(wall_tool_position.y)
-	case .North_East:
-		position.x = f32(wall_tool_position.x - 1)
-		position.z = f32(wall_tool_position.y - 1)
-	case .North_West:
-		position.x = f32(wall_tool_position.x)
-		position.z = f32(wall_tool_position.y - 1)
-	}
+	position.x = f32(wall_tool_position.x) - 0.5
+	position.z = f32(wall_tool_position.y) - 0.5
 
-	billboard.billboard_1x1_move(&wall_tool_billboard, position)
+	wall_tool_cursor.transform = glsl.mat4Translate(position)
 }

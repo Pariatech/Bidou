@@ -8,7 +8,6 @@ import gl "vendor:OpenGL"
 import "../tools"
 import "../game"
 import "../window"
-import "../world"
 
 MENU_ICON_TEXTURES :: [Menu_Icon]cstring {
 	.Info = "resources/icons/info.png",
@@ -147,10 +146,10 @@ handle_menu_item_clicked :: proc(using ctx: ^Context, item: Menu_Icon) {
 		game.floor_move_down()
 	case .Camera_Rotate_Left:
 		game.camera_rotate_clockwise()
-		world.update_after_rotation(.Clockwise)
+		game.world_update_after_rotation(.Clockwise)
 	case .Camera_Rotate_Right:
 		game.camera_rotate_counter_clockwise()
-		world.update_after_rotation(.Counter_Clockwise)
+		game.world_update_after_rotation(.Counter_Clockwise)
 	case .Walls_Up:
 		game.set_walls_up()
 	case .Walls_Down:

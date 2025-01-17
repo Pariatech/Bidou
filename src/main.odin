@@ -7,7 +7,6 @@ import "core:os"
 import "core:time"
 import "vendor:glfw"
 
-import "billboard"
 import "game"
 import "keyboard"
 import "renderer"
@@ -16,7 +15,6 @@ import "tools/floor_tool"
 import "tools/terrain_tool"
 import "ui"
 import "window"
-import "world"
 
 TITLE :: "Bidou"
 
@@ -91,7 +89,6 @@ start :: proc() -> (ok: bool = false) {
 	defer game.mouse_deinit()
 	game.init_cursor()
 
-	billboard.init_draw_contexts() or_return
 	game.init_terrain()
 
 	game.load_models() or_return
@@ -112,7 +109,7 @@ start :: proc() -> (ok: bool = false) {
 	game.init_game() or_return
 	defer game.deinit_game()
 
-	world.init()
+	game.world_init()
 
 	ui.init(&ui_ctx) or_return
 	defer ui.deinit(&ui_ctx)
@@ -150,19 +147,19 @@ start :: proc() -> (ok: bool = false) {
 
 		if keyboard.is_key_press(.Key_Q) {
 			game.camera_rotate_counter_clockwise()
-			world.update_after_rotation(.Counter_Clockwise)
+			game.world_update_after_rotation(.Counter_Clockwise)
 		} else if keyboard.is_key_press(.Key_E) {
 			game.camera_rotate_clockwise()
-			world.update_after_rotation(.Clockwise)
+			game.world_update_after_rotation(.Clockwise)
 		}
 		game.camera_update(delta_time)
 
-		world.update()
+		game.world_update()
 		game.update_cutaways()
 
 
 		// game.draw_object_tool()
-		world.draw()
+		game.world_draw()
 
 		// game.draw_game() or_return
 		tools.update(delta_time)

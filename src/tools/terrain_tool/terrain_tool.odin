@@ -6,12 +6,11 @@ import "core:math/linalg/glsl"
 import "core:math/rand"
 import "vendor:glfw"
 
-import "../../billboard"
 import "../../game"
 import "../../keyboard"
 
 terrain_tool_cursor_pos: glsl.vec3
-terrain_tool_billboard: billboard.Key
+terrain_tool_cursor: game.Object_Draw
 terrain_tool_intersect: glsl.vec3
 terrain_tool_position: glsl.ivec2
 terrain_tool_tick_timer: f64
@@ -59,17 +58,16 @@ init :: proc() {
 	position.y =
 		game.get_terrain_context().terrain_heights[terrain_tool_position.x][terrain_tool_position.y]
 
-	terrain_tool_billboard = {
-		type = .Cursor,
-		pos  = position,
-	}
+	terrain_tool_cursor.model = game.ROOF_TOOL_CURSOR_MODEL
+	terrain_tool_cursor.texture = game.ROOF_TOOL_CURSOR_TEXTURE
+	terrain_tool_cursor.light = {1, 1, 1}
 
 	t := int(terrain_tool_brush_strength * 10 - 1)
-	tex := billboard.Texture_1x1(int(billboard.Texture_1x1.Shovel_1_SW) + t)
-	billboard.billboard_1x1_set(
-		terrain_tool_billboard,
-		{light = {1, 1, 1}, texture = tex, depth_map = tex},
-	)
+	// tex := billboard.Texture_1x1(int(billboard.Texture_1x1.Shovel_1_SW) + t)
+	// billboard.billboard_1x1_set(
+	// 	terrain_tool_billboard,
+	// 	{light = {1, 1, 1}, texture = tex, depth_map = tex},
+	// )
 
 	terrain_tool_drag_start = nil
 	terrain_tool_drag_end = nil
@@ -79,7 +77,6 @@ init :: proc() {
 
 deinit :: proc() {
 	cleanup()
-	billboard.billboard_1x1_remove(terrain_tool_billboard)
 }
 
 update :: proc(delta_time: f64) {
@@ -153,7 +150,7 @@ update :: proc(delta_time: f64) {
 
 	position.y =
 		game.get_terrain_context().terrain_heights[terrain_tool_position.x][terrain_tool_position.y]
-	billboard.billboard_1x1_move(&terrain_tool_billboard, position)
+	terrain_tool_cursor.transform = glsl.mat4Translate(position)
 	shift_down := keyboard.is_key_down(.Key_Left_Shift)
 
 	if game.mouse_is_button_release(.Left) {
@@ -201,6 +198,8 @@ update :: proc(delta_time: f64) {
 			}
 		}
 	}
+
+	game.draw_one_object(&terrain_tool_cursor)
 }
 
 
@@ -684,8 +683,8 @@ increase_brush_strength :: proc() {
 	)
 
 	t := int(terrain_tool_brush_strength * 10 - 1)
-	tex := billboard.Texture_1x1(int(billboard.Texture_1x1.Shovel_1_SW) + t)
-	billboard.billboard_1x1_set_texture(terrain_tool_billboard, tex)
+	// tex := billboard.Texture_1x1(int(billboard.Texture_1x1.Shovel_1_SW) + t)
+	// billboard.billboard_1x1_set_texture(terrain_tool_billboard, tex)
 }
 
 decrease_brush_strength :: proc() {
@@ -696,8 +695,8 @@ decrease_brush_strength :: proc() {
 	)
 
 	t := int(terrain_tool_brush_strength * 10 - 1)
-	tex := billboard.Texture_1x1(int(billboard.Texture_1x1.Shovel_1_SW) + t)
-	billboard.billboard_1x1_set_texture(terrain_tool_billboard, tex)
+	// tex := billboard.Texture_1x1(int(billboard.Texture_1x1.Shovel_1_SW) + t)
+	// billboard.billboard_1x1_set_texture(terrain_tool_billboard, tex)
 }
 
 apply_state :: proc(state: map[glsl.ivec2]f32) {

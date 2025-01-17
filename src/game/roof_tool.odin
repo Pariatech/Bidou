@@ -10,6 +10,35 @@ import "../keyboard"
 
 SQRT_2 :: 1.4142
 
+// @(private = "file")
+ROOF_TOOL_CURSOR_MODEL :: "resources/roofs/roof_cursor.glb"
+
+// @(private = "file")
+ROOF_TOOL_CURSOR_TEXTURE :: "resources/roofs/roof_cursor.png"
+
+@(private = "file")
+ROOF_TOOL_CURSOR_TOP_MODEL :: "resources/roofs/roof_cursor_top.glb"
+
+@(private = "file")
+ROOF_TOOL_CURSOR_WRECKING_BALL_MODEL :: "resources/roofs/Wrecking_Crane.glb"
+
+@(private = "file")
+ROOF_TOOL_CURSOR_WRECKING_BALL_TEXTURE :: "resources/roofs/Wrecking_Crane.png"
+
+@(private = "file")
+ROOF_TOOL_CURSOR_PAINT_BRUSH_MODEL :: "resources/roofs/Paint_Brush.glb"
+
+@(private = "file")
+ROOF_TOOL_CURSOR_PAINT_BRUSH_TEXTURE :: "resources/roofs/Paint_Brush.png"
+
+@(private = "file")
+ROOF_TOOL_CURSOR_TOP_MAP :: [Roof_Type]string {
+	.Half_Hip   = "resources/roofs/half_hip_roof.png",
+	.Half_Gable = "resources/roofs/half_gable_roof.png",
+	.Hip        = "resources/roofs/hip_roof.png",
+	.Gable      = "resources/roofs/gable_roof.png",
+}
+
 Roof_Tool_Context :: struct {
 	cursor:            Object_Draw,
 	cursor_top:        Object_Draw,
@@ -173,35 +202,6 @@ decrement_roof_tool_roof_angle :: proc() {
 	angle -= 15
 
 	ctx.roof.slope = math.tan(angle / 180 * math.PI)
-}
-
-@(private = "file")
-ROOF_TOOL_CURSOR_MODEL :: "resources/roofs/roof_cursor.glb"
-
-@(private = "file")
-ROOF_TOOL_CURSOR_TEXTURE :: "resources/roofs/roof_cursor.png"
-
-@(private = "file")
-ROOF_TOOL_CURSOR_TOP_MODEL :: "resources/roofs/roof_cursor_top.glb"
-
-@(private = "file")
-ROOF_TOOL_CURSOR_WRECKING_BALL_MODEL :: "resources/roofs/Wrecking_Crane.glb"
-
-@(private = "file")
-ROOF_TOOL_CURSOR_WRECKING_BALL_TEXTURE :: "resources/roofs/Wrecking_Crane.png"
-
-@(private = "file")
-ROOF_TOOL_CURSOR_PAINT_BRUSH_MODEL :: "resources/roofs/Paint_Brush.glb"
-
-@(private = "file")
-ROOF_TOOL_CURSOR_PAINT_BRUSH_TEXTURE :: "resources/roofs/Paint_Brush.png"
-
-@(private = "file")
-ROOF_TOOL_CURSOR_TOP_MAP :: [Roof_Type]string {
-	.Half_Hip   = "resources/roofs/half_hip_roof.png",
-	.Half_Gable = "resources/roofs/half_gable_roof.png",
-	.Hip        = "resources/roofs/hip_roof.png",
-	.Gable      = "resources/roofs/gable_roof.png",
 }
 
 @(private = "file")
