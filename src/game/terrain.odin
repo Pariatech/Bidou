@@ -5,8 +5,6 @@ import "core:math"
 import "core:math/linalg/glsl"
 import "core:math/noise"
 
-import "../utils"
-
 MIN_LIGHT :: 0.6
 
 Terrain_Context :: struct {
@@ -37,7 +35,7 @@ calculate_terrain_light :: proc(x, z: int) {
 			},
 		}
 		for tri in triangles {
-			normal += utils.triangle_normal(tri[0], tri[1], tri[2])
+			normal += triangle_normal(tri[0], tri[1], tri[2])
 		}
 	} else if x == WORLD_WIDTH && z == WORLD_DEPTH {
 		triangles := [?][3]glsl.vec3 {
@@ -48,7 +46,7 @@ calculate_terrain_light :: proc(x, z: int) {
 			},
 		}
 		for tri in triangles {
-			normal += utils.triangle_normal(tri[0], tri[1], tri[2])
+			normal += triangle_normal(tri[0], tri[1], tri[2])
 		}
 	} else if x == 0 && z == WORLD_DEPTH {
 		triangles := [?][3]glsl.vec3 {
@@ -59,7 +57,7 @@ calculate_terrain_light :: proc(x, z: int) {
 			},
 		}
 		for tri in triangles {
-			normal += utils.triangle_normal(tri[0], tri[1], tri[2])
+			normal += triangle_normal(tri[0], tri[1], tri[2])
 		}
 	} else if z == 0 && x == WORLD_WIDTH {
 		triangles := [?][3]glsl.vec3 {
@@ -70,7 +68,7 @@ calculate_terrain_light :: proc(x, z: int) {
 			},
 		}
 		for tri in triangles {
-			normal += utils.triangle_normal(tri[0], tri[1], tri[2])
+			normal += triangle_normal(tri[0], tri[1], tri[2])
 		}
 	} else if x == 0 {
 		triangles := [?][3]glsl.vec3 {
@@ -86,7 +84,7 @@ calculate_terrain_light :: proc(x, z: int) {
 			},
 		}
 		for tri in triangles {
-			normal += utils.triangle_normal(tri[0], tri[1], tri[2])
+			normal += triangle_normal(tri[0], tri[1], tri[2])
 		}
 	} else if z == 0 {
 		triangles := [?][3]glsl.vec3 {
@@ -102,7 +100,7 @@ calculate_terrain_light :: proc(x, z: int) {
 			},
 		}
 		for tri in triangles {
-			normal += utils.triangle_normal(tri[0], tri[1], tri[2])
+			normal += triangle_normal(tri[0], tri[1], tri[2])
 		}
 	} else if x == WORLD_WIDTH {
 		triangles := [?][3]glsl.vec3 {
@@ -118,7 +116,7 @@ calculate_terrain_light :: proc(x, z: int) {
 			},
 		}
 		for tri in triangles {
-			normal += utils.triangle_normal(tri[0], tri[1], tri[2])
+			normal += triangle_normal(tri[0], tri[1], tri[2])
 		}
 	} else if z == WORLD_DEPTH {
 		triangles := [?][3]glsl.vec3 {
@@ -134,7 +132,7 @@ calculate_terrain_light :: proc(x, z: int) {
 			},
 		}
 		for tri in triangles {
-			normal += utils.triangle_normal(tri[0], tri[1], tri[2])
+			normal += triangle_normal(tri[0], tri[1], tri[2])
 		}
 	} else {
 		triangles := [?][3]glsl.vec3 {
@@ -160,7 +158,7 @@ calculate_terrain_light :: proc(x, z: int) {
 			},
 		}
 		for tri in triangles {
-			normal += utils.triangle_normal(tri[0], tri[1], tri[2])
+			normal += triangle_normal(tri[0], tri[1], tri[2])
 		}
 	}
 

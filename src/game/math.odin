@@ -1,4 +1,4 @@
-package utils
+package game
 
 import m "core:math/linalg/glsl"
 import "core:testing"

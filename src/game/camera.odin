@@ -6,8 +6,6 @@ import "core:math/linalg"
 import "core:math/linalg/glsl"
 import "vendor:glfw"
 
-import "../utils"
-
 CAMERA_SPEED :: 8.0
 CAMERA_ZOOM_SPEED :: 0.05
 CAMERA_ZOOM_MAX :: 2
@@ -160,7 +158,7 @@ camera_get_view_corner :: proc(screen_point: glsl.vec2) -> glsl.vec2 {
 	return glsl.vec2{p1.x + t * (p2.x - p1.x), p1.z + t * (p2.z - p1.z)}
 }
 
-camera_get_aabb :: proc() -> utils.Rectangle {
+camera_get_aabb :: proc() -> Rectangle {
 	bottom_left := camera_get_view_corner({-1, -1})
 	top_left := camera_get_view_corner({-1, 1})
 	bottom_right := camera_get_view_corner({1, -1})
@@ -168,7 +166,7 @@ camera_get_aabb :: proc() -> utils.Rectangle {
 	dcamera := camera().position + camera().translate
 	cam := glsl.vec3{f32(dcamera.x), f32(dcamera.y), f32(dcamera.z)}
 
-	aabb: utils.Rectangle
+	aabb: Rectangle
 	switch camera().rotation {
 	case .South_West:
 		cam.x = bottom_left.x
@@ -176,7 +174,7 @@ camera_get_aabb :: proc() -> utils.Rectangle {
 		width := top_right.x - cam.x
 		height := top_left.y - cam.z
 
-		aabb = utils.Rectangle {
+		aabb = Rectangle {
 			x = i32(cam.x),
 			y = i32(cam.z),
 			w = i32(math.ceil(width)),
@@ -188,7 +186,7 @@ camera_get_aabb :: proc() -> utils.Rectangle {
 		width := cam.x - top_left.x
 		height := top_right.y - cam.z
 
-		aabb = utils.Rectangle {
+		aabb = Rectangle {
 			x = i32(top_left.x),
 			y = i32(cam.z),
 			w = i32(math.ceil(width)),
@@ -200,7 +198,7 @@ camera_get_aabb :: proc() -> utils.Rectangle {
 		width := cam.x - top_right.x
 		height := cam.z - top_left.y
 
-		aabb = utils.Rectangle {
+		aabb = Rectangle {
 			x = i32(top_right.x),
 			y = i32(top_left.y),
 			w = i32(math.ceil(width)),
@@ -212,7 +210,7 @@ camera_get_aabb :: proc() -> utils.Rectangle {
 		width := top_left.x - cam.x
 		height := cam.z - top_right.y
 
-		aabb = utils.Rectangle {
+		aabb = Rectangle {
 			x = i32(cam.x),
 			y = i32(top_right.y),
 			w = i32(math.ceil(width)),

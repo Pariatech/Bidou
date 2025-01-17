@@ -9,8 +9,6 @@ import "core:strings"
 
 import gl "vendor:OpenGL"
 
-import "../utils"
-
 
 Wall_Mask_Texture :: enum (u16) {
 	Full_Mask,
@@ -420,7 +418,7 @@ draw_wall_mesh :: proc(
 			vertex.pos.y = height
 		}
 
-		vertex.pos = (model * utils.vec4(vertex.pos, 1)).xyz
+		vertex.pos = (model * vec4(vertex.pos, 1)).xyz
 
 		append(vertex_buffer, vertex)
 	}
@@ -465,7 +463,7 @@ draw_wall_roof_slope_mesh :: proc(
 		vertex.texcoords.z = f32(texture)
 
 		vertex.pos.y += wall_height
-		vertex.pos = (transform * utils.vec4(vertex.pos, 1)).xyz
+		vertex.pos = (transform * vec4(vertex.pos, 1)).xyz
 
 		append(vertex_buffer, vertex)
 	}
@@ -504,7 +502,7 @@ draw_wall_roof_slope_top_mesh :: proc(
 		vertex.texcoords.z = f32(Wall_Texture.Wall_Top)
 
 		vertex.pos.y += wall_height
-		vertex.pos = (transform * utils.vec4(vertex.pos, 1)).xyz
+		vertex.pos = (transform * vec4(vertex.pos, 1)).xyz
 
 		append(vertex_buffer, vertex)
 	}
