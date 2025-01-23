@@ -8,9 +8,6 @@ import "core:time"
 import "vendor:glfw"
 
 import "game"
-import "tools"
-import "tools/floor_tool"
-import "tools/terrain_tool"
 import "ui"
 
 TITLE :: "Bidou"
@@ -93,11 +90,11 @@ start :: proc() -> (ok: bool = false) {
 
 	game.init_objects() or_return
 
-	floor_tool.init()
-	terrain_tool.init()
+	game.floor_tool_init()
+	game.terrain_tool_init()
 
-	tools.init()
-	defer tools.deinit()
+	game.tools_init()
+	defer game.tools_deinit()
 
 	game.init_cutaways()
 
@@ -160,7 +157,7 @@ start :: proc() -> (ok: bool = false) {
 		game.world_draw()
 
 		// game.draw_game() or_return
-		tools.update(delta_time)
+		game.tools_update(delta_time)
 
 		ui.draw(&ui_ctx)
 

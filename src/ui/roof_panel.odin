@@ -6,7 +6,6 @@ import "core:math/linalg/glsl"
 import "core:strings"
 
 import "../game"
-import "../tools"
 
 ROOF_PANEL_TILE_SIZE :: 47
 ROOF_PANEL_PADDING :: 4
@@ -291,7 +290,7 @@ roof_panel_roof_height_panel :: proc(
 }
 
 roof_panel :: proc(using ctx: ^Context) {
-	if tools.active_tool == .Roof {
+	if game.tools().active_tool == .Roof {
 		container(
 			ctx,
 			pos = {0, game.window().size.y - 31 - PANEL_HEIGHT},

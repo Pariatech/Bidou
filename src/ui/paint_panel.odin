@@ -2,8 +2,6 @@ package ui
 
 import "core:math/linalg/glsl"
 
-import "../tools"
-import "../tools/paint_tool"
 import "../game"
 
 init_paint_panel :: proc() -> (ok: bool = true) {
@@ -25,7 +23,7 @@ paint_panel_body :: proc(
 		}
 
 		border_width := f32(BORDER_WIDTH)
-		if paint_tool.texture == tex {
+		if game.paint_tool().texture == tex {
 			border_width *= 2
 		}
 
@@ -43,7 +41,7 @@ paint_panel_body :: proc(
 			   top_border_width = border_width,
 			   bottom_border_width = border_width,
 		   ) {
-			paint_tool.set_texture(tex)
+			game.paint_tool_set_texture(tex)
 		}
 
 		i += 1
@@ -51,7 +49,7 @@ paint_panel_body :: proc(
 }
 
 paint_panel :: proc(using ctx: ^Context) {
-	if tools.active_tool == .Paint {
+	if game.tools().active_tool == .Paint {
 		container(
 			ctx,
 			pos = {0, game.window().size.y - 31 - PANEL_HEIGHT},

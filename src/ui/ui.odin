@@ -6,7 +6,6 @@ import "core:math/linalg/glsl"
 import gl "vendor:OpenGL"
 
 import "../game"
-import "../tools"
 
 MENU_ICON_TEXTURES :: [Menu_Icon]cstring {
 	.Info                = "resources/icons/info.png",
@@ -160,26 +159,26 @@ handle_menu_item_clicked :: proc(using ctx: ^Context, item: Menu_Icon) {
 		game.set_walls_down()
 	case .Landscape:
 		floor_panel_ctx.opened = false
-		tools.open_land_tool()
+		game.tools_open_land_tool()
 	case .Wall:
 		floor_panel_ctx.opened = false
-		tools.open_wall_tool()
+		game.tools_open_wall_tool()
 	case .Floor:
 		floor_panel_ctx.opened = true
-		tools.open_floor_tool()
+		game.tools_open_floor_tool()
 	case .Paint:
 		floor_panel_ctx.opened = false
-		tools.open_paint_tool()
+		game.tools_open_paint_tool()
 	case .Furniture:
 		floor_panel_ctx.opened = false
-		tools.open_furniture_tool()
+		game.tools_open_furniture_tool()
 	case .Roof:
 		floor_panel_ctx.opened = false
-		tools.open_roof_tool()
+		game.tools_open_roof_tool()
 	case .Undo:
-		tools.undo()
+		game.tools_undo()
 	case .Redo:
-		tools.redo()
+		game.tools_redo()
 	}
 }
 

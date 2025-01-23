@@ -3,8 +3,7 @@ package ui
 import "core:math/linalg/glsl"
 import "core:strings"
 
-import g "../game"
-import "../tools"
+import game "../game"
 
 FURNITURE_PANEL_TILE_SIZE :: 47
 FURNITURE_PANEL_PADDING :: 4
@@ -13,8 +12,8 @@ Furniture :: struct {
 	icon:      cstring,
 	model:     string,
 	texture:   string,
-	placement: g.Object_Placement_Set,
-	type:      g.Object_Type,
+	placement: game.Object_Placement_Set,
+	type:      game.Object_Type,
 }
 
 furniture_panel_icon_texture_arrays: []u32
@@ -24,9 +23,7 @@ furniture_panel_body :: proc(
 	pos: glsl.vec2,
 	size: glsl.vec2,
 ) {
-	game: ^g.Game_Context = cast(^g.Game_Context)context.user_ptr
-
-	for blueprint, i in game.object_blueprints {
+	for blueprint, i in game.object_blueprints() {
 		border_width := f32(BORDER_WIDTH)
 
 		if icon_button(
@@ -50,7 +47,7 @@ furniture_panel_body :: proc(
 			   bottom_border_width = border_width,
 			   color = DAY_SKY_BLUE,
 		   ) {
-			g.set_object_tool_object(
+			game.set_object_tool_object(
 				 {
 					model = blueprint.model,
 					texture = blueprint.texture,
@@ -66,25 +63,23 @@ furniture_panel_body :: proc(
 }
 
 furniture_panel :: proc(using ctx: ^Context) {
-	if tools.active_tool == .Furniture {
+	if game.tools().active_tool == .Furniture {
 		container(
 			ctx,
-			pos = {0, g.window().size.y - 31 - PANEL_HEIGHT},
-			size = {g.window().size.x, PANEL_HEIGHT},
+			pos = {0, game.window().size.y - 31 - PANEL_HEIGHT},
+			size = {game.window().size.x, PANEL_HEIGHT},
 			left_border_width = 0,
 			body = furniture_panel_body,
 		)
 	}
 }
 
-init_furniture_panel :: proc(
-	game: ^g.Game_Context = cast(^g.Game_Context)context.user_ptr,
-) -> bool {
+init_furniture_panel :: proc() -> bool {
 	furniture_panel_icon_texture_arrays = make(
 		[]u32,
-		len(game.object_blueprints),
+		len(game.object_blueprints()),
 	)
-	for blueprint, i in game.object_blueprints {
+	for blueprint, i in game.object_blueprints() {
 		init_icon_texture_array(
 			&furniture_panel_icon_texture_arrays[i],
 			{strings.unsafe_string_to_cstring(blueprint.icon)},

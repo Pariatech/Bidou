@@ -1,10 +1,10 @@
 package game
 
+import "core:encoding/json"
 import "core:fmt"
 import "core:log"
 import "core:math/linalg/glsl"
 import "core:os"
-import "core:encoding/json"
 import "core:path/filepath"
 import "core:strings"
 
@@ -32,22 +32,24 @@ Object_Blueprint :: struct {
 
 Object_Blueprints :: [dynamic]Object_Blueprint
 
+object_blueprints :: proc() -> ^Object_Blueprints {
+	return &game().object_blueprints
+}
+
 load_object_blueprints :: proc(
 	game: ^Game_Context = cast(^Game_Context)context.user_ptr,
 ) -> bool {
 	return read_object_blueprints_dir("resources/objects", game)
 }
 
-deload_object_blueprints :: proc(
-	game: ^Game_Context = cast(^Game_Context)context.user_ptr,
-) {
-	for blueprint in game.object_blueprints {
+deload_object_blueprints :: proc() {
+	for blueprint in game().object_blueprints {
 		delete(blueprint.name)
 		delete(blueprint.model)
 		delete(blueprint.icon)
 		delete(blueprint.texture)
 	}
-	delete(game.object_blueprints)
+	delete(object_blueprints()^)
 }
 
 make_object_from_blueprint :: proc(
@@ -56,14 +58,13 @@ make_object_from_blueprint :: proc(
 	orientation: Object_Orientation,
 	placement: Object_Placement,
 	light: glsl.vec3 = {1, 1, 1},
-	game: ^Game_Context = cast(^Game_Context)context.user_ptr,
 ) -> (
 	obj: Object,
 	ok: bool,
 ) {
-	for blueprint in game.object_blueprints {
+	for blueprint in object_blueprints() {
 		if blueprint.name == name {
-            bind_model(blueprint.model) or_return
+			bind_model(blueprint.model) or_return
 			return  {
 					pos = pos,
 					light = light,

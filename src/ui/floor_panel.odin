@@ -3,7 +3,6 @@ package ui
 import "core:math/linalg/glsl"
 
 import "../game"
-import "../tools/floor_tool"
 
 Floor_Panel :: struct {
 	opened: bool,
@@ -24,7 +23,7 @@ floor_panel_body :: proc(
 		}
 
 		border_width := f32(BORDER_WIDTH)
-		if floor_tool.active_texture == tex {
+		if game.floor_tool().active_texture == tex {
 			border_width *= 2
 		}
 
@@ -45,7 +44,7 @@ floor_panel_body :: proc(
 			   top_border_width = border_width,
 			   bottom_border_width = border_width,
 		   ) {
-			floor_tool.active_texture = tex
+			game.floor_tool().active_texture = tex
 		}
 
 		i += 1

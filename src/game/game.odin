@@ -7,11 +7,9 @@ Game_Context :: struct {
 	models:            Models_Context,
 	objects:           Objects_Context,
 	shaders:           Shaders_Context,
-	object_tool:       Object_Tool_Context,
 	object_draws:      Object_Draws,
 	object_blueprints: Object_Blueprints,
 	roofs:             Roofs_Context,
-	roof_tool:         Roof_Tool_Context,
 	cutaway:           Cutaway_Context,
 	walls:             Walls_Context,
 	cursor:            Cursor_Context,
@@ -23,6 +21,14 @@ Game_Context :: struct {
 	keyboard:          Keyboard,
 	window:            Window,
 	renderer:          Renderer,
+	// -------------------
+	tools:             Tools,
+	object_tool:       Object_Tool_Context,
+	roof_tool:         Roof_Tool_Context,
+	wall_tool:         Wall_Tool,
+	paint_tool:        Paint_Tool,
+	terrain_tool:      Terrain_Tool,
+	floor_tool:        Floor_Tool,
 }
 
 game :: #force_inline proc() -> ^Game_Context {
@@ -227,6 +233,7 @@ deinit_game :: proc() {
 	deinit_roofs()
 	deinit_walls()
 	tile_triangles_deinit()
+    floor_tool_deinit()
 }
 
 draw_game :: proc(floor: i32) -> bool {
