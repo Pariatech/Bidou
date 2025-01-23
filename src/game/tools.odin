@@ -66,7 +66,7 @@ tools_update :: proc(delta_time: f64) {
 tools_open_wall_tool :: proc() {
 	terrain_tool_deinit()
 	floor_tool_revert_tiles()
-	paint_tool_deinit()
+	paint_tool_clear_previous_walls()
 	close_object_tool()
 	tools_close_roof_tool()
 
@@ -77,7 +77,7 @@ tools_open_wall_tool :: proc() {
 tools_open_land_tool :: proc() {
 	wall_tool_deinit()
 	floor_tool_revert_tiles()
-	paint_tool_deinit()
+	paint_tool_clear_previous_walls()
 	close_object_tool()
 	tools_close_roof_tool()
 
@@ -88,7 +88,7 @@ tools_open_land_tool :: proc() {
 tools_open_floor_tool :: proc() {
 	wall_tool_deinit()
 	terrain_tool_deinit()
-	paint_tool_deinit()
+	paint_tool_clear_previous_walls()
 	close_object_tool()
 	tools_close_roof_tool()
 
@@ -111,7 +111,7 @@ tools_open_furniture_tool :: proc() {
 	floor_tool_revert_tiles()
 	wall_tool_deinit()
 	terrain_tool_deinit()
-	paint_tool_deinit()
+	paint_tool_clear_previous_walls()
 	tools_close_roof_tool()
 
 	tools().active_tool = .Furniture
@@ -132,7 +132,7 @@ tools_open_roof_tool :: proc() {
 	floor_tool_revert_tiles()
 	wall_tool_deinit()
 	terrain_tool_deinit()
-	paint_tool_deinit()
+	paint_tool_clear_previous_walls()
 	close_object_tool()
 
 	init_roof_tool()

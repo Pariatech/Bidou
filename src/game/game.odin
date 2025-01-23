@@ -234,6 +234,7 @@ deinit_game :: proc() {
 	deinit_walls()
 	tile_triangles_deinit()
     floor_tool_deinit()
+    paint_tool_deinit()
 }
 
 draw_game :: proc(floor: i32) -> bool {

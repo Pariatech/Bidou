@@ -10,8 +10,10 @@ CAMERA_SPEED :: 8.0
 CAMERA_ZOOM_SPEED :: 0.05
 CAMERA_ZOOM_MAX :: 2
 CAMERA_ZOOM_MIN :: 0.5
-CAMERA_ANGLE :: f64(math.RAD_PER_DEG * 30)
 CAMERA_DISTANCE :: f64(40)
+CAMERA_PITCH :: f64(math.RAD_PER_DEG * 30)
+// CAMERA_YAW :: f64(math.RAD_PER_DEG * f64(360 - 153.4))
+CAMERA_YAW :: f64(math.RAD_PER_DEG * f64(360 - 135))
 
 Camera :: struct {
 	zoom:                 f64,
@@ -60,9 +62,10 @@ camera_init :: proc() -> bool {
 	camera().zoom = 1
 	camera().distance = CAMERA_DISTANCE
 	camera().translate = glsl.dvec3 {
-		-CAMERA_DISTANCE,
-		math.sqrt(math.pow(CAMERA_DISTANCE, 2) * 2) * math.tan(CAMERA_ANGLE),
-		-CAMERA_DISTANCE,
+		// CAMERA_DISTANCE * math.tan(CAMERA_YAW), 
+		math.sqrt(math.pow(CAMERA_DISTANCE, 2) * 2) * math.cos(CAMERA_YAW), 
+		math.sqrt(math.pow(CAMERA_DISTANCE, 2) * 2) * math.tan(CAMERA_PITCH),
+		math.sqrt(math.pow(CAMERA_DISTANCE, 2) * 2) * math.sin(CAMERA_YAW),
 	}
 
 	return true
