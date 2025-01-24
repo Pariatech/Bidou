@@ -12,8 +12,8 @@ CAMERA_ZOOM_MAX :: 2
 CAMERA_ZOOM_MIN :: 0.5
 CAMERA_DISTANCE :: f64(40)
 CAMERA_PITCH :: f64(math.RAD_PER_DEG * 30)
-// CAMERA_YAW :: f64(math.RAD_PER_DEG * f64(360 - 153.4))
-CAMERA_YAW :: f64(math.RAD_PER_DEG * f64(360 - 135))
+CAMERA_YAW :: f64(math.RAD_PER_DEG * f64(360 - 153.4))
+// CAMERA_YAW :: f64(math.RAD_PER_DEG * f64(360 - 135))
 
 Camera :: struct {
 	zoom:                 f64,
@@ -61,11 +61,12 @@ camera :: proc() -> ^Camera {
 camera_init :: proc() -> bool {
 	camera().zoom = 1
 	camera().distance = CAMERA_DISTANCE
+
+	d := math.sqrt(math.pow(CAMERA_DISTANCE, 2) * 2)
 	camera().translate = glsl.dvec3 {
-		// CAMERA_DISTANCE * math.tan(CAMERA_YAW), 
-		math.sqrt(math.pow(CAMERA_DISTANCE, 2) * 2) * math.cos(CAMERA_YAW), 
-		math.sqrt(math.pow(CAMERA_DISTANCE, 2) * 2) * math.tan(CAMERA_PITCH),
-		math.sqrt(math.pow(CAMERA_DISTANCE, 2) * 2) * math.sin(CAMERA_YAW),
+		d * math.cos(CAMERA_YAW),
+		d * math.tan(CAMERA_PITCH),
+		d * math.sin(CAMERA_YAW),
 	}
 
 	return true
@@ -90,11 +91,8 @@ camera_update :: proc(delta_time: f64) {
 
 	width, height := glfw.GetWindowSize(window().handle)
 
-	movement := glsl.dvec3 {
-		CAMERA_SPEED * delta_time * (camera().zoom + 1),
-		0,
-		CAMERA_SPEED * delta_time * (camera().zoom + 1),
-	}
+	distance := CAMERA_SPEED * delta_time * (camera().zoom + 1)
+	movement := glsl.dvec3{distance, 0, distance}
 
 	movement *= camera().translate / camera().distance
 

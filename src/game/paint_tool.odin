@@ -228,15 +228,7 @@ paint_tool_init :: proc() {
 }
 
 paint_tool_deinit :: proc() {
-	// paint_tool_clear_previous_walls()
-	side_map := PAINT_TOOL_WALL_SIDE_MAP
 	for &axis_walls, axis in paint_tool().previous_walls {
-		for pos, textures in axis_walls {
-			if w, ok := get_wall(pos, axis); ok {
-				w.textures = textures
-				set_wall(pos, axis, w)
-			}
-		}
 		delete(axis_walls)
 	}
     delete(paint_tool().current_command.before)
