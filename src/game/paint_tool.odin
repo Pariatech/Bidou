@@ -195,7 +195,7 @@ Paint_Tool :: struct {
 	position:             glsl.ivec3,
 	side:                 Tile_Triangle_Side,
 	found_wall:           bool,
-	found_wall_intersect: Paint_Tool_Wall_Intersect,
+	found_wall_intersect: Wall_Intersect,
 	found_wall_texture:   Wall_Texture,
 	texture:              Wall_Texture,
 	dirty:                bool,
@@ -214,11 +214,6 @@ Paint_Tool_Command :: struct {
 	after:  map[Paint_Tool_Wall_Key]Wall_Texture,
 }
 
-Paint_Tool_Wall_Intersect :: struct {
-	pos:  glsl.ivec3,
-	axis: Wall_Axis,
-}
-
 paint_tool :: proc() -> ^Paint_Tool {
 	return &game().paint_tool
 }
@@ -231,8 +226,8 @@ paint_tool_deinit :: proc() {
 	for &axis_walls, axis in paint_tool().previous_walls {
 		delete(axis_walls)
 	}
-    delete(paint_tool().current_command.before)
-    delete(paint_tool().current_command.after)
+	delete(paint_tool().current_command.before)
+	delete(paint_tool().current_command.after)
 }
 
 paint_tool_update :: proc() {
@@ -271,10 +266,12 @@ paint_tool_update :: proc() {
 		previous_found_wall_intersect := paint_tool().found_wall_intersect
 
 		paint_tool().found_wall_intersect, paint_tool().found_wall =
-			paint_tool_find_wall_intersect(
-				paint_tool().position,
-				paint_tool().side,
-			)
+			cursor_get_intersect_with_wall(floor.floor)
+		// paint_tool().found_wall_intersect, paint_tool().found_wall =
+		// 	paint_tool_find_wall_intersect(
+		// 		paint_tool().position,
+		// 		paint_tool().side,
+		// 	)
 		paint_tool_clear_previous_walls()
 
 		if mouse_is_button_down(.Left) {
@@ -470,7 +467,7 @@ paint_tool_find_wall_intersect :: proc(
 	position: glsl.ivec3,
 	side: Tile_Triangle_Side,
 ) -> (
-	Paint_Tool_Wall_Intersect,
+	Wall_Intersect,
 	bool,
 ) {
 	switch camera().rotation {
@@ -491,7 +488,7 @@ paint_tool_find_south_west_wall_intersect :: proc(
 	position: glsl.ivec3,
 	side: Tile_Triangle_Side,
 ) -> (
-	Paint_Tool_Wall_Intersect,
+	Wall_Intersect,
 	bool,
 ) {
 	wall_selection_distance := i32(PAINT_TOOL_WALL_SELECTION_DISTANCE)
@@ -659,7 +656,7 @@ paint_tool_find_south_east_wall_intersect :: proc(
 	position: glsl.ivec3,
 	side: Tile_Triangle_Side,
 ) -> (
-	Paint_Tool_Wall_Intersect,
+	Wall_Intersect,
 	bool,
 ) {
 	switch side {
@@ -744,7 +741,7 @@ paint_tool_find_north_east_wall_intersect :: proc(
 	position: glsl.ivec3,
 	side: Tile_Triangle_Side,
 ) -> (
-	Paint_Tool_Wall_Intersect,
+	Wall_Intersect,
 	bool,
 ) {
 	switch side {
@@ -825,7 +822,7 @@ paint_tool_find_north_west_wall_intersect :: proc(
 	position: glsl.ivec3,
 	side: Tile_Triangle_Side,
 ) -> (
-	Paint_Tool_Wall_Intersect,
+	Wall_Intersect,
 	bool,
 ) {
 	switch side {
@@ -1027,7 +1024,11 @@ paint_tool_get_next_left_wall :: proc(
 	Paint_Tool_Next_Wall,
 	bool,
 ) {
-	return paint_tool_get_next_wall(current, texture, PAINT_TOOL_NEXT_LEFT_WALL_MAP)
+	return paint_tool_get_next_wall(
+		current,
+		texture,
+		PAINT_TOOL_NEXT_LEFT_WALL_MAP,
+	)
 }
 
 paint_tool_get_next_right_wall :: proc(
@@ -1037,7 +1038,11 @@ paint_tool_get_next_right_wall :: proc(
 	Paint_Tool_Next_Wall,
 	bool,
 ) {
-	return paint_tool_get_next_wall(current, texture, PAINT_TOOL_NEXT_RIGHT_WALL_MAP)
+	return paint_tool_get_next_wall(
+		current,
+		texture,
+		PAINT_TOOL_NEXT_RIGHT_WALL_MAP,
+	)
 }
 
 paint_tool_get_next_wall :: proc(

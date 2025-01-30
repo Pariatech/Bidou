@@ -1,3 +1,4 @@
 #!/bin/sh
 
-odin test src/
+odin test src/game
+rm game

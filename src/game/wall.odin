@@ -675,6 +675,21 @@ get_wall :: proc(pos: glsl.ivec3, axis: Wall_Axis) -> (Wall, bool) {
 	return {}, false
 }
 
+has_wall :: proc(pos: glsl.ivec3, axis: Wall_Axis) -> bool {
+	switch axis {
+	case .E_W:
+		return has_east_west_wall(pos)
+	case .N_S:
+		return has_north_south_wall(pos)
+	case .NW_SE:
+		return has_north_west_south_east_wall(pos)
+	case .SW_NE:
+		return has_south_west_north_east_wall(pos)
+	}
+
+	return false
+}
+
 has_north_south_wall :: proc(pos: glsl.ivec3) -> bool {
 	return(
 		(pos.x >= 0 && pos.x < WORLD_WIDTH) &&

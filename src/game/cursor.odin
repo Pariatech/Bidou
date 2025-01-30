@@ -21,6 +21,11 @@ Cursor_Ray :: struct {
 	direction: glsl.vec3,
 }
 
+Wall_Intersect :: struct {
+	pos:  glsl.ivec3,
+	axis: Wall_Axis,
+}
+
 init_cursor :: proc() {
 	glfw.SetCursorPosCallback(window().handle, pos_callback)
 }
@@ -75,6 +80,7 @@ on_cursor_tile_intersect :: proc(
 		on_intersect(ctx.intersect_pos)
 	}
 }
+
 cursor_intersect_with_tiles :: proc(
 	on_intersect: proc(_: glsl.vec3),
 	floor: i32,
@@ -82,101 +88,135 @@ cursor_intersect_with_tiles :: proc(
 	ctx := get_cursor_context()
 	dx := ctx.ray.direction.x
 	dz := ctx.ray.direction.z
-	x := ctx.ray.origin.x // + 0.5 * math.sign(dx)
-	z := ctx.ray.origin.z // + 0.5 * math.sign(dz)
-
-
-	// left_x := f32(camera().visible_chunks_start.x * CHUNK_WIDTH)
-	// left_z := z + ((left_x - x) / dx) * dz
-
-	// right_z := f32(camera().visible_chunks_start.y * CHUNK_DEPTH)
-	// right_x := x + ((right_z - z) / dz) * dx
-
-	// if right_x >= f32(camera().visible_chunks_start.x * CHUNK_WIDTH) &&
-	//    right_x <= f32(camera().visible_chunks_end.x * CHUNK_WIDTH) {
-	// 	x = right_x
-	// 	z = right_z
-	// } else if left_z >= f32(camera().visible_chunks_start.y * CHUNK_DEPTH) &&
-	//    left_z <= f32(camera().visible_chunks_end.y * CHUNK_DEPTH) {
-	// 	x = left_x
-	// 	z = left_z
-	// } else {
-	// 	return
-	// }
+	origin := ctx.ray.origin
+	// log.info("before:", origin)
 
 	start_x := f32(camera().visible_chunks_start.x * CHUNK_WIDTH)
-	end_x := f32(camera().visible_chunks_end.x * CHUNK_WIDTH)
-	if x < start_x {
-		z += (start_x - x) / dx * dz
-		x = start_x
-	} else if x >= end_x {
-		z += (end_x - x) / dx * dz
-		x = end_x
+	end_x := f32(camera().visible_chunks_end.x * CHUNK_WIDTH - 1)
+	if origin.x < start_x {
+		origin.yz += (start_x - origin.x) / dx * ctx.ray.direction.yz
+		origin.x = start_x
+	} else if origin.x >= end_x {
+		origin.yz += (end_x - origin.x) / dx * ctx.ray.direction.yz
+		origin.x = end_x
 	}
 
 	start_z := f32(camera().visible_chunks_start.y * CHUNK_WIDTH)
-	end_z := f32(camera().visible_chunks_end.y * CHUNK_WIDTH)
-	if z < start_z {
-		x += (start_z - z) / dz * dx
-		z = start_z
-	} else if z >= end_z {
-		x += (end_z - z) / dz * dx
-		z = end_z
+	end_z := f32(camera().visible_chunks_end.y * CHUNK_WIDTH - 1)
+	if origin.z < start_z {
+		origin.xy += (start_z - origin.z) / dz * ctx.ray.direction.xy
+		origin.z = start_z
+	} else if origin.z >= end_z {
+		origin.xy += (end_z - origin.z) / dz * ctx.ray.direction.xy
+		origin.z = end_z
 	}
 
-	// x += 0.5
-	// z += 0.5
+	// log.info("after:", origin)
 
-	// log.ifo(
-	// 	glsl.vec2{x, z},
-	// 	glsl.vec2{start_x, start_z},
-	// 	glsl.vec2{end_x, end_z},
-	// 	glsl.vec2{dx, dz},
-	// )
+	for origin.x <= f32(end_x) &&
+	    origin.z <= f32(end_z) &&
+	    origin.x + 0.5 >= f32(start_x) &&
+	    origin.z + 0.5 >= f32(start_z) {
+		// log.info(origin)
 
-	// direction := -glsl.normalize(
-	// 	glsl.vec2{f32(math.cos(CAMERA_YAW)), f32(math.sin(CAMERA_YAW))},
-	// )
-	direction := glsl.normalize(ctx.ray.direction.xz)
-
-	// log.info(x, z, direction)
-	for x <= f32(end_x) &&
-	    z <= f32(end_z) &&
-	    x + 0.5 >= f32(start_x) &&
-	    z + 0.5 >= f32(start_z) {
-
-		// log.info(x, z, start_x, start_z, end_x, end_z, direction)
-		// log.info(direction)
-
-		// log.info(next, direction)
-		// next_x := x + 1
-		// next_z := z + 1
-
-		// if x < 0 || z < 0 {continue}
-
-		if cursor_intersect_with_tile(x + 0.5, z + 0.5, on_intersect, floor) {
-            // log.info(math.floor(x + 0.5), math.floor(z + 0.5))
+		if cursor_intersect_with_tile(
+			   origin.x + 0.5,
+			   origin.z + 0.5,
+			   on_intersect,
+			   floor,
+		   ) {
+			// log.info("found!")
 			break
 		}
 
-        log.info(glsl.vec2{x, z}, direction)
-		next := cursor_next_intersect_with_grid({x, z}, direction)
-        log.info(next)
-
-		// if (next.x <= end_x &&
-		// 	   next.x >= start_x &&
-		// 	   cursor_intersect_with_tile(next.x, z, on_intersect, floor)) ||
-		//    next.y <= end_z &&
-		// 	   next.y >= start_z &&
-		// 	   cursor_intersect_with_tile(x, next.y, on_intersect, floor) {
-		// 	break
-		// }
-
-		x = next.x
-		z = next.y
-		// x += 1
-		// z += 1
+		// log.info(ctx.ray.direction)
+		origin = cursor_next_intersect_with_grid(origin, ctx.ray.direction)
+		// log.info("next:", origin)
 	}
+}
+
+cursor_is_intersect_with_wall :: proc(
+	pos: glsl.vec3,
+	floor: i32,
+) -> (
+	Wall_Intersect,
+	bool,
+) {
+	x := pos.x + 0.5
+	z := pos.z + 0.5
+	// x := pos.x
+	// z := pos.z
+	tile_height := get_tile_height(int(x), int(z))
+	y := (pos.y - tile_height) / WALL_HEIGHT
+
+	// log.info(pos, y, floor)
+	if i32(math.floor(y)) > floor || i32(math.floor(y)) < floor {
+		return {}, false
+	}
+
+	if pos.x == math.floor(pos.x) + 0.5 {
+		// log.info(pos)
+		if wall, ok := get_wall({i32(x), i32(y), i32(z)}, .N_S); ok {
+			return {pos = {i32(x), floor, i32(z)}, axis = .N_S}, true
+		}
+	} else if pos.z == math.floor(pos.z) + 0.5 {
+		log.info(pos)
+		if wall, ok := get_wall({i32(x), i32(y), i32(z)}, .E_W); ok {
+			return {pos = {i32(x), floor, i32(z)}, axis = .E_W}, true
+		}
+	}
+
+	if wall, ok := get_wall({i32(x), i32(y), i32(z)}, .NW_SE); ok {
+		return {pos = {i32(x), floor, i32(z)}, axis = .NW_SE}, true
+	}
+
+	if wall, ok := get_wall({i32(x), i32(y), i32(z)}, .SW_NE); ok {
+		return {pos = {i32(x), floor, i32(z)}, axis = .SW_NE}, true
+	}
+
+	return {}, false
+}
+
+cursor_get_intersect_with_wall :: proc(floor: i32) -> (Wall_Intersect, bool) {
+	ctx := get_cursor_context()
+	dx := ctx.ray.direction.x
+	dz := ctx.ray.direction.z
+	origin := ctx.ray.origin
+
+	start_x := f32(camera().visible_chunks_start.x * CHUNK_WIDTH) - 0.5
+	end_x := f32(camera().visible_chunks_end.x * CHUNK_WIDTH) - 0.5
+	if origin.x < start_x {
+		origin.yz += (start_x - origin.x) / dx * ctx.ray.direction.yz
+		origin.x = start_x
+	} else if origin.x >= end_x {
+		origin.yz += (end_x - origin.x) / dx * ctx.ray.direction.yz
+		origin.x = end_x
+	}
+
+	start_z := f32(camera().visible_chunks_start.y * CHUNK_WIDTH) - 0.5
+	end_z := f32(camera().visible_chunks_end.y * CHUNK_WIDTH) - 0.5
+	if origin.z < start_z {
+		origin.xy += (start_z - origin.z) / dz * ctx.ray.direction.xy
+		origin.z = start_z
+	} else if origin.z >= end_z {
+		origin.xy += (end_z - origin.z) / dz * ctx.ray.direction.xy
+		origin.z = end_z
+	}
+
+	for origin.x <= f32(end_x) &&
+	    origin.z <= f32(end_z) &&
+	    origin.x >= f32(start_x) &&
+	    origin.z >= f32(start_z) {
+
+		if wall, ok := cursor_is_intersect_with_wall(origin, floor); ok {
+			log.info(wall)
+			return wall, ok
+		}
+
+		origin = cursor_next_intersect_with_grid(origin, ctx.ray.direction)
+	}
+
+	return {}, false
 }
 
 @(private = "file")
@@ -321,47 +361,76 @@ intersect_with_tile_triangle :: proc(
 
 @(private = "file")
 cursor_next_intersect_with_grid :: proc(
-	start: glsl.vec2,
-	direction: glsl.vec2,
-) -> glsl.vec2 {
+	start: glsl.vec3,
+	direction: glsl.vec3,
+) -> glsl.vec3 {
 
-	next_x :f32
-	next_y :f32
-    if direction.x < 0 {
-        next_x = math.ceil(start.x - 1)
-    } else {
-        next_x = math.floor(start.x + 1)
-    }
+	next_x: f32
+	next_z: f32
+	if direction.x < 0 {
+		next_x = math.ceil(start.x - 1.5) + 0.5
+	} else {
+		next_x = math.floor(start.x + 0.5) + 0.5
+	}
 
-    if direction.y < 0 {
-        next_y = math.ceil(start.y - 1)
-    } else {
-        next_y = math.floor(start.y + 1)
-    }
+	// log.info(next_x)
+	if direction.z < 0 {
+		next_z = math.ceil(start.z - 1.5) + 0.5
+	} else {
+		next_z = math.floor(start.z + 0.5) + 0.5
+	}
+	// log.info(next_z)
 
 	delta_next_x := next_x - start.x
-	delta_next_y := next_y - start.y
+	delta_next_z := next_z - start.z
 
-	next_x_intersect := glsl.vec2 {
-		next_x,
-		start.y + delta_next_x / direction.x * direction.y,
-	}
-	next_y_intersect := glsl.vec2 {
-		start.x + delta_next_y / direction.y * direction.x,
-		next_y,
+	ratio_x := delta_next_x / direction.x
+	ratio_z := delta_next_z / direction.z
+	// log.info(ratio_x, ratio_z)
+
+	if ratio_x < ratio_z {
+		return(
+			 {
+				next_x,
+				start.y + ratio_x * direction.y,
+				start.z + ratio_x * direction.z,
+			} \
+		)
 	}
 
-	if glsl.length(next_x_intersect) <= glsl.length(next_y_intersect) {
-		return next_x_intersect
+	return glsl.vec3 {
+		start.x + ratio_z * direction.x,
+		start.y + ratio_z * direction.y,
+		next_z,
 	}
-
-	return next_y_intersect
 }
 
 @(test)
 cursor_next_interesect_with_grid_test :: proc(t: ^testing.T) {
-    start := glsl.vec2{6.2612123, 24}
-    direction := glsl.vec2{-0.44775912, 0.89415425}
-    result := glsl.vec2{6, 24.521629}
-    testing.expect_value(t, cursor_next_intersect_with_grid(start, direction), result)
+	start := glsl.vec3{6.2612123, 0, 24.5}
+	direction := glsl.vec3{-0.44775912, 0, 0.89415425}
+	result := glsl.vec3{5.7604495, 0, 25.5}
+	testing.expect_value(
+		t,
+		cursor_next_intersect_with_grid(start, direction),
+		result,
+	)
+
+    start = result
+	result = {5.5, 0, 26.0201056}
+	testing.expect_value(
+		t,
+		cursor_next_intersect_with_grid(start, direction),
+		result,
+	)
+
+	start = {8.826623, 6.6925793, 63.5}
+	direction = {0.38777074, -0.5, -0.77436024}
+	result = {9.32738571, 6.046885, 62.5}
+	testing.expect_value(
+		t,
+		cursor_next_intersect_with_grid(start, direction),
+		result,
+	)
+	// direction.z *= -1
 }
