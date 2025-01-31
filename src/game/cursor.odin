@@ -373,20 +373,17 @@ cursor_next_intersect_with_grid :: proc(
 		next_x = math.floor(start.x + 0.5) + 0.5
 	}
 
-	// log.info(next_x)
 	if direction.z < 0 {
 		next_z = math.ceil(start.z - 1.5) + 0.5
 	} else {
 		next_z = math.floor(start.z + 0.5) + 0.5
 	}
-	// log.info(next_z)
 
 	delta_next_x := next_x - start.x
 	delta_next_z := next_z - start.z
 
 	ratio_x := delta_next_x / direction.x
 	ratio_z := delta_next_z / direction.z
-	// log.info(ratio_x, ratio_z)
 
 	if ratio_x < ratio_z {
 		return(
@@ -432,5 +429,4 @@ cursor_next_interesect_with_grid_test :: proc(t: ^testing.T) {
 		cursor_next_intersect_with_grid(start, direction),
 		result,
 	)
-	// direction.z *= -1
 }
