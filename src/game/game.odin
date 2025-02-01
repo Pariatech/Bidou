@@ -21,7 +21,8 @@ Game_Context :: struct {
 	keyboard:          Keyboard,
 	window:            Window,
 	renderer:          Renderer,
-	// -------------------
+    plots:             Plots,
+	// ---------- Tools ---------
 	tools:             Tools,
 	object_tool:       Object_Tool_Context,
 	roof_tool:         Roof_Tool_Context,
@@ -31,7 +32,7 @@ Game_Context :: struct {
 	floor_tool:        Floor_Tool,
 }
 
-game :: #force_inline proc() -> ^Game_Context {
+game :: proc() -> ^Game_Context {
 	return cast(^Game_Context)context.user_ptr
 }
 
@@ -98,6 +99,7 @@ init_game :: proc() -> bool {
 	init_roofs() or_return
 	tile_triangles_init() or_return
 	camera_init() or_return
+    plots_init()
 
 	// add_roof({type = .Half_Hip, start = {0, 0}, end = {0, 1}})
 	// add_roof({type = .Half_Hip, start = {0, 3}, end = {0, 5}})
@@ -235,6 +237,7 @@ deinit_game :: proc() {
 	tile_triangles_deinit()
     floor_tool_deinit()
     paint_tool_deinit()
+    plots_deinit()
 }
 
 draw_game :: proc(floor: i32) -> bool {

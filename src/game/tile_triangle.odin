@@ -143,6 +143,7 @@ Tile_Triangle_Side :: enum {
 Tile_Triangle :: struct {
 	texture:      Tile_Triangle_Texture,
 	mask_texture: Tile_Triangle_Mask,
+	rotation:     Tile_Triangle_Side,
 }
 
 Tile_Triangle_Vertex :: struct {
@@ -204,6 +205,7 @@ tile_triangle_draw_tile_triangle :: proc(
 
 	tile_triangle_side_vertices_map := TILE_TRIANGLE_SIDE_VERTICES_MAP
 	vertices := tile_triangle_side_vertices_map[side]
+    rotation_vertices := tile_triangle_side_vertices_map[Tile_Triangle_Side(int(side + tri.rotation) % len(Tile_Triangle_Side))]
 	for vertex, i in vertices {
 		vertex := vertex
 		vertex.pos *= size
@@ -213,6 +215,7 @@ tile_triangle_draw_tile_triangle :: proc(
 		vertex.light = lights[i]
 		vertex.texcoords.z = f32(tri.texture)
 		vertex.texcoords.w = f32(tri.mask_texture)
+        vertex.texcoords.xy = rotation_vertices[i].texcoords.xy
 		vertex.texcoords.xy *= size
 		append(vertices_buffer, vertex)
 	}
@@ -590,7 +593,11 @@ tile_triangle_load_mask_array :: proc() -> (ok: bool) {
 	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.REPEAT)
 	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.REPEAT)
 
-	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+	gl.TexParameteri(
+		gl.TEXTURE_2D_ARRAY,
+		gl.TEXTURE_MIN_FILTER,
+		gl.LINEAR_MIPMAP_LINEAR,
+	)
 	gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 
 	max_anisotropy: f32

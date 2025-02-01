@@ -12,6 +12,7 @@ Floor_Tool :: struct {
 	drag_start:           glsl.ivec3,
 	drag_start_side:      Tile_Triangle_Side,
 	active_texture:       Tile_Triangle_Texture, // = .Wood_Floor_008,
+	active_rotation:      Tile_Triangle_Side,
 	triangle_mode:        bool, // = false,
 	placing:              bool, // = false,
 	previous_floor_tiles: map[Floor_Tool_Tile_Triangle_Key]Maybe(
@@ -44,7 +45,7 @@ floor_tool :: proc() -> ^Floor_Tool {
 floor_tool_init :: proc() {
 	floor_tool().triangle_mode = false
 	get_floor_context().show_markers = true
-    floor_tool().active_texture = .Wood_Floor_008
+	floor_tool().active_texture = .Wood_Floor_008
 }
 
 floor_tool_deinit :: proc() {
@@ -56,6 +57,7 @@ floor_tool_deinit :: proc() {
 floor_tool_update :: proc() {
 	previous_position := floor_tool().position
 	previous_side := floor_tool().side
+    previous_rotation := floor_tool().active_rotation
 	floor := get_floor_context()
 	on_cursor_tile_intersect(
 		floor_tool_on_intersect,
@@ -63,12 +65,19 @@ floor_tool_update :: proc() {
 		floor.floor,
 	)
 
+	if keyboard_is_key_press(.Key_R) {
+		floor_tool().active_rotation = Tile_Triangle_Side(
+			(int(floor_tool().active_rotation) + 1) % len(Tile_Triangle_Side),
+		)
+	}
+
 	reset :=
 		previous_position != floor_tool().position ||
 		floor.previous_floor != floor.floor ||
 		previous_side != floor_tool().side ||
 		keyboard_is_key_press(.Key_Left_Shift) ||
-		keyboard_is_key_release(.Key_Left_Shift)
+		keyboard_is_key_release(.Key_Left_Shift) ||
+        previous_rotation != floor_tool().active_rotation
 
 	previous_triangle_mode := floor_tool().triangle_mode
 	if keyboard_is_key_down(.Key_Left_Control) &&
@@ -100,15 +109,26 @@ floor_tool_update :: proc() {
 		}
 		if delete_mode {
 			if floor.floor == 0 {
-				floor_tool_flood_fill(pos, floor_tool().side, .Grass_004)
+				floor_tool_flood_fill(
+					pos,
+					floor_tool().side,
+					.Grass_004,
+					.South,
+				)
 			} else if is_tile_flat(pos.xz) {
-				floor_tool_flood_fill(pos, floor_tool().side, .Floor_Marker)
+				floor_tool_flood_fill(
+					pos,
+					floor_tool().side,
+					.Floor_Marker,
+					.South,
+				)
 			}
 		} else {
 			floor_tool_flood_fill(
 				pos,
 				floor_tool().side,
 				floor_tool().active_texture,
+				floor_tool().active_rotation,
 			)
 		}
 
@@ -192,19 +212,23 @@ floor_tool_set_tile_triangle :: proc(
 floor_tool_set_tile :: proc(position: glsl.ivec3, delete_mode: bool) {
 	floor := get_floor_context()
 	active_texture := floor_tool().active_texture
+	active_rotation := floor_tool().active_rotation
 	tile_triangle: Maybe(Tile_Triangle) = Tile_Triangle {
 		texture      = active_texture,
 		mask_texture = .Grid_Mask,
+		rotation     = active_rotation,
 	}
 	if delete_mode {
 		if position.y == 0 {
 			if tile_triangle, ok := &tile_triangle.?; ok {
 				tile_triangle.texture = .Grass_004
+                tile_triangle.rotation = .South
 			}
 		} else if position.y == floor.floor && is_tile_flat(position.xz) {
 			if tile_triangle, ok := &tile_triangle.?; ok {
 				tile_triangle.texture = .Floor_Marker
 				tile_triangle.mask_texture = .Full_Mask
+                tile_triangle.rotation = .South
 			}
 		} else {
 			tile_triangle = nil
@@ -319,6 +343,7 @@ floor_tool_set_tiles :: proc(delete_mode: bool) {
 					pos,
 					floor_tool().side,
 					.Grass_004,
+					.South,
 					start,
 					end,
 					true,
@@ -328,6 +353,7 @@ floor_tool_set_tiles :: proc(delete_mode: bool) {
 					pos,
 					floor_tool().side,
 					.Floor_Marker,
+					.South,
 					start,
 					end,
 					true,
@@ -338,6 +364,7 @@ floor_tool_set_tiles :: proc(delete_mode: bool) {
 				pos,
 				floor_tool().side,
 				floor_tool().active_texture,
+				floor_tool().active_rotation,
 				start,
 				end,
 				true,
@@ -362,6 +389,7 @@ floor_tool_flood_fill :: proc(
 	position: glsl.ivec3,
 	side: Tile_Triangle_Side,
 	texture: Tile_Triangle_Texture,
+	rotation: Tile_Triangle_Side,
 	start: glsl.ivec3 = {0, 0, 0},
 	end: glsl.ivec3 = {WORLD_WIDTH, 0, WORLD_DEPTH},
 	ignore_texture_check: bool = false,
@@ -369,14 +397,15 @@ floor_tool_flood_fill :: proc(
 	tile_triangle, ok := tile_triangle_get_tile_triangle(position, side)
 	if !ok {return}
 	original_texture := tile_triangle.texture
-	if original_texture == texture {return}
+	original_rotation := tile_triangle.rotation
+	if original_texture == texture && original_rotation == rotation {return}
 
 	visited_queue: [dynamic]Floor_Tool_Visited_Tile_Triangle
 	defer delete(visited_queue)
 
 	visited := Floor_Tool_Visited_Tile_Triangle{position, side}
 
-	floor_tool_set_texture(visited, texture)
+	floor_tool_set_texture(visited, texture, rotation)
 
 	append(&visited_queue, visited)
 
@@ -392,6 +421,8 @@ floor_tool_flood_fill :: proc(
 				next_visited,
 				original_texture,
 				texture,
+				original_rotation,
+				rotation,
 				&visited_queue,
 				start,
 				end,
@@ -403,6 +434,8 @@ floor_tool_flood_fill :: proc(
 				next_visited,
 				original_texture,
 				texture,
+				original_rotation,
+				rotation,
 				&visited_queue,
 				start,
 				end,
@@ -415,6 +448,8 @@ floor_tool_flood_fill :: proc(
 				next_visited,
 				original_texture,
 				texture,
+				original_rotation,
+				rotation,
 				&visited_queue,
 				start,
 				end,
@@ -428,6 +463,8 @@ floor_tool_flood_fill :: proc(
 				next_visited,
 				original_texture,
 				texture,
+				original_rotation,
+				rotation,
 				&visited_queue,
 				start,
 				end,
@@ -439,6 +476,8 @@ floor_tool_flood_fill :: proc(
 				next_visited,
 				original_texture,
 				texture,
+				original_rotation,
+				rotation,
 				&visited_queue,
 				start,
 				end,
@@ -451,6 +490,8 @@ floor_tool_flood_fill :: proc(
 				next_visited,
 				original_texture,
 				texture,
+				original_rotation,
+				rotation,
 				&visited_queue,
 				start,
 				end,
@@ -464,6 +505,8 @@ floor_tool_flood_fill :: proc(
 				next_visited,
 				original_texture,
 				texture,
+				original_rotation,
+				rotation,
 				&visited_queue,
 				start,
 				end,
@@ -475,6 +518,8 @@ floor_tool_flood_fill :: proc(
 				next_visited,
 				original_texture,
 				texture,
+				original_rotation,
+				rotation,
 				&visited_queue,
 				start,
 				end,
@@ -487,6 +532,8 @@ floor_tool_flood_fill :: proc(
 				next_visited,
 				original_texture,
 				texture,
+				original_rotation,
+				rotation,
 				&visited_queue,
 				start,
 				end,
@@ -500,6 +547,8 @@ floor_tool_flood_fill :: proc(
 				next_visited,
 				original_texture,
 				texture,
+				original_rotation,
+				rotation,
 				&visited_queue,
 				start,
 				end,
@@ -511,6 +560,8 @@ floor_tool_flood_fill :: proc(
 				next_visited,
 				original_texture,
 				texture,
+				original_rotation,
+				rotation,
 				&visited_queue,
 				start,
 				end,
@@ -523,6 +574,8 @@ floor_tool_flood_fill :: proc(
 				next_visited,
 				original_texture,
 				texture,
+				original_rotation,
+				rotation,
 				&visited_queue,
 				start,
 				end,
@@ -537,6 +590,8 @@ floor_tool_process_next_visited :: proc(
 	to: Floor_Tool_Visited_Tile_Triangle,
 	original_texture: Tile_Triangle_Texture,
 	texture: Tile_Triangle_Texture,
+	original_rotation: Tile_Triangle_Side,
+	rotation: Tile_Triangle_Side,
 	visited_queue: ^[dynamic]Floor_Tool_Visited_Tile_Triangle,
 	start: glsl.ivec3,
 	end: glsl.ivec3,
@@ -553,11 +608,12 @@ floor_tool_process_next_visited :: proc(
 		   from,
 		   to,
 		   original_texture,
+		   original_rotation,
 		   start,
 		   end,
 		   ignore_texture_check,
 	   ) {
-		floor_tool_set_texture(to, texture)
+		floor_tool_set_texture(to, texture, rotation)
 		append(visited_queue, to)
 	}
 }
@@ -565,6 +621,7 @@ floor_tool_process_next_visited :: proc(
 floor_tool_set_texture :: proc(
 	visited: Floor_Tool_Visited_Tile_Triangle,
 	texture: Tile_Triangle_Texture,
+	rotation: Tile_Triangle_Side,
 ) {
 	mask_texture: Tile_Triangle_Mask = .Grid_Mask
 	if texture == .Floor_Marker {
@@ -573,7 +630,11 @@ floor_tool_set_texture :: proc(
 	floor_tool_set_tile_triangle(
 		visited.position,
 		visited.side,
-		Tile_Triangle{texture = texture, mask_texture = mask_texture},
+		Tile_Triangle {
+			texture = texture,
+			mask_texture = mask_texture,
+			rotation = rotation,
+		},
 	)
 }
 
@@ -581,6 +642,7 @@ floor_tool_can_texture :: proc(
 	from: Floor_Tool_Visited_Tile_Triangle,
 	to: Floor_Tool_Visited_Tile_Triangle,
 	texture: Tile_Triangle_Texture,
+	rotation: Tile_Triangle_Side,
 	start: glsl.ivec3,
 	end: glsl.ivec3,
 	ignore_texture_check: bool,
@@ -678,6 +740,11 @@ floor_tool_can_texture :: proc(
 
 	tile_triangle, ok := tile_triangle_get_tile_triangle(to.position, to.side)
 
-	return !ok || ignore_texture_check || tile_triangle.texture == texture
+	return(
+		!ok ||
+		ignore_texture_check ||
+		(tile_triangle.texture == texture &&
+				tile_triangle.rotation == rotation) \
+	)
 	// return !ok || (!ignore_texture_check && tile_triangle.texture == texture)
 }
