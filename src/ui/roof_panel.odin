@@ -293,7 +293,7 @@ roof_panel :: proc(using ctx: ^Context) {
 	if game.tools().active_tool == .Roof {
 		container(
 			ctx,
-			pos = {0, game.window().size.y - 31 - PANEL_HEIGHT},
+			pos = {0, game.window_get_scaled_size().y - 31 - PANEL_HEIGHT},
 			size = {ROOF_PANEL_ROOF_HEIGHT_PANEL_WIDTH, PANEL_HEIGHT},
 			left_border_width = 0,
 			body = roof_panel_roof_height_panel,
@@ -303,7 +303,7 @@ roof_panel :: proc(using ctx: ^Context) {
 			ctx,
 			pos =  {
 				ROOF_PANEL_ROOF_HEIGHT_PANEL_WIDTH,
-				game.window().size.y - 31 - PANEL_HEIGHT,
+				game.window_get_scaled_size().y - 31 - PANEL_HEIGHT,
 			},
 			size = {ROOF_PANEL_ROOF_CONTROLS_PANEL_WIDTH, PANEL_HEIGHT},
 			left_border_width = 0,
@@ -315,7 +315,7 @@ roof_panel :: proc(using ctx: ^Context) {
 			pos =  {
 				ROOF_PANEL_ROOF_HEIGHT_PANEL_WIDTH +
 				ROOF_PANEL_ROOF_CONTROLS_PANEL_WIDTH,
-				game.window().size.y - 31 - PANEL_HEIGHT,
+				game.window_get_scaled_size().y - 31 - PANEL_HEIGHT,
 			},
 			size = {ROOF_PANEL_ROOF_PANEL_WIDTH, PANEL_HEIGHT},
 			left_border_width = 0,
@@ -328,10 +328,10 @@ roof_panel :: proc(using ctx: ^Context) {
 				ROOF_PANEL_ROOF_HEIGHT_PANEL_WIDTH +
 				ROOF_PANEL_ROOF_CONTROLS_PANEL_WIDTH +
 				ROOF_PANEL_ROOF_PANEL_WIDTH,
-				game.window().size.y - 31 - PANEL_HEIGHT,
+				game.window_get_scaled_size().y - 31 - PANEL_HEIGHT,
 			},
 			size =  {
-				game.window().size.x -
+				game.window_get_scaled_size().x -
 				ROOF_PANEL_ROOF_HEIGHT_PANEL_WIDTH -
 				ROOF_PANEL_ROOF_CONTROLS_PANEL_WIDTH -
 				ROOF_PANEL_ROOF_PANEL_WIDTH,

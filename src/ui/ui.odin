@@ -130,8 +130,8 @@ deinit :: proc(using ctx: ^Context) {
 to_screen_pos :: proc(pos: glsl.vec2) -> glsl.vec2 {
 	return(
 		 {
-			pos.x / game.window().size.x * 2 - 1,
-			-(pos.y / game.window().size.y * 2 - 1),
+			pos.x / game.window_get_scaled_size().x * 2 - 1,
+			-(pos.y / game.window_get_scaled_size().y * 2 - 1),
 		} \
 	)
 }
@@ -225,7 +225,7 @@ update :: proc(using ctx: ^Context) {
 
 	container(
 		ctx,
-		pos = {0, game.window().size.y - 32},
+		pos = {0, game.window_get_scaled_size().y - 32},
 		size = {len(Menu_Icon) * 31, 32},
 		body = menu,
 	)

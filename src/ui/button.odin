@@ -1,7 +1,9 @@
 package ui
 
-import "../game"
+import "core:log"
 import "core:math/linalg/glsl"
+
+import "../game"
 
 Button :: struct {}
 
@@ -47,10 +49,11 @@ button :: proc(
 
 	if game.mouse_is_button_press(.Left) {
         cursor := game.get_cursor_context()
-		if cursor.pos.x >= pos.x &&
-		   cursor.pos.x < pos.x + size.x &&
-		   cursor.pos.y >= pos.y &&
-		   cursor.pos.y < pos.y + size.y {
+        log.info(cursor.pos, pos.x * game.window().scale.x, (pos.x + size.x) * game.window().scale.x)
+		if cursor.pos.x >= pos.x * game.window().scale.x &&
+		   cursor.pos.x < (pos.x + size.x) * game.window().scale.x &&
+		   cursor.pos.y >= pos.y * game.window().scale.y &&
+		   cursor.pos.y < (pos.y + size.y) * game.window().scale.y {
 			game.mouse_capture(.Left)
 
 			return true
@@ -99,10 +102,10 @@ icon_button :: proc(
 
 	if game.mouse_is_button_press(.Left) {
         cursor := game.get_cursor_context()
-		if cursor.pos.x >= pos.x &&
-		   cursor.pos.x < pos.x + size.x &&
-		   cursor.pos.y >= pos.y &&
-		   cursor.pos.y < pos.y + size.y {
+		if cursor.pos.x >= pos.x * game.window().scale.x &&
+		   cursor.pos.x < (pos.x + size.x) * game.window().scale.x &&
+		   cursor.pos.y >= pos.y * game.window().scale.y &&
+		   cursor.pos.y < (pos.y + size.y) * game.window().scale.y {
 			game.mouse_capture(.Left)
 
 			return true

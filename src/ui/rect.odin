@@ -180,9 +180,7 @@ draw_rect :: proc(using ctx: ^Context, rect: Rect) {
 	// log.info(rect)
 	for &v in vertices {
 		v.start = {rect.x, rect.y} * game.window().scale
-		v.end = {rect.x + rect.w, rect.y + rect.h} * game.window().scale
-		// v.start = to_screen_pos({rect.x, rect.y})
-		// v.end = to_screen_pos({rect.x + rect.w, rect.y + rect.h})
+		v.end = ({rect.x, rect.y} + {rect.w, rect.h}) * game.window().scale
 		v.color = rect.color
 		v.left_border_width = rect.left_border_width * game.window().scale.x
 		v.right_border_width = rect.right_border_width * game.window().scale.x
@@ -196,6 +194,10 @@ draw_rect :: proc(using ctx: ^Context, rect: Rect) {
 		len(vertices) * size_of(Rect_Vertex),
 		raw_data(&vertices),
 	)
+
+    // start := vertices[0].pos
+    // size := vertices[2].pos - start
+    // gl.Viewport(start.x, start.y, size.x, size.y)
 	gl.DrawArrays(gl.TRIANGLES, 0, i32(len(vertices)))
 }
 

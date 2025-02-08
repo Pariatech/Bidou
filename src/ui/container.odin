@@ -44,7 +44,8 @@ container :: proc(
 	body(ctx, pos, size)
 
 	if cursor_in(pos, size) {
-		if game.mouse_is_button_press(.Left) || game.mouse_is_button_up(.Left) {
+		if game.mouse_is_button_press(.Left) ||
+		   game.mouse_is_button_up(.Left) {
 			focus = true
 		}
 		if focus {
@@ -54,11 +55,11 @@ container :: proc(
 }
 
 cursor_in :: proc(pos: glsl.vec2, size: glsl.vec2) -> bool {
-    cursor := game.get_cursor_context()
+	cursor := game.get_cursor_context()
 	return(
-		cursor.pos.x >= pos.x &&
-		cursor.pos.x < pos.x + size.x &&
-		cursor.pos.y >= pos.y &&
-		cursor.pos.y < pos.y + size.y \
+		cursor.pos.x >= pos.x * game.window().scale.x &&
+		cursor.pos.x < (pos.x + size.x) * game.window().scale.x &&
+		cursor.pos.y >= pos.y * game.window().scale.y &&
+		cursor.pos.y < (pos.y + size.y) * game.window().scale.y \
 	)
 }

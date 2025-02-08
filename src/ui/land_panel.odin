@@ -197,7 +197,7 @@ land_panel :: proc(using ctx: ^Context) {
 	if game.tools().active_tool == .Terrain {
 		container(
 			ctx,
-			pos = {0, game.window().size.y - 31 - PANEL_HEIGHT},
+			pos = {0, game.window_get_scaled_size().y - 31 - PANEL_HEIGHT},
 			size =  {
 				LAND_PANEL_BRUSH_TILE_SIZE + LAND_PANEL_TILE_SIZE + 8,
 				PANEL_HEIGHT,
@@ -210,7 +210,7 @@ land_panel :: proc(using ctx: ^Context) {
 			ctx,
 			pos =  {
 				LAND_PANEL_BRUSH_TILE_SIZE + LAND_PANEL_TILE_SIZE + 8,
-				game.window().size.y - 31 - PANEL_HEIGHT,
+				game.window_get_scaled_size().y - 31 - PANEL_HEIGHT,
 			},
 			size = {(LAND_PANEL_TILE_SIZE + 2) * 3 + 6, PANEL_HEIGHT},
 			body = land_panel_body,

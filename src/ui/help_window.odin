@@ -157,7 +157,7 @@ help_window_body :: proc(
 
 help_window :: proc(using ctx: ^Context) {
 	using help_window_ctx
-	x := game.window().size.x - HELP_WINDOW_WIDTH
+	x := game.window_get_scaled_size().x - HELP_WINDOW_WIDTH
 	container(
 		ctx,
 		pos = {x, 0},

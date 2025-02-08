@@ -120,7 +120,7 @@ camera_update :: proc(delta_time: f64) {
 	)
 	aspect_ratio := f64(height) / f64(width)
 	scale := f64(width) / (math.pow(f64(2.8284), 5) / camera().zoom)
-	scale *= f64(window().scale.y)
+	// scale *= f64(window().scale.y)
 
 	camera().left = scale
 	camera().right = -scale

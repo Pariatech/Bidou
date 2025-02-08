@@ -66,8 +66,8 @@ furniture_panel :: proc(using ctx: ^Context) {
 	if game.tools().active_tool == .Furniture {
 		container(
 			ctx,
-			pos = {0, game.window().size.y - 31 - PANEL_HEIGHT},
-			size = {game.window().size.x, PANEL_HEIGHT},
+			pos = {0, game.window_get_scaled_size().y - 31 - PANEL_HEIGHT},
+			size = {game.window_get_scaled_size().x, PANEL_HEIGHT},
 			left_border_width = 0,
 			body = furniture_panel_body,
 		)
