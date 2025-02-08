@@ -2,6 +2,7 @@ package game
 
 import "base:runtime"
 import "core:log"
+import "core:fmt"
 import "core:math/linalg/glsl"
 
 import gl "vendor:OpenGL"
@@ -14,6 +15,7 @@ Window :: struct {
 	handle: glfw.WindowHandle,
 	size:   glsl.vec2,
 	scale:  glsl.vec2,
+    dpi: glsl.vec2,
 }
 
 window :: proc() -> ^Window {
@@ -42,22 +44,26 @@ window_init :: proc(title: cstring) -> (ok: bool = true) {
 		nil,
 	)
 
+	glfw.SetWindowUserPointer(window().handle, context.user_ptr)
 	glfw.SetWindowSizeCallback(window().handle, window_size_callback)
 
 	window().scale.x, window().scale.y = glfw.GetWindowContentScale(
 		window().handle,
 	)
 	// window().scale = {2, 2} // There's a bug with this
-	dpi: glsl.vec2
-	dpi.x, dpi.y = glfw.GetMonitorContentScale(glfw.GetPrimaryMonitor())
+	window().dpi.x, window().dpi.y = glfw.GetMonitorContentScale(glfw.GetPrimaryMonitor())
 	log.debug("Window scale:", window().scale)
-	log.debug("Screen scale:", dpi)
+	log.debug("Screen scale:", window().dpi)
 
-	glfw.SetWindowUserPointer(window().handle, context.user_ptr)
 
 	// glfw.GetFramebufferSize()
 
 	return
+}
+
+window_update :: proc() {
+	window().scale.x, window().scale.y = glfw.GetWindowContentScale(window().handle)
+	window().dpi.x, window().dpi.y = glfw.GetMonitorContentScale(glfw.GetPrimaryMonitor())
 }
 
 window_deinit :: proc() {
@@ -74,6 +80,9 @@ window_size_callback :: proc "c" (
 
 	window().size.x = f32(width)
 	window().size.y = f32(height)
+	gl.Viewport(0, 0, width, height)
+
+    // renderer().framebuffer_resized = true
 }
 
 window_get_scaled_size :: proc() -> glsl.vec2 {

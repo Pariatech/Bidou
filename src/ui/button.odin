@@ -42,8 +42,8 @@ button :: proc(
 		txt,
 		ah = .CENTER,
 		av = .MIDDLE,
-		clip_start = pos,
-		clip_end = pos + size,
+		clip_start = pos * game.window().dpi,
+		clip_end = (pos + size) * game.window().dpi,
 		size = txt_size,
 	)
 

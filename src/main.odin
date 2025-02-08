@@ -5,6 +5,7 @@ import "core:log"
 import "core:math/linalg/glsl"
 import "core:os"
 import "core:time"
+import "core:fmt"
 import "vendor:glfw"
 
 import "game"
@@ -131,6 +132,8 @@ start :: proc() -> (ok: bool = false) {
 		}
 
 		glfw.PollEvents()
+
+        game.window_update()
 
 		// log.debug("Window:", glfw.GetWindowSize(window.handle))
 		// log.debug("Frambuffer:", glfw.GetFramebufferSize(window.handle))

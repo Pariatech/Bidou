@@ -179,8 +179,8 @@ draw_rect :: proc(using ctx: ^Context, rect: Rect) {
 
 	// log.info(rect)
 	for &v in vertices {
-		v.start = {rect.x, rect.y} * game.window().scale
-		v.end = ({rect.x, rect.y} + {rect.w, rect.h}) * game.window().scale
+		v.start = {rect.x, rect.y} * game.window().scale * game.window().dpi
+		v.end = ({rect.x, rect.y} + {rect.w, rect.h}) * game.window().scale * game.window().dpi
 		v.color = rect.color
 		v.left_border_width = rect.left_border_width * game.window().scale.x
 		v.right_border_width = rect.right_border_width * game.window().scale.x

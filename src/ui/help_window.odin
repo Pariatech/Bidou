@@ -138,11 +138,11 @@ help_window_body :: proc(
 		ah = .LEFT,
 		av = .TOP,
 		size = 18,
-		clip_start = pos + HELP_WINDOW_PADDING,
-		clip_end =  {
+		clip_start = (pos + HELP_WINDOW_PADDING) * game.window().dpi,
+		clip_end =  ({
 			pos.x + HELP_WINDOW_WIDTH - HELP_WINDOW_PADDING,
 			pos.y + HELP_WINDOW_BODY_HEIGHT - HELP_WINDOW_PADDING,
-		},
+		}) * game.window().dpi,
 	)
 
 	scroll_bar(

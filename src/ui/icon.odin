@@ -244,8 +244,8 @@ draw_icon :: proc(using ctx: ^Context, using icon: Icon) {
 	vertices[5].texcoord.y += bottom_padding / size.y
 
 	for &v in vertices {
-		v.start = pos * game.window().scale
-		v.end = (pos + size) * game.window().scale
+		v.start = pos * game.window().scale * game.window().dpi
+		v.end = (pos + size) * game.window().scale * game.window().dpi
 		v.color = color
 		v.texcoord.z = f32(texture)
 

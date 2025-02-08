@@ -169,7 +169,7 @@ renderer_deinit :: proc() {
 renderer_begin_draw :: proc() {
 	if (renderer().framebuffer_resized) {
 		width, height := glfw.GetWindowSize(window().handle)
-		gl.Viewport(0, 0, width, height)
+		gl.Viewport(0, 0, i32(f32(width) * window().dpi.x), i32(f32(height) * window().dpi.y))
 	}
 
 	renderer().framebuffer_resized = false
