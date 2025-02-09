@@ -50,8 +50,12 @@ window_init :: proc(title: cstring) -> (ok: bool = true) {
 	window().scale.x, window().scale.y = glfw.GetWindowContentScale(
 		window().handle,
 	)
-	// window().scale = {2, 2} // There's a bug with this
-	window().dpi.x, window().dpi.y = glfw.GetMonitorContentScale(glfw.GetPrimaryMonitor())
+	// window().dpi.x, window().dpi.y = glfw.GetMonitorContentScale(glfw.GetPrimaryMonitor())
+    window().dpi = {1, 1}
+
+	window().scale = {2, 2} // There's a bug with this
+	// window().dpi = {2, 2} // There's a bug with this
+
 	log.debug("Window scale:", window().scale)
 	log.debug("Screen scale:", window().dpi)
 
@@ -62,8 +66,8 @@ window_init :: proc(title: cstring) -> (ok: bool = true) {
 }
 
 window_update :: proc() {
-	window().scale.x, window().scale.y = glfw.GetWindowContentScale(window().handle)
-	window().dpi.x, window().dpi.y = glfw.GetMonitorContentScale(glfw.GetPrimaryMonitor())
+	// window().scale.x, window().scale.y = glfw.GetWindowContentScale(window().handle)
+	// window().dpi.x, window().dpi.y = glfw.GetMonitorContentScale(glfw.GetPrimaryMonitor())
 }
 
 window_deinit :: proc() {
