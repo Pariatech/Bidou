@@ -1,9 +1,9 @@
 package game
 
-import "core:fmt"
 import "core:log"
 import "core:math"
 import "core:math/linalg/glsl"
+import "core:time"
 
 
 Floor_Tool :: struct {
@@ -57,7 +57,7 @@ floor_tool_deinit :: proc() {
 floor_tool_update :: proc() {
 	previous_position := floor_tool().position
 	previous_side := floor_tool().side
-    previous_rotation := floor_tool().active_rotation
+	previous_rotation := floor_tool().active_rotation
 	floor := get_floor_context()
 	on_cursor_tile_intersect(
 		floor_tool_on_intersect,
@@ -77,7 +77,7 @@ floor_tool_update :: proc() {
 		previous_side != floor_tool().side ||
 		keyboard_is_key_press(.Key_Left_Shift) ||
 		keyboard_is_key_release(.Key_Left_Shift) ||
-        previous_rotation != floor_tool().active_rotation
+		previous_rotation != floor_tool().active_rotation
 
 	previous_triangle_mode := floor_tool().triangle_mode
 	if keyboard_is_key_down(.Key_Left_Control) &&
@@ -210,25 +210,28 @@ floor_tool_set_tile_triangle :: proc(
 }
 
 floor_tool_set_tile :: proc(position: glsl.ivec3, delete_mode: bool) {
+	if !lots_inside_active_lot(position.xz) {
+		return
+	}
 	floor := get_floor_context()
 	active_texture := floor_tool().active_texture
 	active_rotation := floor_tool().active_rotation
 	tile_triangle: Maybe(Tile_Triangle) = Tile_Triangle {
 		texture      = active_texture,
-		mask_texture = .Full_Mask,
+		mask_texture = .Grid_Mask,
 		rotation     = active_rotation,
 	}
 	if delete_mode {
 		if position.y == 0 {
 			if tile_triangle, ok := &tile_triangle.?; ok {
 				tile_triangle.texture = .Grass_004
-                tile_triangle.rotation = .South
+				tile_triangle.rotation = .South
 			}
 		} else if position.y == floor.floor && is_tile_flat(position.xz) {
 			if tile_triangle, ok := &tile_triangle.?; ok {
 				tile_triangle.texture = .Floor_Marker
 				tile_triangle.mask_texture = .Full_Mask
-                tile_triangle.rotation = .South
+				tile_triangle.rotation = .South
 			}
 		} else {
 			tile_triangle = nil
@@ -333,9 +336,15 @@ floor_tool_set_tiles :: proc(delete_mode: bool) {
 	start.z = min(floor_tool().drag_start.z, floor_tool().position.y)
 	end.z = max(floor_tool().drag_start.z, floor_tool().position.y)
 
-	log.info(floor_tool().drag_start)
+	start.xz = glsl.max(start.xz, lots_active_lot_start_pos())
+	end.xz = glsl.min(end.xz, lots_active_lot_end_pos() - {1, 1})
+
+	drag_start := floor_tool().drag_start
+	drag_start.xz = glsl.max(drag_start.xz, lots_active_lot_start_pos())
+	drag_start.xz = glsl.min(drag_start.xz, lots_active_lot_end_pos() - {1, 1})
+
 	for floor in start.y ..= end.y {
-		pos := floor_tool().drag_start
+		pos := drag_start
 		pos.y = floor
 		if delete_mode {
 			if floor == 0 {
@@ -598,10 +607,9 @@ floor_tool_process_next_visited :: proc(
 	ignore_texture_check: bool,
 ) {
 	if ignore_texture_check {
-		for key in floor_tool().previous_floor_tiles {
-			if key.pos == to.position && key.side == to.side {
-				return
-			}
+		if (Floor_Tool_Tile_Triangle_Key{pos = to.position, side = to.side} in
+			   floor_tool().previous_floor_tiles) {
+			return
 		}
 	}
 	if floor_tool_can_texture(

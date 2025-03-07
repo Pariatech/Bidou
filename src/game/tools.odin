@@ -207,7 +207,6 @@ tools_delete_undo :: proc(undo: Tools_Command) {
 }
 
 tools_add_command :: proc(command: Tools_Command) {
-	log.debug(command)
 	if len(tools().undos) == TOOLS_MAX_UNDOS {
 		tools_delete_undo(pop(&tools().undos))
 	}
