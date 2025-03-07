@@ -21,7 +21,7 @@ Game_Context :: struct {
 	keyboard:          Keyboard,
 	window:            Window,
 	renderer:          Renderer,
-    plots:             Plots,
+	lots:              Lots,
 	// ---------- Tools ---------
 	tools:             Tools,
 	object_tool:       Object_Tool_Context,
@@ -93,13 +93,28 @@ get_tile_triangles_context :: proc() -> ^Tile_Triangle_Context {
 }
 
 init_game :: proc() -> bool {
+	if (!renderer_init()) do return false
+
+	init_wall_renderer() or_return
+	keyboard_init()
+	mouse_init()
+	init_cursor()
+	init_terrain()
+	load_models() or_return
+	init_objects() or_return
+
+    lots_init()
+
+	init_cutaways()
+
+	floor_tool_init()
+	terrain_tool_init()
+    init_object_tool()
 	load_object_blueprints() or_return
 	init_object_draws() or_return
-	init_object_tool()
 	init_roofs() or_return
 	tile_triangles_init() or_return
 	camera_init() or_return
-    plots_init()
 
 	// add_roof({type = .Half_Hip, start = {0, 0}, end = {0, 1}})
 	// add_roof({type = .Half_Hip, start = {0, 3}, end = {0, 5}})
@@ -225,19 +240,27 @@ init_game :: proc() -> bool {
 		},
 	)
 
+    world_init()
+
 	return true
 }
 
 deinit_game :: proc() {
-	deload_object_blueprints()
+    renderer_deinit()
+    keyboard_deinit()
+    mouse_deinit()
+    tools_deinit()
+    delete_textures()
 	deinit_object_draws()
 	deinit_object_tool()
 	deinit_roofs()
 	deinit_walls()
 	tile_triangles_deinit()
-    floor_tool_deinit()
-    paint_tool_deinit()
-    plots_deinit()
+	floor_tool_deinit()
+	paint_tool_deinit()
+	lots_deinit()
+    delete_objects()
+    deload_object_blueprints()
 }
 
 draw_game :: proc(floor: i32) -> bool {

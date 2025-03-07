@@ -215,7 +215,7 @@ floor_tool_set_tile :: proc(position: glsl.ivec3, delete_mode: bool) {
 	active_rotation := floor_tool().active_rotation
 	tile_triangle: Maybe(Tile_Triangle) = Tile_Triangle {
 		texture      = active_texture,
-		mask_texture = .Grid_Mask,
+		mask_texture = .Full_Mask,
 		rotation     = active_rotation,
 	}
 	if delete_mode {
@@ -625,7 +625,7 @@ floor_tool_set_texture :: proc(
 ) {
 	mask_texture: Tile_Triangle_Mask = .Grid_Mask
 	if texture == .Floor_Marker {
-		mask_texture = .Full_Mask
+		mask_texture = .Grid_Mask
 	}
 	floor_tool_set_tile_triangle(
 		visited.position,

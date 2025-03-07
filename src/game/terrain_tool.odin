@@ -623,7 +623,11 @@ terrain_tool_cleanup :: proc() {
 
 		for x in start_x ..< end_x {
 			for z in start_z ..< end_z {
-				tile_triangle_set_tile_mask_texture({x, 0, z}, .Grid_Mask)
+                mask := Tile_Triangle_Mask.Full_Mask
+                if lots_inside_active_lot({x, z}) {
+                    mask = .Grid_Mask
+                }
+				tile_triangle_set_tile_mask_texture({x, 0, z}, mask)
 			}
 		}
 
@@ -656,7 +660,11 @@ terrain_tool_cleanup :: proc() {
 		)
 		for x in start_x ..< end_x {
 			for z in start_z ..< end_z {
-				tile_triangle_set_tile_mask_texture({x, 0, z}, .Grid_Mask)
+                mask := Tile_Triangle_Mask.Full_Mask
+                if lots_inside_active_lot({x, z}) {
+                    mask = .Grid_Mask
+                }
+				tile_triangle_set_tile_mask_texture({x, 0, z}, mask)
 			}
 		}
 		terrain_tool_mark_array_dirty(

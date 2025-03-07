@@ -74,38 +74,8 @@ start :: proc() -> (ok: bool = false) {
 		glfw.SwapInterval(1)
 	}
 
-	if (!game.renderer_init()) do return
-	defer game.renderer_deinit()
-
-	game.init_wall_renderer() or_return
-
-	game.keyboard_init()
-	defer game.keyboard_deinit()
-	game.mouse_init()
-	defer game.mouse_deinit()
-	game.init_cursor()
-
-	game.init_terrain()
-
-	game.load_models() or_return
-
-	game.init_objects() or_return
-
-	game.floor_tool_init()
-	game.terrain_tool_init()
-
-	game.tools_init()
-	defer game.tools_deinit()
-
-	game.init_cutaways()
-
-	defer game.delete_textures()
-	defer game.delete_objects()
-
 	game.init_game() or_return
 	defer game.deinit_game()
-
-	game.world_init()
 
 	ui.init(&ui_ctx) or_return
 	defer ui.deinit(&ui_ctx)

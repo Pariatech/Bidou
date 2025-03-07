@@ -175,15 +175,15 @@ tools_redo :: proc() {
 	}
 }
 
-tools_init :: proc() {
-}
-
 tools_deinit :: proc() {
 	tools_delete_undos()
 	tools_delete_redos()
 
 	delete(tools().undos)
 	delete(tools().redos)
+
+    delete(terrain_tool().current_command.before)
+    delete(terrain_tool().current_command.after)
 }
 
 tools_delete_undos :: proc() {

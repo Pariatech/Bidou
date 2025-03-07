@@ -211,7 +211,8 @@ tile_triangle_draw_tile_triangle :: proc(
 
 	tile_triangle_side_vertices_map := TILE_TRIANGLE_SIDE_VERTICES_MAP
 	vertices := tile_triangle_side_vertices_map[side]
-    rotation_vertices := tile_triangle_side_vertices_map[Tile_Triangle_Side(int(side + tri.rotation) % len(Tile_Triangle_Side))]
+	rotation_vertices :=
+		tile_triangle_side_vertices_map[Tile_Triangle_Side(int(side + tri.rotation) % len(Tile_Triangle_Side))]
 	for vertex, i in vertices {
 		vertex := vertex
 		vertex.pos *= size
@@ -221,7 +222,7 @@ tile_triangle_draw_tile_triangle :: proc(
 		vertex.light = lights[i]
 		vertex.texcoords.z = f32(tri.texture)
 		vertex.texcoords.w = f32(tri.mask_texture)
-        vertex.texcoords.xy = rotation_vertices[i].texcoords.xy
+		vertex.texcoords.xy = rotation_vertices[i].texcoords.xy
 		vertex.texcoords.xy *= size
 		append(vertices_buffer, vertex)
 	}
@@ -478,6 +479,13 @@ tile_triangle_chunk_init :: proc() {
 	ctx := get_tile_triangles_context()
 	for cx in 0 ..< WORLD_CHUNK_WIDTH {
 		for cz in 0 ..< WORLD_CHUNK_DEPTH {
+			mask := Tile_Triangle_Mask.Full_Mask
+			if lots().active_lot.start.x <= i32(cx) &&
+			   lots().active_lot.start.y <= i32(cz) &&
+			   i32(cx) < lots().active_lot.end.x &&
+			   i32(cz) < lots().active_lot.end.y {
+                mask = .Grid_Mask
+			}
 			chunk := &ctx.chunks[0][cx][cz]
 			for x in 0 ..< CHUNK_WIDTH {
 				for z in 0 ..< CHUNK_DEPTH {
@@ -485,7 +493,7 @@ tile_triangle_chunk_init :: proc() {
 						chunk.triangles[{x = cx * CHUNK_WIDTH + x, z = cz * CHUNK_DEPTH + z, side = side}] =
 							Tile_Triangle {
 								texture      = .Grass_004,
-								mask_texture = .Grid_Mask,
+								mask_texture = mask,
 							}
 					}
 				}
