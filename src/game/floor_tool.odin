@@ -107,6 +107,9 @@ floor_tool_update :: proc() {
 			floor.floor,
 			floor_tool().position.y,
 		}
+
+		start := lots_active_lot_start_pos()
+		end := lots_active_lot_end_pos()
 		if delete_mode {
 			if floor.floor == 0 {
 				floor_tool_flood_fill(
@@ -114,6 +117,8 @@ floor_tool_update :: proc() {
 					floor_tool().side,
 					.Grass_004,
 					.South,
+					{start.x, 0, start.y},
+					{end.x, 0, end.y},
 				)
 			} else if is_tile_flat(pos.xz) {
 				floor_tool_flood_fill(
@@ -121,6 +126,8 @@ floor_tool_update :: proc() {
 					floor_tool().side,
 					.Floor_Marker,
 					.South,
+					{start.x, 0, start.y},
+					{end.x, 0, end.y},
 				)
 			}
 		} else {
@@ -129,6 +136,8 @@ floor_tool_update :: proc() {
 				floor_tool().side,
 				floor_tool().active_texture,
 				floor_tool().active_rotation,
+				{start.x, 0, start.y},
+				{end.x, 0, end.y},
 			)
 		}
 
@@ -399,8 +408,8 @@ floor_tool_flood_fill :: proc(
 	side: Tile_Triangle_Side,
 	texture: Tile_Triangle_Texture,
 	rotation: Tile_Triangle_Side,
-	start: glsl.ivec3 = {0, 0, 0},
-	end: glsl.ivec3 = {WORLD_WIDTH, 0, WORLD_DEPTH},
+	start: glsl.ivec3,
+	end: glsl.ivec3,
 	ignore_texture_check: bool = false,
 ) {
 	tile_triangle, ok := tile_triangle_get_tile_triangle(position, side)
