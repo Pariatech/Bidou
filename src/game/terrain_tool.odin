@@ -469,6 +469,7 @@ terrain_tool_intersect_with_floor :: proc(x, z: i32) -> bool {
 terrain_tool_set_terrain_height :: proc(x, z: i32, height: f32) {
 	if terrain_tool_intersect_with_wall(x, z) {return}
 	if terrain_tool_intersect_with_floor(x, z) {return}
+    if !lots_full_inside_active_lot({x, z}) {return}
 
 	terrain := get_terrain_context()
 	if !({x, z} in terrain_tool().current_command.before) {
@@ -563,6 +564,14 @@ terrain_tool_adjust_points :: proc(x, z, w, h: int, movement: f32) {
 		end_x := min(max(x + i, 0), WORLD_WIDTH)
 		start_z := max(z - i, 0)
 		end_z := min(max(z + i, 0), WORLD_DEPTH)
+
+        lot_start := lots_active_lot_start_pos()
+        lot_end := lots_active_lot_end_pos()
+        start_x = clamp(start_x, int(lot_start.x), int(lot_end.x))
+        start_z = clamp(start_z, int(lot_start.y), int(lot_end.y))
+        end_x = clamp(end_x, int(lot_start.x), int(lot_end.x))
+        end_z = clamp(end_z, int(lot_start.y), int(lot_end.y))
+        log.info(start_x, start_z)
 
 		if x - i >= 0 {
 			for z in start_z ..= end_z {

@@ -86,14 +86,19 @@ lots_inside_active_lot :: proc(pos: glsl.ivec2) -> bool {
 	)
 }
 
+lots_full_inside_active_lot :: proc(pos: glsl.ivec2) -> bool {
+	start := lots_active_lot_start_pos()
+	return lots_inside_active_lot(pos) && start.x < pos.x && start.y < pos.y
+}
+
 lots_active_lot_start_pos :: proc() -> glsl.ivec2 {
 	lot := lots().active_lot
-    return lot.start * {CHUNK_WIDTH, CHUNK_DEPTH}
+	return lot.start * {CHUNK_WIDTH, CHUNK_DEPTH}
 }
 
 lots_active_lot_end_pos :: proc() -> glsl.ivec2 {
 	lot := lots().active_lot
-    return lot.end * {CHUNK_WIDTH, CHUNK_DEPTH}
+	return lot.end * {CHUNK_WIDTH, CHUNK_DEPTH}
 }
 
 @(private = "file")

@@ -49,7 +49,6 @@ button :: proc(
 
 	if game.mouse_is_button_press(.Left) {
         cursor := game.get_cursor_context()
-        log.info(cursor.pos, pos.x * game.window().scale.x, (pos.x + size.x) * game.window().scale.x)
 		if cursor.pos.x >= pos.x * game.window().scale.x &&
 		   cursor.pos.x < (pos.x + size.x) * game.window().scale.x &&
 		   cursor.pos.y >= pos.y * game.window().scale.y &&
