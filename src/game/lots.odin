@@ -101,6 +101,12 @@ lots_active_lot_end_pos :: proc() -> glsl.ivec2 {
 	return lot.end * {CHUNK_WIDTH, CHUNK_DEPTH}
 }
 
+lots_clamp_to_active_lot :: proc(pos: glsl.ivec2) -> glsl.ivec2 {
+	lot_start := lots_active_lot_start_pos()
+	lot_end := lots_active_lot_end_pos()
+    return glsl.clamp(pos, lot_start, lot_end)
+}
+
 @(private = "file")
 normalize_lot :: proc(lot: Lot) -> Lot {
 	normalized_lot := lot

@@ -2,6 +2,7 @@ package game
 
 import "core:log"
 import "core:math"
+import "core:math/linalg"
 import "core:math/linalg/glsl"
 import "core:math/rand"
 import "vendor:glfw"
@@ -47,7 +48,7 @@ TERRAIN_TOOL_MAX_SLOPE :: 1.0
 TERRAIN_TOOL_RANDOM_RADIUS :: 3
 
 terrain_tool :: proc() -> ^Terrain_Tool {
-    return &game().terrain_tool
+	return &game().terrain_tool
 }
 
 terrain_tool_init :: proc() {
@@ -76,7 +77,7 @@ terrain_tool_init :: proc() {
 	terrain_tool().drag_end = nil
 
 	terrain_tool().previous_brush_size = 1
-	terrain_tool().brush_size  = 1
+	terrain_tool().brush_size = 1
 	terrain_tool().brush_strength = 0.1
 	terrain_tool().mode = .Raise
 
@@ -158,7 +159,9 @@ terrain_tool_update :: proc(delta_time: f64) {
 
 	position.y =
 		get_terrain_context().terrain_heights[terrain_tool().position.x][terrain_tool().position.y]
+
 	terrain_tool().cursor.transform = glsl.mat4Translate(position)
+	handle_cursor_color()
 	shift_down := keyboard_is_key_down(.Key_Left_Shift)
 
 	if mouse_is_button_release(.Left) {
@@ -172,36 +175,47 @@ terrain_tool_update :: proc(delta_time: f64) {
 	   terrain_tool().mode == .Slope ||
 	   terrain_tool().drag_start != nil {
 		terrain_tool_move_points(position)
-	} else if keyboard_is_key_down(.Key_Left_Control) || terrain_tool().mode == .Smooth {
+	} else if keyboard_is_key_down(.Key_Left_Control) ||
+	   terrain_tool().mode == .Smooth {
 		terrain_tool_smooth_brush(delta_time)
 	} else {
 		terrain_tool_move_point(delta_time)
 	}
 
 	if drag_start, ok := terrain_tool().drag_start.?; ok {
-		start_x := min(drag_start.x, terrain_tool().position.x)
-		start_z := min(drag_start.y, terrain_tool().position.y)
-		end_x := max(drag_start.x, terrain_tool().position.x)
-		end_z := max(drag_start.y, terrain_tool().position.y)
+		start := lots_clamp_to_active_lot(
+			glsl.ivec2 {
+				min(drag_start.x, terrain_tool().position.x),
+				min(drag_start.y, terrain_tool().position.y),
+			},
+		)
+		end := lots_clamp_to_active_lot(
+			glsl.ivec2 {
+				max(drag_start.x, terrain_tool().position.x),
+				max(drag_start.y, terrain_tool().position.y),
+			},
+		)
 
-		for x in start_x ..< end_x {
-			for z in start_z ..< end_z {
+		for x in start.x ..< end.x {
+			for z in start.y ..< end.y {
 				tile_triangle_set_tile_mask_texture({x, 0, z}, .Leveling_Brush)
 			}
 		}
 	} else {
-		start_x := max(terrain_tool().position.x - terrain_tool().brush_size, 0)
-		end_x := min(
-			terrain_tool().position.x + terrain_tool().brush_size,
-			WORLD_WIDTH,
+		start := lots_clamp_to_active_lot(
+			glsl.ivec2 {
+				terrain_tool().position.x - terrain_tool().brush_size,
+				terrain_tool().position.y - terrain_tool().brush_size,
+			},
 		)
-		start_z := max(terrain_tool().position.y - terrain_tool().brush_size, 0)
-		end_z := min(
-			terrain_tool().position.y + terrain_tool().brush_size,
-			WORLD_DEPTH,
+		end := lots_clamp_to_active_lot(
+			glsl.ivec2 {
+				terrain_tool().position.x + terrain_tool().brush_size,
+				terrain_tool().position.y + terrain_tool().brush_size,
+			},
 		)
-		for x in start_x ..< end_x {
-			for z in start_z ..< end_z {
+		for x in start.x ..< end.x {
+			for z in start.y ..< end.y {
 				tile_triangle_set_tile_mask_texture({x, 0, z}, .Dotted_Grid)
 			}
 		}
@@ -216,8 +230,8 @@ terrain_tool_on_intersect :: proc(intersect: glsl.vec3) {
 }
 
 terrain_tool_mark_array_dirty :: proc(start: glsl.ivec2, end: glsl.ivec2) {
-	start := start
-	end := end
+	start := lots_clamp_to_active_lot(start)
+	end := lots_clamp_to_active_lot(end)
 	start.x /= CHUNK_WIDTH
 	end.x /= CHUNK_WIDTH
 	start.y /= CHUNK_DEPTH
@@ -469,11 +483,12 @@ terrain_tool_intersect_with_floor :: proc(x, z: i32) -> bool {
 terrain_tool_set_terrain_height :: proc(x, z: i32, height: f32) {
 	if terrain_tool_intersect_with_wall(x, z) {return}
 	if terrain_tool_intersect_with_floor(x, z) {return}
-    if !lots_full_inside_active_lot({x, z}) {return}
+	if !lots_full_inside_active_lot({x, z}) {return}
 
 	terrain := get_terrain_context()
 	if !({x, z} in terrain_tool().current_command.before) {
-		terrain_tool().current_command.before[{x, z}] = terrain.terrain_heights[x][z]
+		terrain_tool().current_command.before[{x, z}] =
+			terrain.terrain_heights[x][z]
 	}
 	terrain_tool().current_command.after[{x, z}] = height
 
@@ -504,7 +519,8 @@ terrain_tool_move_point :: proc(delta_time: f64) {
 	if mouse_is_button_down(.Left) && terrain_tool().mode == .Raise {
 		movement = terrain_tool().brush_strength
 		terrain_tool().tick_timer += delta_time
-	} else if (mouse_is_button_down(.Right) && terrain_tool().mode == .Raise) ||
+	} else if (mouse_is_button_down(.Right) &&
+		   terrain_tool().mode == .Raise) ||
 	   (mouse_is_button_down(.Left) && terrain_tool().mode == .Lower) {
 		movement = -terrain_tool().brush_strength
 		terrain_tool().tick_timer += delta_time
@@ -565,13 +581,12 @@ terrain_tool_adjust_points :: proc(x, z, w, h: int, movement: f32) {
 		start_z := max(z - i, 0)
 		end_z := min(max(z + i, 0), WORLD_DEPTH)
 
-        lot_start := lots_active_lot_start_pos()
-        lot_end := lots_active_lot_end_pos()
-        start_x = clamp(start_x, int(lot_start.x), int(lot_end.x))
-        start_z = clamp(start_z, int(lot_start.y), int(lot_end.y))
-        end_x = clamp(end_x, int(lot_start.x), int(lot_end.x))
-        end_z = clamp(end_z, int(lot_start.y), int(lot_end.y))
-        log.info(start_x, start_z)
+		lot_start := lots_active_lot_start_pos()
+		lot_end := lots_active_lot_end_pos()
+		start_x = clamp(start_x, int(lot_start.x), int(lot_end.x))
+		start_z = clamp(start_z, int(lot_start.y), int(lot_end.y))
+		end_x = clamp(end_x, int(lot_start.x), int(lot_end.x))
+		end_z = clamp(end_z, int(lot_start.y), int(lot_end.y))
 
 		if x - i >= 0 {
 			for z in start_z ..= end_z {
@@ -632,10 +647,10 @@ terrain_tool_cleanup :: proc() {
 
 		for x in start_x ..< end_x {
 			for z in start_z ..< end_z {
-                mask := Tile_Triangle_Mask.Full_Mask
-                if lots_inside_active_lot({x, z}) {
-                    mask = .Grid_Mask
-                }
+				mask := Tile_Triangle_Mask.Full_Mask
+				if lots_inside_active_lot({x, z}) {
+					mask = .Grid_Mask
+				}
 				tile_triangle_set_tile_mask_texture({x, 0, z}, mask)
 			}
 		}
@@ -669,10 +684,10 @@ terrain_tool_cleanup :: proc() {
 		)
 		for x in start_x ..< end_x {
 			for z in start_z ..< end_z {
-                mask := Tile_Triangle_Mask.Full_Mask
-                if lots_inside_active_lot({x, z}) {
-                    mask = .Grid_Mask
-                }
+				mask := Tile_Triangle_Mask.Full_Mask
+				if lots_inside_active_lot({x, z}) {
+					mask = .Grid_Mask
+				}
 				tile_triangle_set_tile_mask_texture({x, 0, z}, mask)
 			}
 		}
@@ -759,4 +774,13 @@ terrain_tool_undo :: proc(command: Terrain_Tool_Command) {
 
 terrain_tool_redo :: proc(command: Terrain_Tool_Command) {
 	terrain_tool_apply_state(command.after)
+}
+
+@(private = "file")
+handle_cursor_color :: proc() {
+	if !lots_full_inside_active_lot(terrain_tool().position) {
+		terrain_tool().cursor.light = glsl.vec3{1, 0, 0}
+	} else {
+		terrain_tool().cursor.light = glsl.vec3{1, 1, 1}
+	}
 }
