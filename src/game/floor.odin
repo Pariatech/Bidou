@@ -15,25 +15,28 @@ Floor_Context :: struct {
 }
 
 floor_move_up :: proc() {
-    ctx := get_floor_context()
+	ctx := get_floor_context()
 	ctx.previous_floor = ctx.floor
 	ctx.floor = min(ctx.floor + 1, WORLD_HEIGHT - 1)
 	floor_update_markers()
 }
 
 floor_move_down :: proc() {
-    ctx := get_floor_context()
+	ctx := get_floor_context()
 	ctx.previous_floor = ctx.floor
 	ctx.floor = max(ctx.floor - 1, 0)
 	floor_update_markers()
 }
 
 floor_update_markers :: proc() {
-    ctx := get_floor_context()
-	if ctx.previous_floor != ctx.floor || ctx.previous_show_markers != ctx.show_markers {
+	ctx := get_floor_context()
+	start := lots().active_lot.start
+	end := lots().active_lot.end
+	if ctx.previous_floor != ctx.floor ||
+	   ctx.previous_show_markers != ctx.show_markers {
 		if ctx.previous_floor > 0 && ctx.previous_show_markers {
-			for x in 0 ..< WORLD_CHUNK_WIDTH {
-				for z in 0 ..< WORLD_CHUNK_DEPTH {
+			for x in start.x ..< end.x {
+				for z in start.y ..< end.y {
 					chunk := &get_tile_triangles_context().chunks[ctx.previous_floor][x][z]
 					chunk.dirty = true
 					triangles := &chunk.triangles
@@ -47,16 +50,16 @@ floor_update_markers :: proc() {
 		}
 
 		if ctx.floor > 0 && ctx.show_markers {
-			for cx in 0 ..< WORLD_CHUNK_WIDTH {
-				for cz in 0 ..< WORLD_CHUNK_DEPTH {
+			for cx in start.x ..< end.x {
+				for cz in start.y ..< end.y {
 					chunk := &get_tile_triangles_context().chunks[ctx.floor][cx][cz]
 					chunk.dirty = true
 					for x in 0 ..< CHUNK_WIDTH {
 						for z in 0 ..< CHUNK_DEPTH {
 							for side in Tile_Triangle_Side {
 								key := Tile_Triangle_Key {
-									x    = cx * CHUNK_WIDTH + x,
-									z    = cz * CHUNK_DEPTH + z,
+									x    = int(cx) * CHUNK_WIDTH + x,
+									z    = int(cz) * CHUNK_DEPTH + z,
 									side = side,
 								}
 								if !(key in chunk.triangles) {
@@ -79,7 +82,7 @@ floor_update_markers :: proc() {
 }
 
 floor_update :: proc() {
-    ctx := get_floor_context()
+	ctx := get_floor_context()
 	ctx.previous_floor = ctx.floor
 	if keyboard_is_key_press(.Key_Page_Up) {
 		floor_move_up()
