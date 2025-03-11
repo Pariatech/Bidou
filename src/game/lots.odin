@@ -91,6 +91,23 @@ lots_full_inside_active_lot :: proc(pos: glsl.ivec2) -> bool {
 	return lots_inside_active_lot(pos) && start.x < pos.x && start.y < pos.y
 }
 
+lots_wall_inside_active_lot :: proc(pos: glsl.ivec2, axis: Wall_Axis) -> bool {
+	start := lots_active_lot_start_pos()
+	end := lots_active_lot_end_pos()
+	if !lots_full_inside_active_lot(pos) {
+		return false
+	}
+
+	#partial switch axis {
+	case .E_W:
+		return pos.x < end.x - 1
+	case .N_S:
+		return pos.y < end.y - 1
+	}
+
+	return pos.x < end.x - 1 && pos.y < end.y - 1
+}
+
 lots_active_lot_start_pos :: proc() -> glsl.ivec2 {
 	lot := lots().active_lot
 	return lot.start * {CHUNK_WIDTH, CHUNK_DEPTH}
@@ -104,7 +121,7 @@ lots_active_lot_end_pos :: proc() -> glsl.ivec2 {
 lots_clamp_to_active_lot :: proc(pos: glsl.ivec2) -> glsl.ivec2 {
 	lot_start := lots_active_lot_start_pos()
 	lot_end := lots_active_lot_end_pos()
-    return glsl.clamp(pos, lot_start, lot_end)
+	return glsl.clamp(pos, lot_start, lot_end)
 }
 
 @(private = "file")

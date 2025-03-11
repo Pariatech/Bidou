@@ -256,8 +256,11 @@ deinit_game :: proc() {
 	deinit_roofs()
 	deinit_walls()
 	tile_triangles_deinit()
+
 	floor_tool_deinit()
 	paint_tool_deinit()
+    wall_tool_deinit()
+
 	lots_deinit()
     delete_objects()
     deload_object_blueprints()

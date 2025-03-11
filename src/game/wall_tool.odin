@@ -38,6 +38,10 @@ wall_tool_init :: proc() {
 }
 
 wall_tool_deinit :: proc() {
+    delete(wall_tool().north_south_walls)
+    delete(wall_tool().east_west_walls)
+    delete(wall_tool().south_west_north_east_walls)
+    delete(wall_tool().north_west_south_east_walls)
 }
 
 wall_tool_update :: proc() {
@@ -333,6 +337,10 @@ wall_tool_undo_removing_north_south_wall :: proc(pos: glsl.ivec3) {
 }
 
 wall_tool_remove_south_west_north_east_wall :: proc(pos: glsl.ivec3) {
+    if !lots_wall_inside_active_lot(pos.xz, .SW_NE) {
+        return
+    }
+
 	if wall, ok := wall_tool().south_west_north_east_walls[pos]; ok {
 		return
 	}
@@ -341,6 +349,10 @@ wall_tool_remove_south_west_north_east_wall :: proc(pos: glsl.ivec3) {
 }
 
 wall_tool_remove_north_west_south_east_wall :: proc(pos: glsl.ivec3) {
+    if !lots_wall_inside_active_lot(pos.xz, .NW_SE) {
+        return
+    }
+
 	if wall, ok := wall_tool().north_west_south_east_walls[pos]; ok {
 		return
 	}
@@ -349,6 +361,10 @@ wall_tool_remove_north_west_south_east_wall :: proc(pos: glsl.ivec3) {
 }
 
 wall_tool_remove_east_west_wall :: proc(pos: glsl.ivec3) {
+    if !lots_wall_inside_active_lot(pos.xz, .E_W) {
+        return
+    }
+
 	if wall, ok := wall_tool().east_west_walls[pos]; ok {
 		return
 	}
@@ -357,6 +373,10 @@ wall_tool_remove_east_west_wall :: proc(pos: glsl.ivec3) {
 }
 
 wall_tool_remove_north_south_wall :: proc(pos: glsl.ivec3) {
+    if !lots_wall_inside_active_lot(pos.xz, .N_S) {
+        return
+    }
+
 	if wall, ok := wall_tool().north_south_walls[pos]; ok {
 		return
 	}
@@ -576,6 +596,10 @@ wall_tool_set_south_west_north_east_wall :: proc(
 	pos: glsl.ivec3,
 	texture: Wall_Texture,
 ) {
+    if !lots_wall_inside_active_lot(pos.xz, .SW_NE) {
+        return
+    }
+
 	if wall, ok := get_south_west_north_east_wall(pos); ok {
 		wall_tool().south_west_north_east_walls[pos] = wall
 		return
@@ -607,6 +631,10 @@ wall_tool_set_north_west_south_east_wall :: proc(
 	pos: glsl.ivec3,
 	texture: Wall_Texture,
 ) {
+    if !lots_wall_inside_active_lot(pos.xz, .NW_SE) {
+        return
+    }
+
 	if wall, ok := get_north_west_south_east_wall(pos); ok {
 		wall_tool().north_west_south_east_walls[pos] = wall
 		return
@@ -639,6 +667,10 @@ wall_tool_set_east_west_wall :: proc(
 	pos: glsl.ivec3,
 	texture: Wall_Texture,
 ) {
+    if !lots_wall_inside_active_lot(pos.xz, .E_W) {
+        return
+    }
+
 	if wall, ok := get_east_west_wall(pos); ok {
 		wall_tool().east_west_walls[pos] = wall
 		return
@@ -670,6 +702,10 @@ wall_tool_set_north_south_wall :: proc(
 	pos: glsl.ivec3,
 	texture: Wall_Texture,
 ) {
+    if !lots_wall_inside_active_lot(pos.xz, .N_S) {
+        return
+    }
+
 	if wall, ok := get_north_south_wall(pos); ok {
 		wall_tool().north_south_walls[pos] = wall
 		return
@@ -690,6 +726,10 @@ wall_tool_set_north_south_wall :: proc(
 }
 
 wall_tool_removing_south_west_north_east_wall :: proc(pos: glsl.ivec3) {
+    if !lots_wall_inside_active_lot(pos.xz, .SW_NE) {
+        return
+    }
+
 	if w, ok := get_south_west_north_east_wall(pos); ok {
 		wall_tool().south_west_north_east_walls[pos] = w
 		remove_south_west_north_east_wall(pos)
@@ -698,6 +738,10 @@ wall_tool_removing_south_west_north_east_wall :: proc(pos: glsl.ivec3) {
 }
 
 wall_tool_removing_north_west_south_east_wall :: proc(pos: glsl.ivec3) {
+    if !lots_wall_inside_active_lot(pos.xz, .NW_SE) {
+        return
+    }
+
 	if w, ok := get_north_west_south_east_wall(pos); ok {
 		wall_tool().north_west_south_east_walls[pos] = w
 		remove_north_west_south_east_wall(pos)
@@ -706,6 +750,10 @@ wall_tool_removing_north_west_south_east_wall :: proc(pos: glsl.ivec3) {
 }
 
 wall_tool_removing_east_west_wall :: proc(pos: glsl.ivec3) {
+    if !lots_wall_inside_active_lot(pos.xz, .E_W) {
+        return
+    }
+
 	if w, ok := get_east_west_wall(pos); ok {
 		wall_tool().east_west_walls[pos] = w
 		remove_east_west_wall(pos)
@@ -714,6 +762,10 @@ wall_tool_removing_east_west_wall :: proc(pos: glsl.ivec3) {
 }
 
 wall_tool_removing_north_south_wall :: proc(pos: glsl.ivec3) {
+    if !lots_wall_inside_active_lot(pos.xz, .N_S) {
+        return
+    }
+
 	if w, ok := get_north_south_wall(pos); ok {
 		wall_tool().north_south_walls[pos] = w
 		remove_north_south_wall(pos)
