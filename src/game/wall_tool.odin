@@ -77,6 +77,11 @@ wall_tool_update :: proc() {
 		wall_tool_update_line()
 	}
 
+    if lots_full_inside_active_lot(wall_tool().position) {
+	    wall_tool().cursor.light = {1, 1, 1}
+    } else {
+	    wall_tool().cursor.light = {1, 0, 0}
+    }
 	draw_one_object(&wall_tool().cursor)
 }
 
