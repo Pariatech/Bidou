@@ -220,7 +220,7 @@ paint_tool :: proc() -> ^Paint_Tool {
 
 paint_tool_init :: proc() {
 	get_floor_context().show_markers = false
-    paint_tool().texture = .White
+	paint_tool().texture = .White
 }
 
 paint_tool_deinit :: proc() {
@@ -402,6 +402,8 @@ paint_tool_paint_wall :: proc(
 	axis: Wall_Axis,
 	texture: Wall_Texture,
 ) {
+	if !lots_wall_inside_active_lot(position.xz, axis) {return}
+
 	side_map := PAINT_TOOL_WALL_SIDE_MAP
 	switch axis {
 	case .E_W:
@@ -484,6 +486,8 @@ paint_tool_flood_fill :: proc(
 	previous_texture: Wall_Texture,
 	texture: Wall_Texture,
 ) {
+	if !lots_wall_inside_active_lot(position.xz, type) {return}
+
 	if previous_texture == texture {
 		return
 	}
