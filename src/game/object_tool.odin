@@ -255,22 +255,32 @@ object_tool_place_object :: proc() {
 	}
 }
 
+@(private = "file")
+revert_object_move :: proc() {
+	ctx := get_object_tool_context()
+	ctx.previous_mode = ctx.mode
+	ctx.mode = .Pick
+	for obj in ctx.original_objects {
+		add_object(obj)
+	}
+	for obj in ctx.objects {
+		delete_object_draw(obj.draw_id)
+	}
+	clear_object_tool_tile_marker_object_draws()
+	clear(&ctx.objects)
+	clear(&ctx.original_objects)
+}
+
 object_tool_move_object :: proc() {
 	ctx := get_object_tool_context()
 
 	if keyboard_is_key_press(.Key_Escape) {
-		ctx.previous_mode = ctx.mode
-		ctx.mode = .Pick
-		for obj in ctx.original_objects {
-			add_object(obj)
-		}
-		for obj in ctx.objects {
-			delete_object_draw(obj.draw_id)
-		}
-		clear_object_tool_tile_marker_object_draws()
-		clear(&ctx.objects)
-		clear(&ctx.original_objects)
+		revert_object_move()
 	} else if mouse_is_button_press(.Left) {
+		if !can_add_object(ctx.objects[0]) {
+            revert_object_move()
+            return
+		}
 
 		for &obj in ctx.objects {
 			id, _ := add_object(obj)
@@ -312,10 +322,7 @@ object_tool_move_object :: proc() {
 			obj.pos.xz = glsl.clamp(
 				obj.pos.xz,
 				glsl.vec2{0, 0},
-				glsl.vec2 {
-					game.WORLD_WIDTH - 1,
-					game.WORLD_DEPTH - 1,
-				},
+				glsl.vec2{game.WORLD_WIDTH - 1, game.WORLD_DEPTH - 1},
 			)
 		}
 	}
@@ -331,7 +338,7 @@ update_object_tool :: proc() {
 		previous_orientation = ctx.objects[0].orientation
 	}
 
-    floor := get_floor_context()
+	floor := get_floor_context()
 	on_cursor_tile_intersect(
 		object_tool_on_intersect,
 		floor.previous_floor,

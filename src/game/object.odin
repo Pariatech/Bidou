@@ -478,12 +478,9 @@ calculate_object_bounding_box :: proc(object: ^Object) {
 can_add_object :: proc(obj: Object) -> bool {
 	tile_pos := world_pos_to_tile_pos(obj.pos)
 
-	if tile_pos.x < 0 ||
-	   tile_pos.x >= WORLD_WIDTH ||
-	   tile_pos.y < 0 ||
-	   tile_pos.y >= WORLD_DEPTH {
-		return false
-	}
+    if !lots_inside_active_lot(tile_pos) {
+        return false
+    }
 
 	switch obj.placement {
 	case .Wall:
