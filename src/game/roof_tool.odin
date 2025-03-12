@@ -66,7 +66,7 @@ init_roof_tool :: proc() {
 	cursor_top_map := ROOF_TOOL_CURSOR_TOP_MAP
 	ctx.cursor_top.texture = cursor_top_map[ctx.roof.type]
 
-    floor := get_floor_context()
+	floor := get_floor_context()
 	floor.show_markers = true
 
 	ctx.roof.slope = 1
@@ -80,7 +80,7 @@ init_roof_tool :: proc() {
 
 deinit_roof_tool :: proc() {
 	ctx := get_roof_tool_context()
-    floor := get_floor_context()
+	floor := get_floor_context()
 	// delete_object_draw(ctx.cursor.id)
 
 	floor.show_markers = false
@@ -92,7 +92,7 @@ deinit_roof_tool :: proc() {
 
 update_roof_tool :: proc() {
 	ctx := get_roof_tool_context()
-    floor := get_floor_context()
+	floor := get_floor_context()
 
 	on_cursor_tile_intersect(
 		roof_tool_on_intersect,
@@ -113,7 +113,15 @@ update_roof_tool :: proc() {
 		ctx.state = handle_roof_tool_painting()
 	}
 
-	// ctx.cursor_top.light = ctx.cursor.light
+	if lots_full_inside_active_lot(
+		   {i32(ctx.cursor.pos.x + 0.5), i32(ctx.cursor.pos.z + 0.5)},
+	   ) {
+		if ctx.state != .Removing {
+			ctx.cursor.light = {1, 1, 1}
+		}
+	} else {
+		ctx.cursor.light = {1, 0, 0}
+	}
 }
 
 draw_roof_tool :: proc() {
@@ -1904,7 +1912,7 @@ add_half_gable_roof_walls :: proc(roof: Roof) {
 @(private = "file")
 handle_roof_tool_idle :: proc() -> Roof_Tool_State {
 	ctx := get_roof_tool_context()
-    floor := get_floor_context()
+	floor := get_floor_context()
 
 	if keyboard_is_key_down(.Key_Left_Control) {
 		transition_to_remove_roof_state()
@@ -1918,7 +1926,10 @@ handle_roof_tool_idle :: proc() -> Roof_Tool_State {
 		return .Painting
 	}
 
-	if mouse_is_button_press(.Left) {
+	if mouse_is_button_press(.Left) &&
+	   lots_full_inside_active_lot(
+		   {i32(ctx.cursor.pos.x + 0.5), i32(ctx.cursor.pos.z + 0.5)},
+	   ) {
 		ctx.roof.start = ctx.cursor.pos.xz
 		ctx.roof.end = ctx.roof.start
 		ctx.roof.offset =
@@ -1927,7 +1938,6 @@ handle_roof_tool_idle :: proc() -> Roof_Tool_State {
 				int(ctx.cursor.pos.x + 0.5),
 				int(ctx.cursor.pos.z + 0.5),
 			)
-        log.info(ctx.roof.offset)
 		ctx.roof.light = {1, 1, 1, 0.5}
 		ctx.roof.id = add_roof(ctx.roof)
 
@@ -1955,6 +1965,18 @@ handle_roof_tool_placing :: proc() -> Roof_Tool_State {
 	}
 
 	ctx.roof.end = ctx.cursor.pos.xz
+	start := lots_active_lot_start_pos()
+	end := lots_active_lot_end_pos()
+	ctx.roof.end.x = clamp(
+		ctx.roof.end.x,
+		f32(start.x) + 0.5,
+		f32(end.x) - 1.5,
+	)
+	ctx.roof.end.y = clamp(
+		ctx.roof.end.y,
+		f32(start.y) + 0.5,
+		f32(end.y) - 1.5,
+	)
 	update_roof(ctx.roof)
 	return ctx.state
 }
@@ -1978,6 +2000,12 @@ handle_roof_tool_removing :: proc() -> Roof_Tool_State {
 		transition_to_paint_roof_state()
 		return .Painting
 	}
+
+	if !lots_full_inside_active_lot(
+		   {i32(ctx.cursor.pos.x + 0.5), i32(ctx.cursor.pos.z + 0.5)},
+	   ) {
+        return ctx.state
+    }
 
 	roofs := get_roofs_context()
 
