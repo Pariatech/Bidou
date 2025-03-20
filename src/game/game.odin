@@ -1,6 +1,7 @@
 package game
 
 import "core:math/linalg/glsl"
+import "core:log"
 
 Game_Context :: struct {
 	textures:          Textures_Context,
@@ -22,6 +23,8 @@ Game_Context :: struct {
 	window:            Window,
 	renderer:          Renderer,
 	lots:              Lots,
+	ui:                UI,
+	text_renderer:     Text_Renderer,
 	// ---------- Tools ---------
 	tools:             Tools,
 	object_tool:       Object_Tool_Context,
@@ -76,10 +79,6 @@ get_walls_context :: proc() -> ^Walls_Context {
 	return &game().walls
 }
 
-get_cursor_context :: proc() -> ^Cursor_Context {
-	return &game().cursor
-}
-
 get_terrain_context :: proc() -> ^Terrain_Context {
 	return &game().terrain
 }
@@ -103,18 +102,20 @@ init_game :: proc() -> bool {
 	load_models() or_return
 	init_objects() or_return
 
-    lots_init()
+	lots_init()
 
 	init_cutaways()
 
 	floor_tool_init()
 	terrain_tool_init()
-    init_object_tool()
+	init_object_tool()
 	load_object_blueprints() or_return
 	init_object_draws() or_return
 	init_roofs() or_return
 	tile_triangles_init() or_return
 	camera_init() or_return
+
+	ui_init() or_return
 
 	// add_roof({type = .Half_Hip, start = {0, 0}, end = {0, 1}})
 	// add_roof({type = .Half_Hip, start = {0, 3}, end = {0, 5}})
@@ -127,7 +128,7 @@ init_game :: proc() -> bool {
 	//
 
 	add_roof(
-		 {
+		{
 			type = .Hip,
 			start = {-4, -4},
 			end = {-3, -3},
@@ -139,7 +140,7 @@ init_game :: proc() -> bool {
 	)
 
 	add_roof(
-		 {
+		{
 			type = .Hip,
 			start = {11.4, 11.4},
 			end = {23.6, 22.6},
@@ -151,7 +152,7 @@ init_game :: proc() -> bool {
 	)
 
 	add_roof(
-		 {
+		{
 			type = .Gable,
 			start = {11.4, 15.4},
 			end = {15.6, 18.6},
@@ -165,7 +166,7 @@ init_game :: proc() -> bool {
 	set_wall(
 		{12, 2, 16},
 		.N_S,
-		 {
+		{
 			type = .Side,
 			textures = {.Inside = .Brick, .Outside = .Brick},
 			mask = .Full_Mask,
@@ -178,7 +179,7 @@ init_game :: proc() -> bool {
 	set_wall(
 		{12, 2, 17},
 		.N_S,
-		 {
+		{
 			type = .Side,
 			textures = {.Inside = .Brick, .Outside = .Brick},
 			mask = .Full_Mask,
@@ -191,7 +192,7 @@ init_game :: proc() -> bool {
 	set_wall(
 		{12, 2, 18},
 		.N_S,
-		 {
+		{
 			type = .Side,
 			textures = {.Inside = .Brick, .Outside = .Brick},
 			mask = .Full_Mask,
@@ -204,7 +205,7 @@ init_game :: proc() -> bool {
 	set_wall(
 		{16, 2, 16},
 		.N_S,
-		 {
+		{
 			type = .Side,
 			textures = {.Inside = .Brick, .Outside = .Brick},
 			mask = .Full_Mask,
@@ -217,7 +218,7 @@ init_game :: proc() -> bool {
 	set_wall(
 		{16, 2, 17},
 		.N_S,
-		 {
+		{
 			type = .Side,
 			textures = {.Inside = .Brick, .Outside = .Brick},
 			mask = .Full_Mask,
@@ -230,7 +231,7 @@ init_game :: proc() -> bool {
 	set_wall(
 		{16, 2, 18},
 		.N_S,
-		 {
+		{
 			type = .Side,
 			textures = {.Inside = .Brick, .Outside = .Brick},
 			mask = .Full_Mask,
@@ -240,17 +241,38 @@ init_game :: proc() -> bool {
 		},
 	)
 
-    world_init()
+	world_init()
 
 	return true
 }
 
+game_update :: proc() {
+    ui_update()
+	if ui_root() {
+		if ui_window(
+		"Hello, Window!",
+		// {x = 300, y = 300 w = i32(window().size.x), h = i32(window().size.y)},
+		{x = 0, y = 0, w = i32(window().size.x), h = i32(window().size.y)},
+        {
+            .NO_TITLE,
+            .NO_FRAME,
+            .NO_INTERACT,
+        }
+		) {
+            ui_layout_height(40)
+            if ui_button("Click Me!") {
+                log.info("Click!")
+            }
+		}
+	}
+}
+
 deinit_game :: proc() {
-    renderer_deinit()
-    keyboard_deinit()
-    mouse_deinit()
-    tools_deinit()
-    delete_textures()
+	renderer_deinit()
+	keyboard_deinit()
+	mouse_deinit()
+	tools_deinit()
+	delete_textures()
 	deinit_object_draws()
 	deinit_object_tool()
 	deinit_roofs()
@@ -259,11 +281,13 @@ deinit_game :: proc() {
 
 	floor_tool_deinit()
 	paint_tool_deinit()
-    wall_tool_deinit()
+	wall_tool_deinit()
 
 	lots_deinit()
-    delete_objects()
-    deload_object_blueprints()
+	delete_objects()
+	deload_object_blueprints()
+
+	ui_deinit()
 }
 
 draw_game :: proc(floor: i32) -> bool {

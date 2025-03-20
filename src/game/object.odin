@@ -556,6 +556,9 @@ can_add_object_on_floor :: proc(obj: Object) -> bool {
 	it := make_object_tiles_iterator(obj)
 	for pos in next_object_tile_pos(&it) {
 		tile_pos := world_pos_to_tile_pos(pos)
+        if !lots_inside_active_lot(tile_pos) {
+            return false
+        }
 		chunk_pos := world_pos_to_chunk_pos(pos)
 
 		if has_object_at(pos, .Floor) {
@@ -891,10 +894,9 @@ delete_object_by_id :: proc(id: Object_Id) -> (ok: bool = true) {
 
 get_object_under_cursor :: proc() -> (object_id: Object_Id, ok: bool = true) {
 	objects := get_objects_context()
-    cursor := get_cursor_context()
 	ray := Ray_2D {
-		origin    = cursor.ray.origin.xz,
-		direction = cursor.ray.direction.xz,
+		origin    = cursor().ray.origin.xz,
+		direction = cursor().ray.direction.xz,
 	}
 
 	rect: Rect
@@ -913,8 +915,7 @@ get_object_under_cursor :: proc() -> (object_id: Object_Id, ok: bool = true) {
 		chunk := &objects.chunks[floor.floor][i32(pos.x)][i32(pos.y)]
 		for id, i in chunk.objects_inside {
 			if obj, ok := get_object_by_id(id); ok {
-                cursor := get_cursor_context()
-				if ray_intersect_box(cursor.ray, obj.bounding_box) {
+				if ray_intersect_box(cursor().ray, obj.bounding_box) {
 					object_under_id = id
 					if obj.placement != .Floor {
 						return object_under_id.?, true

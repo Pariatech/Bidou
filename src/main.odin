@@ -105,6 +105,8 @@ start :: proc() -> (ok: bool = false) {
 
         game.window_update()
 
+        game.game_update()
+
 		// log.debug("Window:", glfw.GetWindowSize(window.handle))
 		// log.debug("Frambuffer:", glfw.GetFramebufferSize(window.handle))
 
@@ -133,6 +135,8 @@ start :: proc() -> (ok: bool = false) {
 		game.tools_update(delta_time)
 
 		ui.draw(&ui_ctx)
+
+	    game.ui_render()
 
 		game.renderer_end_draw()
 

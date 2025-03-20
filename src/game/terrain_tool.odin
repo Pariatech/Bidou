@@ -53,8 +53,7 @@ terrain_tool :: proc() -> ^Terrain_Tool {
 
 terrain_tool_init :: proc() {
 	cursor_intersect_with_tiles(terrain_tool_on_intersect, 0)
-	cursor := get_cursor_context()
-	terrain_tool().cursor_pos = cursor.ray.origin
+	terrain_tool().cursor_pos = cursor().ray.origin
 
 	position := terrain_tool().intersect
 	position.x = math.ceil(position.x) - 0.5

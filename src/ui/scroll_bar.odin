@@ -155,7 +155,7 @@ scroll_bar :: proc(
 	dragging: ^bool,
 	color: glsl.vec4 = ROYAL_BLUE,
 ) {
-    cursor := game.get_cursor_context()
+    cursor := game.cursor()
 	if game.mouse_is_button_press(.Left) &&
 	   cursor.pos.x >= pos.x &&
 	   cursor.pos.x < pos.x + size.x &&

@@ -48,7 +48,7 @@ button :: proc(
 	)
 
 	if game.mouse_is_button_press(.Left) {
-        cursor := game.get_cursor_context()
+        cursor := game.cursor()
 		if cursor.pos.x >= pos.x * game.window().scale.x &&
 		   cursor.pos.x < (pos.x + size.x) * game.window().scale.x &&
 		   cursor.pos.y >= pos.y * game.window().scale.y &&
@@ -100,7 +100,7 @@ icon_button :: proc(
 	)
 
 	if game.mouse_is_button_press(.Left) {
-        cursor := game.get_cursor_context()
+        cursor := game.cursor()
 		if cursor.pos.x >= pos.x * game.window().scale.x &&
 		   cursor.pos.x < (pos.x + size.x) * game.window().scale.x &&
 		   cursor.pos.y >= pos.y * game.window().scale.y &&

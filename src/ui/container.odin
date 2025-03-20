@@ -55,7 +55,7 @@ container :: proc(
 }
 
 cursor_in :: proc(pos: glsl.vec2, size: glsl.vec2) -> bool {
-	cursor := game.get_cursor_context()
+	cursor := game.cursor()
 	return(
 		cursor.pos.x >= pos.x * game.window().scale.x &&
 		cursor.pos.x < (pos.x + size.x) * game.window().scale.x &&

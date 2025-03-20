@@ -30,12 +30,16 @@ init_cursor :: proc() {
 	glfw.SetCursorPosCallback(window().handle, pos_callback)
 }
 
+cursor :: proc() -> ^Cursor_Context {
+	return &game().cursor
+}
+
 set_cursor_pos :: proc(pos: glsl.vec2) {
 	glfw.SetCursorPos(window().handle, f64(pos.x), f64(pos.y))
 }
 
 update_cursor :: proc() {
-	ctx := get_cursor_context()
+	ctx := cursor()
 	update_ray()
 	ctx.previous_pos = ctx.pos
 }
@@ -73,7 +77,7 @@ on_cursor_tile_intersect :: proc(
 	previous_floor: i32,
 	floor: i32,
 ) {
-	ctx := get_cursor_context()
+	ctx := cursor()
 	if ctx.moved || previous_floor != floor {
 		cursor_intersect_with_tiles(on_intersect, floor)
 	} else {
@@ -85,7 +89,7 @@ cursor_intersect_with_tiles :: proc(
 	on_intersect: proc(_: glsl.vec3),
 	floor: i32,
 ) {
-	ctx := get_cursor_context()
+	ctx := cursor()
 	dx := ctx.ray.direction.x
 	dz := ctx.ray.direction.z
 	origin := ctx.ray.origin
@@ -178,7 +182,7 @@ cursor_is_intersect_with_wall :: proc(
 }
 
 cursor_get_intersect_with_wall :: proc(floor: i32) -> (Wall_Intersect, bool) {
-	ctx := get_cursor_context()
+	ctx := cursor()
 	dx := ctx.ray.direction.x
 	dz := ctx.ray.direction.z
 	origin := ctx.ray.origin
@@ -226,7 +230,7 @@ pos_callback :: proc "c" (window: glfw.WindowHandle, xpos, ypos: f64) {
 	// context = cast(type_of(context))glfw.GetWindowUserPointer(window)
 
 	// return cast(^Game_Context)context.user_ptr
-	ctx := get_cursor_context()
+	ctx := cursor()
 
 	ctx.pos.x = f32(xpos)
 	ctx.pos.y = f32(ypos)
@@ -236,7 +240,7 @@ pos_callback :: proc "c" (window: glfw.WindowHandle, xpos, ypos: f64) {
 
 @(private = "file")
 update_ray :: proc() {
-	ctx := get_cursor_context()
+	ctx := cursor()
 	screen_pos: glsl.vec4
 	screen_pos.x = ctx.pos.x / window().size.x
 	screen_pos.y = ctx.pos.y / window().size.y
@@ -262,7 +266,7 @@ ray_intersect_plane :: proc(
 	pos: glsl.vec3,
 	normal: glsl.vec3,
 ) -> Maybe(glsl.vec3) {
-	ctx := get_cursor_context()
+	ctx := cursor()
 	dot_product := glsl.dot(ctx.ray.direction, normal)
 
 	if dot_product == 0 {
@@ -279,7 +283,7 @@ ray_intersect_plane :: proc(
 
 @(private = "file")
 ray_intersect_triangle :: proc(triangle: [3]glsl.vec3) -> Maybe(glsl.vec3) {
-	ctx := get_cursor_context()
+	ctx := cursor()
 	EPSILON :: 0.000001
 
 	edge1, edge2, h, s, q: glsl.vec3
@@ -337,7 +341,7 @@ intersect_with_tile_triangle :: proc(
 	pos: glsl.vec2,
 	on_intersect: proc(_: glsl.vec3),
 ) -> bool {
-	ctx := get_cursor_context()
+	ctx := cursor()
 
 	triangle: [3]glsl.vec3
 
